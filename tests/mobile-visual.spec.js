@@ -39,6 +39,15 @@ async function mockAdminApi(page) {
   });
 }
 
+async function signInAdmin(page) {
+  await expect(page.locator('#loginForm input[name="email"]')).toHaveValue('');
+  await expect(page.locator('#loginForm input[name="password"]')).toHaveValue('');
+  await page.locator('#loginForm input[name="email"]').fill('acs.mmo@gmail.com');
+  await page.locator('#loginForm input[name="password"]').fill('acsmmo@2026#');
+  await page.locator('#loginForm button[type="submit"]').click();
+  await expect(page.locator('body')).not.toHaveClass(/admin-locked/);
+}
+
 async function expectNoHorizontalOverflow(page) {
   const overflow = await page.evaluate(() => ({
     innerWidth: window.innerWidth,
@@ -126,11 +135,26 @@ test('career page renders existing role layout dynamically without duplicate pla
   await page.screenshot({ path: path.join(outputDir, 'career-dynamic.png'), fullPage: false });
 });
 
+test('admin sign in panel starts blank and blocks board', async ({ page }) => {
+  await mockAdminApi(page);
+  await page.setViewportSize({ width: 1365, height: 768 });
+  await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
+
+  await expect(page.locator('body')).toHaveClass(/admin-locked/);
+  await expect(page.locator('#loginForm')).toBeVisible();
+  await expect(page.locator('#loginForm input[name="email"]')).toHaveValue('');
+  await expect(page.locator('#loginForm input[name="password"]')).toHaveValue('');
+  await expect(page.locator('.admin-shell')).toBeHidden();
+  await expectNoHorizontalOverflow(page);
+  await page.screenshot({ path: path.join(outputDir, 'admin-sign-in.png'), fullPage: false });
+});
+
 test('admin tabs feel like ACS module navigation on desktop and mobile', async ({ page }) => {
   await mockAdminApi(page);
   await page.setViewportSize({ width: 1365, height: 768 });
   await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
   await page.waitForLoadState('networkidle').catch(() => {});
+  await signInAdmin(page);
 
   await expect(page.locator('.admin-nav .nav-title')).toBeVisible();
   await expect(page.locator('.admin-nav button[data-tab="seo"] small')).toHaveText('All page metadata');
@@ -150,6 +174,7 @@ test('admin analytics owns GA and GTM tags with working chart', async ({ page })
   await page.setViewportSize({ width: 1365, height: 768 });
   await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
   await page.waitForLoadState('networkidle').catch(() => {});
+  await signInAdmin(page);
 
   await page.locator('.admin-nav button[data-tab="analytics"]').click();
   await expect(page.locator('#analyticsTagForm input[name="gaMeasurementId"]')).toHaveValue('G-ACS2026');

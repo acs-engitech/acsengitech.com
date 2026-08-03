@@ -10,17 +10,35 @@
     selectedPost: null,
     selectedJob: null,
     postFilter: 'all',
-    email: localStorage.getItem('acsAdminEmail') || 'acs.mmo@gmail.com',
-    password: localStorage.getItem('acsAdminPassword') || '',
+    email: '',
+    password: '',
+    authenticated: false,
   };
 
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => Array.from(document.querySelectorAll(selector));
   const statusBar = $('#statusBar');
+  const loginForm = $('#loginForm');
+  const loginError = $('#loginError');
 
   function setStatus(message, type) {
     statusBar.textContent = message;
     statusBar.className = `status-bar ${type || ''}`;
+  }
+
+  function showSignIn(message) {
+    document.body.classList.add('admin-locked');
+    state.authenticated = false;
+    state.email = '';
+    state.password = '';
+    if (loginForm) loginForm.reset();
+    if (loginError) loginError.textContent = message || '';
+    setTimeout(() => loginForm?.email?.focus(), 0);
+  }
+
+  function hideSignIn() {
+    document.body.classList.remove('admin-locked');
+    if (loginError) loginError.textContent = '';
   }
 
   function authHeaders() {
@@ -36,17 +54,11 @@
         ...(options.headers || {}),
       },
     });
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
     if (response.status === 401) {
-      const email = window.prompt('Enter ACS admin email', state.email || 'acs.mmo@gmail.com');
-      const password = email ? window.prompt('Enter ACS admin password') : '';
-      if (email && password) {
-        state.email = email.trim();
-        state.password = password;
-        localStorage.setItem('acsAdminEmail', state.email);
-        localStorage.setItem('acsAdminPassword', password);
-        return api(path, options);
-      }
+      const error = new Error(data.error || 'Invalid admin email or password');
+      error.code = 'AUTH_REQUIRED';
+      throw error;
     }
     if (!response.ok) throw new Error(data.error || 'Request failed');
     return data;
@@ -88,6 +100,10 @@
   }
 
   async function load() {
+    if (!state.email || !state.password) {
+      showSignIn();
+      return;
+    }
     setStatus('Loading admin data...');
     try {
       const days = $('#analyticsDays')?.value || 30;
@@ -98,14 +114,20 @@
       state.jobs = data.jobs || [];
       state.settings = data.settings || {};
       state.analytics = data.analytics || {};
+      state.authenticated = true;
       state.selectedPage ||= state.pages[0]?.path || '/';
       state.selectedPost ||= state.posts[0]?.id || null;
       state.selectedJob ||= state.jobs[0]?.id || null;
       render();
+      hideSignIn();
       setStatus('All changes are loaded.', 'ok');
     } catch (error) {
       render();
-      setStatus('Admin data could not be loaded. Start the local dev server or check the Neon/Vercel connection.', 'error');
+      if (error.code === 'AUTH_REQUIRED') {
+        showSignIn(error.message);
+      } else {
+        setStatus('Admin data could not be loaded. Start the local dev server or check the Neon/Vercel connection.', 'error');
+      }
     }
   }
 
@@ -270,6 +292,19 @@
   }
 
   function bindEvents() {
+    loginForm?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      state.email = form.email.value.trim();
+      state.password = form.password.value;
+      if (loginError) loginError.textContent = '';
+      await load();
+    });
+
+    $('#logoutBtn')?.addEventListener('click', () => {
+      showSignIn('Signed out.');
+    });
+
     $$('.admin-nav button').forEach((button) => button.addEventListener('click', () => {
       $$('.admin-nav button').forEach((item) => item.classList.remove('active'));
       $$('.panel').forEach((item) => item.classList.remove('active'));

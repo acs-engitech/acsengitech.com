@@ -9,8 +9,21 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="acs-admin.css">
 </head>
-<body>
-  <header class="admin-topbar">
+<body class="admin-locked">
+  <section class="admin-login" id="adminLogin" aria-label="Admin sign in">
+    <form class="login-card" id="loginForm">
+      <img src="logo-1.svg" alt="ACS Engitech">
+      <p class="eyebrow">Secure access</p>
+      <h1>Sign in to Admin Board</h1>
+      <p class="login-copy">Use the ACS Engitech admin credentials to manage SEO, blogs, careers, analytics, and crawler files.</p>
+      <div id="loginError" class="login-error" role="alert"></div>
+      <label>Email <input name="email" type="email" autocomplete="username" required></label>
+      <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
+      <button class="primary" type="submit">Sign in</button>
+    </form>
+  </section>
+
+  <header class="admin-topbar admin-app">
     <a class="brand" href="index.html" aria-label="ACS Engitech site">
       <img src="logo-1.svg" alt="ACS Engitech">
       <span>Admin Board</span>
@@ -18,10 +31,11 @@
     <div class="top-actions">
       <a href="index.html" target="_blank" rel="noopener">View site</a>
       <button id="refreshBtn" type="button">Refresh</button>
+      <button id="logoutBtn" type="button">Sign out</button>
     </div>
   </header>
 
-  <main class="admin-shell">
+  <main class="admin-shell admin-app">
     <aside class="admin-nav" aria-label="Admin sections">
       <div class="nav-title">
         <span>Control Modules</span>

@@ -20,6 +20,67 @@ body {
 
 button, input, textarea, select { font: inherit; }
 
+.admin-locked {
+  min-height: 100vh;
+  background:
+    linear-gradient(135deg, rgba(3, 19, 35, .94), rgba(28, 58, 98, .9)),
+    #031323;
+}
+
+.admin-locked .admin-app {
+  display: none !important;
+}
+
+.admin-login {
+  display: none;
+  min-height: 100vh;
+  padding: 28px;
+  place-items: center;
+}
+
+.admin-locked .admin-login {
+  display: grid;
+}
+
+.login-card {
+  display: grid;
+  gap: 15px;
+  width: min(460px, 100%);
+  padding: 34px;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, .28);
+}
+
+.login-card img {
+  width: 156px;
+  height: auto;
+}
+
+.login-card h1 {
+  font-size: 30px;
+}
+
+.login-copy {
+  margin: -4px 0 4px;
+  color: var(--acs-muted);
+  line-height: 1.55;
+}
+
+.login-error {
+  display: none;
+  padding: 11px 12px;
+  border: 1px solid #e89b95;
+  border-radius: 8px;
+  color: #8d2d27;
+  background: #fff5f4;
+}
+
+.login-error:not(:empty) {
+  display: block;
+}
+
 .admin-topbar {
   position: sticky;
   top: 0;
@@ -279,6 +340,8 @@ textarea { min-height: 96px; resize: vertical; }
 }
 
 @media (max-width: 640px) {
+  .admin-login { padding: 18px; }
+  .login-card { padding: 24px; }
   .admin-topbar, .section-head { align-items: flex-start; flex-direction: column; }
   .section-actions { width: 100%; align-items: stretch; flex-direction: column; }
   .section-actions select,
