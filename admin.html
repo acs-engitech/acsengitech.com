@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ACS Engitech Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="acs-admin.css">
+</head>
+<body>
+  <header class="admin-topbar">
+    <a class="brand" href="index.html" aria-label="ACS Engitech site">
+      <img src="logo-1.svg" alt="ACS Engitech">
+      <span>Admin Board</span>
+    </a>
+    <div class="top-actions">
+      <a href="index.html" target="_blank" rel="noopener">View site</a>
+      <button id="refreshBtn" type="button">Refresh</button>
+    </div>
+  </header>
+
+  <main class="admin-shell">
+    <aside class="admin-nav" aria-label="Admin sections">
+      <div class="nav-title">
+        <span>Control Modules</span>
+        <strong>ACS Admin</strong>
+      </div>
+      <button class="active" data-tab="overview" type="button"><span>Overview</span><small>Board summary</small></button>
+      <button data-tab="seo" type="button"><span>SEO</span><small>All page metadata</small></button>
+      <button data-tab="blogs" type="button"><span>Blogs</span><small>Drafts and publishing</small></button>
+      <button data-tab="careers" type="button"><span>Careers</span><small>Open role content</small></button>
+      <button data-tab="analytics" type="button"><span>Analytics</span><small>Traffic and sources</small></button>
+      <button data-tab="settings" type="button"><span>Robots / LLMs</span><small>Crawlers and tags</small></button>
+    </aside>
+
+    <section class="admin-content">
+      <div id="statusBar" class="status-bar">Loading admin data...</div>
+
+      <section class="panel active" id="overview">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">ACS Engitech</p>
+            <h1>Content control board</h1>
+          </div>
+          <button id="saveAllTop" class="primary" type="button">Save changes</button>
+        </div>
+        <div class="metric-grid" id="overviewMetrics"></div>
+      </section>
+
+      <section class="panel" id="seo">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">All pages</p>
+            <h2>SEO manager</h2>
+          </div>
+          <button id="saveSeoBtn" class="primary" type="button">Save SEO</button>
+        </div>
+        <div class="split">
+          <div class="list" id="pageList"></div>
+          <form class="editor" id="seoForm">
+            <h3 id="seoFormTitle">Select a page</h3>
+            <label>Title tag <input name="title" maxlength="70"></label>
+            <label>Meta description <textarea name="description" maxlength="170"></textarea></label>
+            <div class="two-col">
+              <label>Canonical URL <input name="canonical"></label>
+              <label>Robots <input name="robots" placeholder="index, follow"></label>
+            </div>
+            <label>Keywords <input name="keywords"></label>
+            <h4>Open Graph / Social</h4>
+            <div class="two-col">
+              <label>OG title <input name="ogTitle"></label>
+              <label>OG image URL <input name="ogImage"></label>
+            </div>
+            <label>OG description <textarea name="ogDescription"></textarea></label>
+            <div class="two-col">
+              <label>Twitter title <input name="twitterTitle"></label>
+              <label>Twitter image URL <input name="twitterImage"></label>
+            </div>
+            <label>Twitter description <textarea name="twitterDescription"></textarea></label>
+            <label>Structured data JSON-LD <textarea name="jsonLd" class="code-field"></textarea></label>
+          </form>
+        </div>
+      </section>
+
+      <section class="panel" id="blogs">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Draft, schedule, publish</p>
+            <h2>Blog manager</h2>
+          </div>
+          <button id="newPostBtn" class="primary" type="button">New post</button>
+        </div>
+        <div class="filters">
+          <button class="active" data-post-filter="all" type="button">All</button>
+          <button data-post-filter="published" type="button">Published</button>
+          <button data-post-filter="scheduled" type="button">Scheduled</button>
+          <button data-post-filter="draft" type="button">Drafts</button>
+        </div>
+        <div class="split">
+          <div class="list" id="postList"></div>
+          <form class="editor" id="postForm">
+            <h3>Post editor</h3>
+            <label>Title <input name="title" required></label>
+            <div class="two-col">
+              <label>Slug <input name="slug"></label>
+              <label>Publish date <input name="publishedAt" type="datetime-local"></label>
+            </div>
+            <label>Excerpt <textarea name="excerpt"></textarea></label>
+            <div class="two-col">
+              <label>Author <input name="author"></label>
+              <label>Tags <input name="tags" placeholder="PLC, SCADA, Automation"></label>
+            </div>
+            <div class="two-col">
+              <label>Cover image URL <input name="coverImage"></label>
+              <label>Cover image alt <input name="coverAlt"></label>
+            </div>
+            <label>Content HTML <textarea name="content" class="large-field"></textarea></label>
+            <label>Meta title <input name="metaTitle"></label>
+            <label>Meta description <textarea name="metaDescription"></textarea></label>
+            <label>Status
+              <select name="status">
+                <option value="published">Published</option>
+                <option value="scheduled">Scheduled</option>
+                <option value="draft">Draft</option>
+              </select>
+            </label>
+            <div class="form-actions">
+              <button class="primary" type="submit">Save post</button>
+              <button id="deletePostBtn" class="danger" type="button">Delete</button>
+              <a id="previewPostLink" href="blog.html" target="_blank" rel="noopener">Preview</a>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section class="panel" id="careers">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Open roles</p>
+            <h2>Careers manager</h2>
+          </div>
+          <button id="newJobBtn" class="primary" type="button">New role</button>
+        </div>
+        <div class="split">
+          <div class="list" id="jobList"></div>
+          <form class="editor" id="jobForm">
+            <h3>Role editor</h3>
+            <label>Title <input name="title" required></label>
+            <div class="two-col">
+              <label>Department <input name="department"></label>
+              <label>Location <input name="location"></label>
+            </div>
+            <div class="two-col">
+              <label>Type <input name="type" placeholder="Full time"></label>
+              <label>Experience <input name="experience"></label>
+            </div>
+            <label>Qualification <input name="qualification"></label>
+            <div class="two-col">
+              <label>Vacancies <input name="vacancies"></label>
+              <label>Gender <input name="gender" placeholder="Male / Female"></label>
+            </div>
+            <label>Description <textarea name="description"></textarea></label>
+            <label>Key responsibilities <textarea name="responsibilities" placeholder="One responsibility per line"></textarea></label>
+            <label>Hard skills <textarea name="hardSkills"></textarea></label>
+            <label>Soft skills <textarea name="softSkills"></textarea></label>
+            <div class="two-col">
+              <label>Apply email <input name="applyEmail" type="email"></label>
+              <label>Status
+                <select name="status">
+                  <option value="open">Open</option>
+                  <option value="paused">Paused</option>
+                  <option value="closed">Closed</option>
+                </select>
+              </label>
+            </div>
+            <div class="form-actions">
+              <button class="primary" type="submit">Save role</button>
+              <button id="deleteJobBtn" class="danger" type="button">Delete</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section class="panel" id="analytics">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">First party tracking</p>
+            <h2>Analytics</h2>
+          </div>
+          <div class="section-actions">
+            <select id="analyticsDays" aria-label="Analytics date range">
+              <option value="7">7 days</option>
+              <option value="30" selected>30 days</option>
+              <option value="90">90 days</option>
+            </select>
+            <button id="saveAnalyticsTagsBtn" class="primary" type="button">Save tags</button>
+          </div>
+        </div>
+        <form class="editor wide analytics-tags" id="analyticsTagForm">
+          <div>
+            <p class="eyebrow">Google tags</p>
+            <h3>Tracking setup</h3>
+          </div>
+          <div class="two-col">
+            <label>GA4 Measurement ID <input name="gaMeasurementId" placeholder="G-XXXXXXXXXX"></label>
+            <label>Google Tag Manager ID <input name="gtmContainerId" placeholder="GTM-XXXXXXX"></label>
+          </div>
+        </form>
+        <div class="metric-grid" id="analyticsMetrics"></div>
+        <div class="analytics-grid">
+          <section>
+            <h3>Page views per day</h3>
+            <div class="chart" id="dailyChart"></div>
+          </section>
+          <section>
+            <h3>Top pages</h3>
+            <div id="topPages"></div>
+          </section>
+          <section>
+            <h3>Top referrers</h3>
+            <div id="topReferrers"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="panel" id="settings">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Crawler files</p>
+            <h2>Robots / LLMs</h2>
+          </div>
+          <button id="saveSettingsBtn" class="primary" type="button">Save settings</button>
+        </div>
+        <form class="editor wide" id="settingsForm">
+          <label>robots.txt <textarea name="robotsTxt" class="code-field tall"></textarea></label>
+          <label>llms.txt intro <textarea name="llmsIntro" class="code-field tall"></textarea></label>
+        </form>
+      </section>
+    </section>
+  </main>
+
+  <script src="acs-admin.js"></script>
+</body>
+</html>
