@@ -44,17 +44,18 @@ async function setValue(key, value) {
 
 async function getAll() {
   const pageSeo = await getValue('pageSeo', {});
+  const settings = await getValue('settings', {});
   return {
-    pages: PAGE_DEFAULTS.map(([path, label, file, title, description]) => ({
-      path,
-      label,
-      file,
-      defaults: { title, description, canonical: path === '/' ? '/' : path },
-      seo: pageSeo[path] || {},
+    pages: PAGE_DEFAULTS.map((page) => ({
+      path: page.path,
+      label: page.label,
+      file: page.file,
+      defaults: page.defaults,
+      seo: pageSeo[page.path] || {},
     })),
     posts: await getValue('posts', []),
     jobs: await getValue('jobs', DEFAULT_JOBS),
-    settings: await getValue('settings', DEFAULT_SETTINGS),
+    settings: { ...DEFAULT_SETTINGS, ...settings },
   };
 }
 

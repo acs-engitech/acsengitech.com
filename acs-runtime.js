@@ -133,6 +133,9 @@
     }
     return visibleJobs.map((job, index) => {
       const responsibilities = asList(job.responsibilities);
+      const responsibilityItems = responsibilities.length
+        ? responsibilities
+        : asList(job.description || `Contribute to ${job.department || 'automation'} projects and support ACS Engitech clients with reliable engineering execution.`);
       const department = escapeHtml(job.department || 'Automation');
       const location = escapeHtml(job.location || 'Ahmedabad, Gujarat');
       const applyEmail = escapeHtml(job.applyEmail || 'sales@acsengitech.com');
@@ -153,7 +156,7 @@
           <hr>
           <p class="acs-career-label">Key Responsibilities</p>
           <ul class="acs-career-list">
-            ${(responsibilities.length ? responsibilities : asList(job.description)).map((item) => `<li>${escapeHtml(item)}</li>`).join('')}
+            ${responsibilityItems.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}
           </ul>
           <hr>
           <div class="acs-career-skills">
@@ -198,31 +201,42 @@
     if (!root) return;
     const slug = new URLSearchParams(location.search).get('post');
     const selected = posts.find((post) => post.slug === slug);
+    const visiblePosts = (posts || []).filter((post) => post.status !== 'draft');
     if (selected) {
       document.title = selected.seo?.title || selected.title;
       root.innerHTML = `
         <article class="acs-blog-article">
-          <a href="blog.html">Back to blogs</a>
-          ${selected.coverImage ? `<img src="${selected.coverImage}" alt="${selected.coverAlt || selected.title}">` : ''}
-          <p class="acs-kicker">${new Date(selected.publishedAt).toLocaleDateString()} - ${selected.readingMinutes || 1} min read</p>
-          <h1>${selected.title}</h1>
-          <p class="acs-lead">${selected.excerpt || ''}</p>
-          <div class="acs-blog-content">${selected.content || ''}</div>
+          <a class="acs-blog-back" href="/blog">Back to blogs</a>
+          <div class="acs-blog-article-hero">
+            <p class="acs-kicker">${new Date(selected.publishedAt).toLocaleDateString()} - ${escapeHtml(selected.author || 'ACS Engitech')} - ${selected.readingMinutes || 1} min read</p>
+            <h1>${escapeHtml(selected.title)}</h1>
+            <p class="acs-lead">${escapeHtml(selected.excerpt || '')}</p>
+          </div>
+          ${selected.coverImage ? `<img src="${selected.coverImage}" alt="${escapeHtml(selected.coverAlt || selected.title)}">` : ''}
+          <div class="acs-blog-content-card">
+            <div class="acs-blog-content">${selected.content || `<p>${escapeHtml(selected.excerpt || 'Article content will be updated soon.')}</p>`}</div>
+          </div>
         </article>`;
       return;
     }
     root.innerHTML = `
-      <div class="acs-dynamic-inner">
-        <p class="acs-kicker">ACS insights</p>
-        <h1>Industrial automation blog</h1>
-        <div class="acs-blog-grid">
-          ${posts.map((post) => `
+      <div class="acs-dynamic-inner acs-blog-index">
+        <div class="acs-blog-hero">
+          <p class="acs-kicker">ACS insights</p>
+          <h1>Industrial automation blog</h1>
+          <p class="acs-lead">PLC, SCADA, control panel, and industrial automation notes from ACS Engitech.</p>
+        </div>
+        <div class="acs-blog-list">
+          ${visiblePosts.map((post) => `
             <article class="acs-blog-card">
-              ${post.coverImage ? `<img src="${post.coverImage}" alt="${post.coverAlt || post.title}">` : ''}
-              <p>${new Date(post.publishedAt).toLocaleDateString()} - ${(post.tags || []).join(', ')}</p>
-              <h2>${post.title}</h2>
-              <span>${post.excerpt || ''}</span>
-              <a href="blog.html?post=${post.slug}">Read article</a>
+              ${post.coverImage ? `<img src="${post.coverImage}" alt="${post.coverAlt || post.title}">` : '<div class="acs-blog-mark" aria-hidden="true">ACS</div>'}
+              <div>
+                <p>${new Date(post.publishedAt).toLocaleDateString()} - ${escapeHtml(post.author || 'ACS Engitech')}</p>
+                <h2>${escapeHtml(post.title || 'ACS Engitech update')}</h2>
+                <span>${escapeHtml(post.excerpt || 'Industrial automation insight from ACS Engitech.')}</span>
+                ${(post.tags || []).length ? `<div class="acs-blog-tags">${post.tags.slice(0, 4).map((tag) => `<em>${escapeHtml(tag)}</em>`).join('')}</div>` : ''}
+              </div>
+              <a href="/blog?post=${encodeURIComponent(post.slug)}">Read article</a>
             </article>
           `).join('') || '<p>No published posts yet.</p>'}
         </div>

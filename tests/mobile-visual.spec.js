@@ -8,7 +8,7 @@ test.beforeAll(() => {
   fs.mkdirSync(outputDir, { recursive: true });
 });
 
-async function mockAdminApi(page) {
+async function mockAdminApi(page, options = {}) {
   await page.route('**/api/admin?**', async (route) => {
     await route.fulfill({
       contentType: 'application/json',
@@ -35,7 +35,41 @@ async function mockAdminApi(page) {
     });
   });
   await page.route('**/api/admin', async (route) => {
+    if (options.delayPost && route.request().method() === 'POST') {
+      await new Promise((resolve) => setTimeout(resolve, 400));
+    }
     await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ ok: true }) });
+  });
+}
+
+async function mockPublicContent(page) {
+  await page.route('**/api/public?**', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        settings: {},
+        pageSeo: {},
+        posts: [{
+          id: 'test-post',
+          title: 'Testing PLC Panel Blog',
+          slug: 'testing-plc-panel-blog',
+          excerpt: 'A short ACS test article for panel automation.',
+          author: 'ACS Engitech',
+          tags: ['PLC', 'SCADA', 'Panels'],
+          content: '<p>Useful automation note from ACS Engitech.</p>',
+          status: 'published',
+          publishedAt: '2026-08-03T09:00:00.000Z',
+          readingMinutes: 1,
+        }],
+        jobs: [{
+          id: 'testing-role',
+          title: 'Testing Automation Role',
+          department: 'Automation',
+          location: 'Ahmedabad, Gujarat',
+          status: 'open',
+        }],
+      }),
+    });
   });
 }
 
@@ -46,6 +80,16 @@ async function signInAdmin(page) {
   await page.locator('#loginForm input[name="password"]').fill('acsmmo@2026#');
   await page.locator('#loginForm button[type="submit"]').click();
   await expect(page.locator('body')).not.toHaveClass(/admin-locked/);
+}
+
+async function mockDelayedAdminApi(page) {
+  await page.route('**/api/admin?**', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ pages: [], posts: [], jobs: [], settings: {}, analytics: {} }),
+    });
+  });
 }
 
 async function expectNoHorizontalOverflow(page) {
@@ -117,8 +161,42 @@ test('blog uses ACS shared header and footer', async ({ page }) => {
   await expect(page.locator('footer#colophon')).toBeVisible();
   await expect(page.locator('header#masthead a.hfe-menu-item', { hasText: 'Blog' })).toBeVisible();
   await expect(page.locator('text=Blog posts are loading. Please refresh in a moment.')).toHaveCount(0);
+  const footerLinkColor = await page.locator('footer#colophon a').first().evaluate((node) => window.getComputedStyle(node).color);
+  expect(footerLinkColor).toBe('rgb(255, 255, 255)');
   await expectNoHorizontalOverflow(page);
   await page.screenshot({ path: path.join(outputDir, 'blog-desktop.png'), fullPage: false });
+});
+
+test('published blog content renders as an ACS client page', async ({ page }) => {
+  await mockPublicContent(page);
+  await page.setViewportSize({ width: 1365, height: 768 });
+  await page.goto('/blog.html', { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('networkidle').catch(() => {});
+
+  await expect(page.locator('.acs-blog-hero')).toBeVisible();
+  await expect(page.locator('.acs-blog-card')).toHaveCount(1);
+  await expect(page.locator('.acs-blog-card h2')).toHaveText('Testing PLC Panel Blog');
+  const titleBox = await page.locator('.acs-blog-index h1').boundingBox();
+  expect(titleBox.height).toBeLessThan(90);
+  await expect(page.locator('.acs-blog-card > a')).toHaveCSS('background-color', 'rgb(28, 58, 98)');
+  await expectNoHorizontalOverflow(page);
+  await page.screenshot({ path: path.join(outputDir, 'blog-with-post.png'), fullPage: false });
+});
+
+test('published blog article renders inside ACS article shell', async ({ page }) => {
+  await mockPublicContent(page);
+  await page.setViewportSize({ width: 1365, height: 768 });
+  await page.goto('/blog.html?post=testing-plc-panel-blog', { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('networkidle').catch(() => {});
+
+  await expect(page.locator('.acs-blog-article-hero')).toBeVisible();
+  await expect(page.locator('.acs-blog-article h1')).toHaveText('Testing PLC Panel Blog');
+  await expect(page.locator('.acs-blog-content-card')).toBeVisible();
+  await expect(page.locator('.acs-blog-content-card')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+  await expect(page.locator('header#masthead')).toBeVisible();
+  await expect(page.locator('footer#colophon')).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+  await page.screenshot({ path: path.join(outputDir, 'blog-article.png'), fullPage: false });
 });
 
 test('career page renders existing role layout dynamically without duplicate placeholder', async ({ page }) => {
@@ -131,8 +209,24 @@ test('career page renders existing role layout dynamically without duplicate pla
   await expect(page.locator('.acs-career-role h2', { hasText: 'Automation Engineer' })).toBeVisible();
   await expect(page.locator('.acs-career-role h2', { hasText: 'Field Sales Engineer' })).toBeVisible();
   await expect(page.locator('text=Loading current openings...')).toHaveCount(0);
+  await page.locator('.acs-career-role').first().scrollIntoViewIfNeeded();
+  await expect(page.locator('.acs-career-meta span')).toHaveCount(8);
   await expectNoHorizontalOverflow(page);
   await page.screenshot({ path: path.join(outputDir, 'career-dynamic.png'), fullPage: false });
+});
+
+test('sparse career admin content still renders cleanly on client page', async ({ page }) => {
+  await mockPublicContent(page);
+  await page.setViewportSize({ width: 1365, height: 768 });
+  await page.goto('/career.html', { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('networkidle').catch(() => {});
+
+  await expect(page.locator('.acs-career-role h2')).toHaveText('Testing Automation Role');
+  await expect(page.locator('.acs-career-meta span')).toHaveCount(4);
+  await expect(page.locator('.acs-career-list li')).toHaveCount(1);
+  await expect(page.locator('.acs-career-role').first()).toHaveCSS('border-radius', '8px');
+  await expectNoHorizontalOverflow(page);
+  await page.screenshot({ path: path.join(outputDir, 'career-sparse-role.png'), fullPage: false });
 });
 
 test('admin sign in panel starts blank and blocks board', async ({ page }) => {
@@ -147,6 +241,38 @@ test('admin sign in panel starts blank and blocks board', async ({ page }) => {
   await expect(page.locator('.admin-shell')).toBeHidden();
   await expectNoHorizontalOverflow(page);
   await page.screenshot({ path: path.join(outputDir, 'admin-sign-in.png'), fullPage: false });
+});
+
+test('admin sign in shows loading after submit', async ({ page }) => {
+  await mockDelayedAdminApi(page);
+  await page.setViewportSize({ width: 1365, height: 768 });
+  await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
+  await page.locator('#loginForm input[name="email"]').fill('acs.mmo@gmail.com');
+  await page.locator('#loginForm input[name="password"]').fill('acsmmo@2026#');
+  await page.locator('#loginForm button[type="submit"]').click();
+  await expect(page.locator('#loginForm button[type="submit"]')).toBeDisabled();
+  await expect(page.locator('#loginForm button[type="submit"]')).toHaveText('Signing in...');
+});
+
+test('admin save shows spinner while creating a blog post', async ({ page }) => {
+  await mockAdminApi(page, { delayPost: true });
+  await page.setViewportSize({ width: 1365, height: 768 });
+  await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
+  await signInAdmin(page);
+  await page.locator('.admin-nav button[data-tab="blogs"]').click();
+  await page.locator('#newPostBtn').click();
+  await page.locator('#postForm button[type="submit"]').click();
+  await expect(page.locator('#adminLoading')).toBeVisible();
+  await expect(page.locator('#adminLoading strong')).toHaveText('Saving changes...');
+});
+
+test('admin SEO list displays clean paths without html extensions', async ({ page }) => {
+  await mockAdminApi(page);
+  await page.setViewportSize({ width: 1365, height: 768 });
+  await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
+  await signInAdmin(page);
+  await page.locator('.admin-nav button[data-tab="seo"]').click();
+  await expect(page.locator('#pageList')).not.toContainText('.html');
 });
 
 test('admin tabs feel like ACS module navigation on desktop and mobile', async ({ page }) => {

@@ -1,4 +1,5 @@
 const { getAll } = require('./_store');
+const { DEFAULT_SETTINGS } = require('../lib/acs-defaults');
 
 module.exports = async function handler(req, res) {
   try {
@@ -10,6 +11,6 @@ module.exports = async function handler(req, res) {
   } catch (error) {
     res.statusCode = 200;
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    res.end('User-agent: *\nAllow: /');
+    res.end(DEFAULT_SETTINGS.robotsTxt);
   }
 };

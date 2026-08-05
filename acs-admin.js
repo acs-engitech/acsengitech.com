@@ -20,10 +20,22 @@
   const statusBar = $('#statusBar');
   const loginForm = $('#loginForm');
   const loginError = $('#loginError');
+  const adminLoading = $('#adminLoading');
 
   function setStatus(message, type) {
     statusBar.textContent = message;
     statusBar.className = `status-bar ${type || ''}`;
+  }
+
+  function setBusy(isBusy, message) {
+    document.body.classList.toggle('admin-busy', isBusy);
+    adminLoading?.classList.toggle('is-visible', isBusy);
+    if (adminLoading) {
+      adminLoading.setAttribute('aria-hidden', String(!isBusy));
+      const label = adminLoading.querySelector('strong');
+      if (label) label.textContent = message || 'Working...';
+    }
+    statusBar.classList.toggle('is-loading', isBusy);
   }
 
   function showSignIn(message) {
@@ -31,6 +43,7 @@
     state.authenticated = false;
     state.email = '';
     state.password = '';
+    setLoginLoading(false);
     if (loginForm) loginForm.reset();
     if (loginError) loginError.textContent = message || '';
     setTimeout(() => loginForm?.email?.focus(), 0);
@@ -39,6 +52,14 @@
   function hideSignIn() {
     document.body.classList.remove('admin-locked');
     if (loginError) loginError.textContent = '';
+  }
+
+  function setLoginLoading(isLoading) {
+    const button = loginForm?.querySelector('button[type="submit"]');
+    if (!button) return;
+    button.disabled = isLoading;
+    button.textContent = isLoading ? 'Signing in...' : 'Sign in';
+    loginForm.classList.toggle('is-loading', isLoading);
   }
 
   function authHeaders() {
@@ -66,6 +87,11 @@
 
   function slugify(value) {
     return String(value || '').toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 96);
+  }
+
+  function displayPath(value) {
+    const path = String(value || '/').replace(/\/index\.html$/i, '/').replace(/\.html$/i, '').replace(/\/$/, '');
+    return path || '/';
   }
 
   function normalizePost(post) {
@@ -104,6 +130,7 @@
       showSignIn();
       return;
     }
+    setBusy(true, 'Loading admin data...');
     setStatus('Loading admin data...');
     try {
       const days = $('#analyticsDays')?.value || 30;
@@ -128,19 +155,29 @@
       } else {
         setStatus('Admin data could not be loaded. Start the local dev server or check the Neon/Vercel connection.', 'error');
       }
+    } finally {
+      setBusy(false);
     }
   }
 
   async function save(payload, message) {
+    setBusy(true, 'Saving changes...');
     setStatus('Saving changes...');
-    const data = await api('/api/admin', { method: 'POST', body: JSON.stringify(payload) });
-    state.pages = data.pages || state.pages;
-    state.pageSeo = Object.fromEntries(state.pages.map((page) => [page.path, page.seo || {}]));
-    state.posts = data.posts || state.posts;
-    state.jobs = data.jobs || state.jobs;
-    state.settings = data.settings || state.settings;
-    render();
-    setStatus(message || 'Saved.', 'ok');
+    try {
+      const data = await api('/api/admin', { method: 'POST', body: JSON.stringify(payload) });
+      state.pages = data.pages || state.pages;
+      state.pageSeo = Object.fromEntries(state.pages.map((page) => [page.path, page.seo || {}]));
+      state.posts = data.posts || state.posts;
+      state.jobs = data.jobs || state.jobs;
+      state.settings = data.settings || state.settings;
+      render();
+      setStatus(message || 'Saved.', 'ok');
+    } catch (error) {
+      if (error.code === 'AUTH_REQUIRED') showSignIn(error.message);
+      setStatus(error.message || 'Could not save changes.', 'error');
+    } finally {
+      setBusy(false);
+    }
   }
 
   function metric(label, value) {
@@ -163,7 +200,7 @@
     $('#pageList').innerHTML = state.pages.map((page) => `
       <button class="row-card ${page.path === state.selectedPage ? 'active' : ''}" data-page="${page.path}" type="button">
         <strong>${page.label}</strong>
-        <span>${page.path} - ${(state.pageSeo[page.path]?.title || page.defaults.title || '').slice(0, 90)}</span>
+        <span>${displayPath(page.path)} - ${(state.pageSeo[page.path]?.title || page.defaults.title || '').slice(0, 90)}</span>
       </button>
     `).join('');
 
@@ -203,7 +240,7 @@
     form.metaTitle.value = post.seo?.title || '';
     form.metaDescription.value = post.seo?.description || '';
     form.status.value = post.status || 'published';
-    $('#previewPostLink').href = `blog.html?post=${post.slug || ''}`;
+    $('#previewPostLink').href = `/blog?post=${post.slug || ''}`;
   }
 
   function renderJobs() {
@@ -298,7 +335,12 @@
       state.email = form.email.value.trim();
       state.password = form.password.value;
       if (loginError) loginError.textContent = '';
-      await load();
+      setLoginLoading(true);
+      try {
+        await load();
+      } finally {
+        setLoginLoading(false);
+      }
     });
 
     $('#logoutBtn')?.addEventListener('click', () => {

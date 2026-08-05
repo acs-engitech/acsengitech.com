@@ -37,8 +37,8 @@ module.exports = async function handler(req, res) {
     });
   } catch (error) {
     const pageSeo = {};
-    for (const [path, label, file, title, description] of PAGE_DEFAULTS) {
-      pageSeo[path] = mergeSeo({ title, description, canonical: path === '/' ? '/' : `/${file}` }, {});
+    for (const page of PAGE_DEFAULTS) {
+      pageSeo[page.path] = mergeSeo(page.defaults, {});
     }
     return send(res, 200, {
       settings: DEFAULT_SETTINGS,

@@ -91,6 +91,15 @@ footer#colophon .elementor-1678 .elementor-element.elementor-element-131a517 {
   text-align: left !important;
 }
 
+footer#colophon .elementor-1678,
+footer#colophon .elementor-1678 a,
+footer#colophon .elementor-1678 .elementor-heading-title,
+footer#colophon .elementor-1678 .elementor-widget-container,
+footer#colophon .elementor-1678 .elementor-icon-list-text,
+footer#colophon .elementor-1678 .elementor-image-box-title {
+  color: #fff !important;
+}
+
 footer#colophon .elementor-1678 .elementor-element.elementor-element-5826810 .elementor-widget-container {
   margin: 22px 0 0 !important;
   text-align: left !important;
@@ -160,7 +169,7 @@ html::after {
 
 .acs-dynamic-section {
   background: #f6f9fc;
-  padding: 80px 24px;
+  padding: 68px 24px;
 }
 
 .acs-dynamic-inner,
@@ -188,11 +197,48 @@ html::after {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 22px;
-  margin-top: 32px;
+  margin-top: 28px;
 }
 
-.acs-job-card,
-.acs-blog-card {
+.acs-blog-index {
+  max-width: 1180px;
+}
+
+.acs-blog-hero {
+  padding: 42px 46px;
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(28, 58, 98, .96), rgba(3, 19, 35, .96)),
+    #1c3a62;
+  color: #fff;
+}
+
+.acs-blog-hero .acs-kicker,
+.acs-blog-hero .acs-lead,
+.acs-blog-hero h1 {
+  color: #fff !important;
+}
+
+.acs-blog-hero h1 {
+  max-width: 900px;
+  margin: 0;
+  font-size: clamp(34px, 4vw, 54px) !important;
+  line-height: 1.08 !important;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.acs-blog-hero .acs-lead {
+  margin-bottom: 0;
+}
+
+.acs-blog-list {
+  display: grid;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.acs-job-card {
   display: flex;
   min-width: 0;
   flex-direction: column;
@@ -218,6 +264,27 @@ html::after {
 .acs-blog-card h2 {
   margin: 0;
   color: #0f172a;
+}
+
+.acs-blog-card {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 22px;
+  min-height: 0;
+  padding: 22px 24px;
+  border: 1px solid #d6e0eb;
+  border-left: 5px solid #1c3a62;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, .06);
+}
+
+.acs-blog-card h2 {
+  margin: 6px 0 8px;
+  color: #1c3a62;
+  font-size: 25px !important;
+  line-height: 1.18 !important;
 }
 
 .acs-job-card dl {
@@ -259,14 +326,103 @@ html::after {
   color: #65758a;
 }
 
+.acs-blog-card span {
+  line-height: 1.5;
+}
+
+.acs-blog-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.acs-blog-tags em {
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #e7f6ff;
+  color: #1c3a62;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.acs-blog-mark {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  border-radius: 8px;
+  background: #e7f6ff;
+  color: #1c3a62;
+  font: 800 20px/1 Inter, sans-serif;
+  letter-spacing: 0;
+}
+
+.acs-blog-card > img {
+  width: 92px;
+  height: 76px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.acs-blog-card > a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 132px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: #1c3a62;
+  color: #fff !important;
+  text-decoration: none;
+}
+
 .acs-blog-article {
-  padding: 80px 24px;
+  padding: 72px 24px;
+}
+
+.acs-blog-back {
+  display: inline-flex;
+  margin-bottom: 18px;
+  color: #1c3a62 !important;
+  text-decoration: none;
+}
+
+.acs-blog-article-hero {
+  padding: 42px 46px;
+  border-radius: 8px 8px 0 0;
+  background:
+    linear-gradient(135deg, rgba(28, 58, 98, .97), rgba(3, 19, 35, .97)),
+    #1c3a62;
+  color: #fff;
+}
+
+.acs-blog-article-hero .acs-kicker,
+.acs-blog-article-hero .acs-lead,
+.acs-blog-article-hero h1 {
+  color: #fff !important;
 }
 
 .acs-blog-article h1 {
   max-width: 900px;
-  font-size: 52px;
-  line-height: 1.1;
+  margin: 0;
+  font-size: clamp(36px, 4vw, 54px) !important;
+  line-height: 1.08 !important;
+}
+
+.acs-blog-article > img {
+  margin-top: 0;
+  border-radius: 0;
+}
+
+.acs-blog-content-card {
+  padding: 36px 46px 44px;
+  border: 1px solid #d6e0eb;
+  border-top: 0;
+  border-radius: 0 0 8px 8px;
+  background: #fff;
+  box-shadow: 0 16px 42px rgba(15, 23, 42, .06);
 }
 
 .acs-blog-content {
@@ -274,23 +430,34 @@ html::after {
   color: #102033;
 }
 
+.acs-blog-content p {
+  margin: 0 0 18px;
+  font-size: 18px;
+  line-height: 1.72;
+}
+
 .acs-career-existing-board,
 .acs-career-empty {
-  width: min(1340px, calc(100% - 48px));
+  width: min(1180px, calc(100% - 48px));
   margin: 0 auto;
-  padding: 42px 0 64px;
+  padding: 24px 0 72px;
+}
+
+.elementor-3368 .elementor-element.elementor-element-6758f52d {
+  display: none !important;
 }
 
 .acs-career-role {
-  padding: 0 0 54px;
+  padding: 30px;
+  border: 1px solid #d6e0eb;
+  border-radius: 8px;
   color: #102033;
   background: #fff;
+  box-shadow: 0 16px 42px rgba(15, 23, 42, .06);
 }
 
 .acs-career-role + .acs-career-role {
-  margin-top: 38px;
-  padding-top: 44px;
-  border-top: 1px solid #d6e0eb;
+  margin-top: 26px;
 }
 
 .acs-career-role-head {
@@ -298,7 +465,7 @@ html::after {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .acs-career-pill {
@@ -314,7 +481,7 @@ html::after {
 }
 
 .acs-career-pill.is-sales {
-  background: #059669;
+  background: #1c3a62;
 }
 
 .acs-career-location {
@@ -327,15 +494,16 @@ html::after {
 }
 
 .acs-career-role h2 {
-  margin: 0 0 22px;
+  margin: 0 0 24px;
   color: #1c3a62;
-  font: 800 42px/1.1 Inter, sans-serif;
+  font: 800 40px/1.1 Inter, sans-serif;
 }
 
 .acs-career-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
+  margin-bottom: 0;
 }
 
 .acs-career-meta span {
@@ -343,7 +511,7 @@ html::after {
   align-items: center;
   gap: 6px;
   max-width: 100%;
-  padding: 6px 14px;
+  padding: 8px 14px;
   border: 1px solid #b3d9f2;
   border-radius: 20px;
   background: #e7f6ff;
@@ -352,10 +520,7 @@ html::after {
 }
 
 .acs-career-role hr {
-  height: 1px;
-  margin: 42px 0 32px;
-  border: 0;
-  background: #d6e0eb;
+  display: none;
 }
 
 .acs-career-label {
@@ -366,9 +531,17 @@ html::after {
   text-transform: uppercase;
 }
 
+.acs-career-meta + hr + .acs-career-label,
+.acs-career-list + hr + .acs-career-skills,
+.acs-career-skills + hr + .acs-career-actions {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid #d6e0eb;
+}
+
 .acs-career-list {
   display: grid;
-  gap: 9px;
+  gap: 11px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -396,7 +569,7 @@ html::after {
 .acs-career-skills {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 48px;
+  gap: 56px;
 }
 
 .acs-career-skills p:not(.acs-career-label) {
@@ -740,7 +913,26 @@ html::after {
 
   .acs-dynamic-section,
   .acs-blog-article {
-    padding: 56px 18px;
+    padding: 48px 18px;
+  }
+
+  .acs-blog-index h1 {
+    font-size: 34px !important;
+  }
+
+  .acs-blog-hero {
+    padding: 30px 22px;
+  }
+
+  .acs-blog-card {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 14px;
+    padding: 20px;
+  }
+
+  .acs-blog-card > a {
+    width: 100%;
   }
 
   .acs-card-grid,
@@ -751,16 +943,15 @@ html::after {
   .acs-career-existing-board,
   .acs-career-empty {
     width: min(100% - 32px, 430px);
-    padding: 32px 0 42px;
+    padding: 42px 0 46px;
   }
 
   .acs-career-role {
-    padding-bottom: 38px;
+    padding: 22px;
   }
 
   .acs-career-role + .acs-career-role {
     margin-top: 26px;
-    padding-top: 32px;
   }
 
   .acs-career-role-head,

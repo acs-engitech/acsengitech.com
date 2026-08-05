@@ -10,6 +10,11 @@
   <link rel="stylesheet" href="acs-admin.css">
 </head>
 <body class="admin-locked">
+  <div class="admin-loading-overlay" id="adminLoading" role="status" aria-live="polite" aria-hidden="true">
+    <span class="admin-spinner" aria-hidden="true"></span>
+    <strong>Loading...</strong>
+  </div>
+
   <section class="admin-login" id="adminLogin" aria-label="Admin sign in">
     <form class="login-card" id="loginForm">
       <img src="logo-1.svg" alt="ACS Engitech">

@@ -8,6 +8,7 @@ const {
   mergeSeo,
   summarizeAnalytics,
 } = require('../lib/admin-core');
+const { PAGE_DEFAULTS, DEFAULT_SETTINGS } = require('../lib/acs-defaults');
 const packageJson = require('../package.json');
 
 test('package exposes local Vercel dev scripts', () => {
@@ -77,4 +78,22 @@ test('summarizeAnalytics groups page views, visitors, devices, pages, and referr
   assert.equal(summary.devices.mobile, 1);
   assert.equal(summary.topPages[0].path, '/');
   assert.equal(summary.topReferrers[0].source, 'google.com');
+});
+
+test('ACS page defaults include clean SEO defaults and JSON-LD', () => {
+  const home = PAGE_DEFAULTS.find((page) => page.path === '/');
+  const career = PAGE_DEFAULTS.find((page) => page.path === '/career');
+
+  assert.equal(home.defaults.canonical, 'https://acsengitech.com/');
+  assert.equal(career.defaults.canonical, 'https://acsengitech.com/career');
+  assert.doesNotMatch(career.defaults.canonical, /\.html$/);
+  assert.match(career.defaults.keywords, /automation engineer jobs/i);
+  assert.equal(JSON.parse(career.defaults.jsonLd)['@type'], 'JobPosting');
+});
+
+test('crawler defaults protect admin/API paths and describe ACS for LLMs', () => {
+  assert.match(DEFAULT_SETTINGS.robotsTxt, /Disallow: \/admin\.html/);
+  assert.match(DEFAULT_SETTINGS.robotsTxt, /Sitemap: https:\/\/acsengitech\.com\/sitemap\.xml/);
+  assert.match(DEFAULT_SETTINGS.llmsIntro, /automation control panels/i);
+  assert.match(DEFAULT_SETTINGS.llmsIntro, /sales@acsengitech\.com/);
 });
