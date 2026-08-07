@@ -74,7 +74,10 @@ async function handleApi(route, req, res, parsedUrl) {
 
 function serveStatic(req, res, parsedUrl) {
   const pathname = rewrites[parsedUrl.pathname] || parsedUrl.pathname;
-  const fullPath = safePath(pathname);
+  let fullPath = safePath(pathname);
+  if (fullPath && !fs.existsSync(fullPath) && fs.existsSync(fullPath + ".html")) {
+    fullPath = fullPath + ".html";
+  }
   if (!fullPath || !fs.existsSync(fullPath) || fs.statSync(fullPath).isDirectory()) {
     res.statusCode = 404;
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
