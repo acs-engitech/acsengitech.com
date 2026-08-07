@@ -10,8 +10,8 @@
     selectedPost: null,
     selectedJob: null,
     postFilter: 'all',
-    email: '',
-    password: '',
+    email: sessionStorage.getItem('acsAdminEmail') || '',
+    password: sessionStorage.getItem('acsAdminPassword') || '',
     authenticated: false,
   };
 
@@ -334,6 +334,8 @@
       const form = event.currentTarget;
       state.email = form.email.value.trim();
       state.password = form.password.value;
+      sessionStorage.setItem('acsAdminEmail', state.email);
+      sessionStorage.setItem('acsAdminPassword', state.password);
       if (loginError) loginError.textContent = '';
       setLoginLoading(true);
       try {
@@ -344,6 +346,8 @@
     });
 
     $('#logoutBtn')?.addEventListener('click', () => {
+      sessionStorage.removeItem('acsAdminEmail');
+      sessionStorage.removeItem('acsAdminPassword');
       showSignIn('Signed out.');
     });
 

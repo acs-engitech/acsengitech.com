@@ -310,6 +310,11 @@ button:disabled {
   opacity: .72;
 }
 
+button:active, .form-actions a:active, .row-card:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
 .metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
 .metric { background: #fff; border: 1px solid var(--acs-line); border-radius: 8px; padding: 18px; box-shadow: 0 14px 34px rgba(15, 23, 42, .05); }
 .metric span { display: block; color: var(--acs-muted); font-size: 12px; font-weight: 700; text-transform: uppercase; }

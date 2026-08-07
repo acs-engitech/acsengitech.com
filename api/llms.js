@@ -14,7 +14,7 @@ module.exports = async function handler(req, res) {
 
     res.statusCode = 200;
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
+    res.setHeader('Cache-Control', 's-maxage=0, max-age=0, must-revalidate');
     res.end(`${data.settings?.llmsIntro || '# ACS Engitech'}\n\n## Pages\n${pages}\n\n## Published blog posts\n${posts || '- No published posts yet.'}\n`);
   } catch (error) {
     res.statusCode = 200;
