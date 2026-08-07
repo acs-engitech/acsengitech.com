@@ -4,5 +4,7 @@
     { "source": "/llms.txt", "destination": "/api/llms" },
     { "source": "/blog", "destination": "/blog.html" },
     { "source": "/admin", "destination": "/admin.html" }
-  ]
+  ],
+  "cleanUrls": true,
+  "trailingSlash": false
 }

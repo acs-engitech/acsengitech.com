@@ -5,7 +5,7 @@ const { PAGE_DEFAULTS, DEFAULT_SETTINGS, DEFAULT_JOBS } = require('../lib/acs-de
 function send(res, status, payload) {
   res.statusCode = status;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
-  res.setHeader('Cache-Control', 's-maxage=0, max-age=0, must-revalidate');
+  res.setHeader('Cache-Control', 'public, s-maxage=1, max-age=0, stale-while-revalidate=59');
   res.end(JSON.stringify(payload));
 }
 
