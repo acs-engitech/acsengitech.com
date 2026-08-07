@@ -208,6 +208,8 @@
     const visiblePosts = (posts || []).filter((post) => post.status !== 'draft');
     if (selected) {
       document.title = selected.seo?.title || selected.title;
+      const staticHero = document.querySelector('.acs-blog-static-hero');
+      if (staticHero) staticHero.style.display = 'none';
       root.innerHTML = `
         <article class="acs-blog-article">
           <a class="acs-blog-back" href="/blog">Back to blogs</a>
@@ -225,11 +227,6 @@
     }
     root.innerHTML = `
       <div class="acs-dynamic-inner acs-blog-index">
-        <div class="acs-blog-hero">
-          <p class="acs-kicker">ACS insights</p>
-          <h1>Industrial automation blog</h1>
-          <p class="acs-lead">PLC, SCADA, control panel, and industrial automation notes from ACS Engitech.</p>
-        </div>
         <div class="acs-blog-list">
           ${visiblePosts.map((post) => `
             <article class="acs-blog-card">

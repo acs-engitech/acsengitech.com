@@ -172,6 +172,20 @@ html::after {
   padding: 68px 24px;
 }
 
+.skeleton-loader {
+  height: 220px;
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: acs-shimmer 1.5s infinite linear;
+  border-radius: 8px;
+  border: 1px solid #e5e9f0;
+}
+
+@keyframes acs-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 .acs-dynamic-inner,
 .acs-blog-article {
   width: min(1180px, 100%);
