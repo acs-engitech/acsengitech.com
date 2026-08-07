@@ -208,27 +208,28 @@
     const visiblePosts = (posts || []).filter((post) => post.status !== 'draft');
     if (selected) {
       document.title = selected.seo?.title || selected.title;
-      const staticHeroH1 = document.querySelector('.acs-blog-static-hero h1');
-      const staticHeroP = document.querySelector('.acs-blog-static-hero p');
-      if (staticHeroH1) staticHeroH1.textContent = selected.title;
-      if (staticHeroP) staticHeroP.textContent = `${new Date(selected.publishedAt).toLocaleDateString()} - ${escapeHtml(selected.author || 'ACS Engitech')} - ${selected.readingMinutes || 1} min read`;
-      
-      const parsedContent = (typeof marked !== 'undefined' && selected.content) 
-          ? marked.parse(selected.content) 
-          : (selected.content || `<p>${escapeHtml(selected.excerpt || 'Article content will be updated soon.')}</p>`);
-
       root.innerHTML = `
         <article class="acs-blog-article">
-          <a class="acs-blog-back" href="/blog" style="margin-bottom: 24px; display: inline-block;">← Back to blogs</a>
-          ${selected.coverImage ? `<img src="${selected.coverImage}" alt="${escapeHtml(selected.coverAlt || selected.title)}" style="width:100%; border-radius: 8px; margin-bottom: 32px;">` : ''}
+          <a class="acs-blog-back" href="/blog">Back to blogs</a>
+          <div class="acs-blog-article-hero">
+            <p class="acs-kicker">${new Date(selected.publishedAt).toLocaleDateString()} - ${escapeHtml(selected.author || 'ACS Engitech')} - ${selected.readingMinutes || 1} min read</p>
+            <h1>${escapeHtml(selected.title)}</h1>
+            <p class="acs-lead">${escapeHtml(selected.excerpt || '')}</p>
+          </div>
+          ${selected.coverImage ? `<img src="${selected.coverImage}" alt="${escapeHtml(selected.coverAlt || selected.title)}">` : ''}
           <div class="acs-blog-content-card">
-            <div class="acs-blog-content">${parsedContent}</div>
+            <div class="acs-blog-content">${selected.content || `<p>${escapeHtml(selected.excerpt || 'Article content will be updated soon.')}</p>`}</div>
           </div>
         </article>`;
       return;
     }
     root.innerHTML = `
       <div class="acs-dynamic-inner acs-blog-index">
+        <div class="acs-blog-hero">
+          <p class="acs-kicker">ACS insights</p>
+          <h1>Industrial automation blog</h1>
+          <p class="acs-lead">PLC, SCADA, control panel, and industrial automation notes from ACS Engitech.</p>
+        </div>
         <div class="acs-blog-list">
           ${visiblePosts.map((post) => `
             <article class="acs-blog-card">
