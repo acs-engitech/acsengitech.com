@@ -10,8 +10,8 @@
     selectedPost: null,
     selectedJob: null,
     postFilter: 'all',
-    email: sessionStorage.getItem('acsAdminEmail') || '',
-    password: sessionStorage.getItem('acsAdminPassword') || '',
+    email: '',
+    password: '',
     authenticated: false,
   };
 
@@ -66,8 +66,17 @@
     return state.email && state.password ? { 'x-admin-email': state.email, 'x-admin-password': state.password } : {};
   }
 
+  function resolveApiUrl(path) {
+    if (/^https?:\/\//i.test(path)) return path;
+    const localHost = ['localhost', '127.0.0.1'].includes(location.hostname);
+    if (location.protocol === 'file:' || (localHost && location.port && location.port !== '3000')) {
+      return `http://localhost:3000${path}`;
+    }
+    return path;
+  }
+
   async function api(path, options = {}) {
-    const response = await fetch(path, {
+    const response = await fetch(resolveApiUrl(path), {
       ...options,
       headers: {
         'Content-Type': 'application/json',
@@ -334,8 +343,6 @@
       const form = event.currentTarget;
       state.email = form.email.value.trim();
       state.password = form.password.value;
-      sessionStorage.setItem('acsAdminEmail', state.email);
-      sessionStorage.setItem('acsAdminPassword', state.password);
       if (loginError) loginError.textContent = '';
       setLoginLoading(true);
       try {
@@ -346,17 +353,8 @@
     });
 
     $('#logoutBtn')?.addEventListener('click', () => {
-      sessionStorage.removeItem('acsAdminEmail');
-      sessionStorage.removeItem('acsAdminPassword');
       showSignIn('Signed out.');
     });
-
-    $$('.admin-nav button').forEach((button) => button.addEventListener('click', () => {
-      $$('.admin-nav button').forEach((item) => item.classList.remove('active'));
-      $$('.panel').forEach((item) => item.classList.remove('active'));
-      button.classList.add('active');
-      $(`#${button.dataset.tab}`).classList.add('active');
-    }));
 
     $('#pageList').addEventListener('click', (event) => {
       const button = event.target.closest('[data-page]');

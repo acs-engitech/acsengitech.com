@@ -232,7 +232,7 @@ test('sparse career admin content still renders cleanly on client page', async (
 test('admin sign in panel starts blank and blocks board', async ({ page }) => {
   await mockAdminApi(page);
   await page.setViewportSize({ width: 1365, height: 768 });
-  await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
+  await page.goto('/admin', { waitUntil: 'domcontentloaded' });
 
   await expect(page.locator('body')).toHaveClass(/admin-locked/);
   await expect(page.locator('#loginForm')).toBeVisible();
@@ -246,7 +246,7 @@ test('admin sign in panel starts blank and blocks board', async ({ page }) => {
 test('admin sign in shows loading after submit', async ({ page }) => {
   await mockDelayedAdminApi(page);
   await page.setViewportSize({ width: 1365, height: 768 });
-  await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
+  await page.goto('/admin', { waitUntil: 'domcontentloaded' });
   await page.locator('#loginForm input[name="email"]').fill('acs.mmo@gmail.com');
   await page.locator('#loginForm input[name="password"]').fill('acsmmo@2026#');
   await page.locator('#loginForm button[type="submit"]').click();
@@ -257,7 +257,7 @@ test('admin sign in shows loading after submit', async ({ page }) => {
 test('admin save shows spinner while creating a blog post', async ({ page }) => {
   await mockAdminApi(page, { delayPost: true });
   await page.setViewportSize({ width: 1365, height: 768 });
-  await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
+  await page.goto('/admin', { waitUntil: 'domcontentloaded' });
   await signInAdmin(page);
   await page.locator('.admin-nav button[data-tab="blogs"]').click();
   await page.locator('#newPostBtn').click();
@@ -269,7 +269,7 @@ test('admin save shows spinner while creating a blog post', async ({ page }) => 
 test('admin SEO list displays clean paths without html extensions', async ({ page }) => {
   await mockAdminApi(page);
   await page.setViewportSize({ width: 1365, height: 768 });
-  await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
+  await page.goto('/admin', { waitUntil: 'domcontentloaded' });
   await signInAdmin(page);
   await page.locator('.admin-nav button[data-tab="seo"]').click();
   await expect(page.locator('#pageList')).not.toContainText('.html');
@@ -278,7 +278,7 @@ test('admin SEO list displays clean paths without html extensions', async ({ pag
 test('admin tabs feel like ACS module navigation on desktop and mobile', async ({ page }) => {
   await mockAdminApi(page);
   await page.setViewportSize({ width: 1365, height: 768 });
-  await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
+  await page.goto('/admin', { waitUntil: 'domcontentloaded' });
   await page.waitForLoadState('networkidle').catch(() => {});
   await signInAdmin(page);
 
@@ -290,7 +290,9 @@ test('admin tabs feel like ACS module navigation on desktop and mobile', async (
   await page.screenshot({ path: path.join(outputDir, 'admin-tabs-desktop.png'), fullPage: false });
 
   await page.setViewportSize({ width: 430, height: 932 });
-  await expect(page.locator('.admin-nav .nav-title')).toBeHidden();
+  // New TailAdmin sidebar is an off-canvas drawer on mobile (translated off-screen when
+  // closed), not display:none — assert it sits off the viewport rather than being "hidden".
+  await expect(page.locator('#adminSidebar')).not.toBeInViewport();
   await expectNoHorizontalOverflow(page);
   await page.screenshot({ path: path.join(outputDir, 'admin-tabs-mobile.png'), fullPage: false });
 });
@@ -298,7 +300,7 @@ test('admin tabs feel like ACS module navigation on desktop and mobile', async (
 test('admin analytics owns GA and GTM tags with working chart', async ({ page }) => {
   await mockAdminApi(page);
   await page.setViewportSize({ width: 1365, height: 768 });
-  await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
+  await page.goto('/admin', { waitUntil: 'domcontentloaded' });
   await page.waitForLoadState('networkidle').catch(() => {});
   await signInAdmin(page);
 

@@ -18,7 +18,7 @@ const apiRoutes = {
 };
 
 const rewrites = {
-  '/admin': '/admin.html',
+  '/admin': '/admin/index.html',
   '/blog': '/blog.html',
   '/': '/index.html',
 };
