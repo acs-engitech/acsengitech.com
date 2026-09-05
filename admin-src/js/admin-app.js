@@ -294,7 +294,7 @@
       metric('Page views', analytics.pageViews || 0, 'chart'),
       metric('Unique visitors', analytics.uniqueVisitors || 0, 'grid'),
       metric('Avg views / day', analytics.avgViewsPerDay || 0, 'clock'),
-      metric('Devices', `D ${devices.desktop || 0} / M ${devices.mobile || 0}`, 'devices'),
+      metric('Desktop / Mobile', `${devices.desktop || 0} / ${devices.mobile || 0}`, 'devices'),
     ].join('');
 
     const peak = Math.max(1, ...(analytics.daily || []).map((day) => day.views));

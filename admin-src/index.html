@@ -64,9 +64,11 @@
         <span class="text-sm font-semibold text-gray-800">ACS Admin</span>
       </a>
       <div class="top-actions ml-auto flex items-center gap-2">
-        <a href="/index.html" target="_blank" rel="noopener" class="btn-secondary">View site</a>
-        <button id="refreshBtn" type="button" class="btn-secondary">Refresh</button>
-        <button id="logoutBtn" type="button" class="btn-dark">Sign out</button>
+        <div class="hidden sm:flex items-center gap-2">
+          <a href="/index.html" target="_blank" rel="noopener" class="btn-secondary">View site</a>
+          <button id="refreshBtn" type="button" class="btn-secondary">Refresh</button>
+        </div>
+        <button id="logoutBtn" type="button" class="btn-dark whitespace-nowrap">Sign out</button>
       </div>
     </header>
 
@@ -227,7 +229,7 @@
               <label class="field-label">Qualification <input name="qualification" class="field-input"></label>
               <div class="two-col">
                 <label class="field-label">Vacancies <input name="vacancies" class="field-input"></label>
-                <label class="field-label">Gender <input name="gender" placeholder="Male / Female" class="field-input"></label>
+                <label class="field-label">Gender <input name="gender" placeholder="Any" class="field-input"></label>
               </div>
               <h4 class="form-subhead">Description</h4>
               <label class="field-label">Description <textarea name="description" class="field-input"></textarea></label>
