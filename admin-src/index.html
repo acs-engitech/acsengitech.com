@@ -129,6 +129,7 @@
             <div class="list card p-2" id="pageList"></div>
             <form class="editor card space-y-5" id="seoForm">
               <h3 id="seoFormTitle" class="text-base font-semibold text-gray-800">Select a page</h3>
+              <h4 class="form-subhead">Page metadata</h4>
               <label class="field-label">Title tag <input name="title" maxlength="70" class="field-input"></label>
               <label class="field-label">Meta description <textarea name="description" maxlength="170" class="field-input"></textarea></label>
               <div class="two-col">
@@ -147,7 +148,8 @@
                 <label class="field-label">Twitter image URL <input name="twitterImage" class="field-input"></label>
               </div>
               <label class="field-label">Twitter description <textarea name="twitterDescription" class="field-input"></textarea></label>
-              <label class="field-label">Structured data JSON-LD <textarea name="jsonLd" class="field-input code-field"></textarea></label>
+              <h4 class="form-subhead">Structured data</h4>
+              <label class="field-label">JSON-LD <textarea name="jsonLd" class="field-input code-field"></textarea></label>
             </form>
           </div>
         </section>
@@ -170,23 +172,24 @@
             <div class="list card p-2" id="postList"></div>
             <form class="editor card space-y-5" id="postForm">
               <h3 class="text-base font-semibold text-gray-800">Post editor</h3>
+              <h4 class="form-subhead">Content</h4>
               <label class="field-label">Title <input name="title" required class="field-input"></label>
-              <div class="two-col">
-                <label class="field-label">Slug <input name="slug" class="field-input"></label>
-                <label class="field-label">Publish date <input name="publishedAt" type="datetime-local" class="field-input"></label>
-              </div>
               <label class="field-label">Excerpt <textarea name="excerpt" class="field-input"></textarea></label>
-              <div class="two-col">
-                <label class="field-label">Author <input name="author" class="field-input"></label>
-                <label class="field-label">Tags <input name="tags" placeholder="PLC, SCADA, Automation" class="field-input"></label>
-              </div>
               <div class="two-col">
                 <label class="field-label">Cover image URL <input name="coverImage" class="field-input"></label>
                 <label class="field-label">Cover image alt <input name="coverAlt" class="field-input"></label>
               </div>
               <label class="field-label">Content HTML <textarea name="content" class="field-input large-field"></textarea></label>
-              <label class="field-label">Meta title <input name="metaTitle" class="field-input"></label>
-              <label class="field-label">Meta description <textarea name="metaDescription" class="field-input"></textarea></label>
+
+              <h4 class="form-subhead">Publishing</h4>
+              <div class="two-col">
+                <label class="field-label">Slug <input name="slug" class="field-input"></label>
+                <label class="field-label">Publish date <input name="publishedAt" type="datetime-local" class="field-input"></label>
+              </div>
+              <div class="two-col">
+                <label class="field-label">Author <input name="author" class="field-input"></label>
+                <label class="field-label">Tags <input name="tags" placeholder="PLC, SCADA, Automation" class="field-input"></label>
+              </div>
               <label class="field-label">Status
                 <select name="status" class="field-input">
                   <option value="published">Published</option>
@@ -194,10 +197,15 @@
                   <option value="draft">Draft</option>
                 </select>
               </label>
-              <div class="form-actions flex flex-wrap items-center gap-3">
+
+              <h4 class="form-subhead">SEO</h4>
+              <label class="field-label">Meta title <input name="metaTitle" class="field-input"></label>
+              <label class="field-label">Meta description <textarea name="metaDescription" class="field-input"></textarea></label>
+
+              <div class="form-actions">
                 <button class="primary btn-primary" type="submit">Save post</button>
                 <button id="deletePostBtn" class="danger btn-danger" type="button">Delete</button>
-                <a id="previewPostLink" href="/blog.html" target="_blank" rel="noopener" class="text-sm font-medium text-brand-600 hover:text-brand-700">Preview</a>
+                <a id="previewPostLink" href="/blog.html" target="_blank" rel="noopener">Preview</a>
               </div>
             </form>
           </div>

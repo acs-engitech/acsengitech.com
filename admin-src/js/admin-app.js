@@ -198,9 +198,10 @@
     devices: '<path fill-rule="evenodd" clip-rule="evenodd" d="M4.75 5.5c0-1.243 1.007-2.25 2.25-2.25h10c1.243 0 2.25 1.007 2.25 2.25v9a2.25 2.25 0 0 1-2.25 2.25H13v1.5h2.25a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1 0-1.5H11v-1.5H7A2.25 2.25 0 0 1 4.75 14.5v-9ZM7 4.75a.75.75 0 0 0-.75.75v8.25c0 .414.336.75.75.75h10a.75.75 0 0 0 .75-.75V5.5a.75.75 0 0 0-.75-.75H7Z"/>',
   };
 
-  function metric(label, value, icon) {
+  function metric(label, value, icon, tone) {
     const path = METRIC_ICONS[icon] || METRIC_ICONS.grid;
-    return `<article class="metric"><svg class="metric-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${path}</svg><div class="mt-0 flex items-end justify-between"><div><span>${label}</span><strong>${value}</strong></div></div></article>`;
+    const toneClass = 'metric-icon-' + (tone || 'brand');
+    return `<article class="metric"><div class="metric-icon ${toneClass}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${path}</svg></div><div class="metric-body"><div><span>${label}</span><strong>${value}</strong></div></div></article>`;
   }
 
   function renderOverview() {
@@ -208,10 +209,10 @@
     const scheduled = state.posts.filter((post) => post.status === 'scheduled').length;
     const openJobs = state.jobs.filter((job) => job.status === 'open').length;
     $('#overviewMetrics').innerHTML = [
-      metric('SEO pages', state.pages.length, 'grid'),
-      metric('Published blogs', published, 'doc'),
-      metric('Scheduled blogs', scheduled, 'clock'),
-      metric('Open roles', openJobs, 'briefcase'),
+      metric('SEO pages', state.pages.length, 'grid', 'brand'),
+      metric('Published blogs', published, 'doc', 'success'),
+      metric('Scheduled blogs', scheduled, 'clock', 'warning'),
+      metric('Open roles', openJobs, 'briefcase', 'info'),
     ].join('');
   }
 
@@ -291,10 +292,10 @@
       tagForm[name].value = state.settings[name] || '';
     });
     $('#analyticsMetrics').innerHTML = [
-      metric('Page views', analytics.pageViews || 0, 'chart'),
-      metric('Unique visitors', analytics.uniqueVisitors || 0, 'grid'),
-      metric('Avg views / day', analytics.avgViewsPerDay || 0, 'clock'),
-      metric('Desktop / Mobile', `${devices.desktop || 0} / ${devices.mobile || 0}`, 'devices'),
+      metric('Page views', analytics.pageViews || 0, 'chart', 'brand'),
+      metric('Unique visitors', analytics.uniqueVisitors || 0, 'grid', 'success'),
+      metric('Avg views / day', analytics.avgViewsPerDay || 0, 'clock', 'warning'),
+      metric('Desktop / Mobile', `${devices.desktop || 0} / ${devices.mobile || 0}`, 'devices', 'info'),
     ].join('');
 
     const peak = Math.max(1, ...(analytics.daily || []).map((day) => day.views));
