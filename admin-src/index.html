@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ACS Engitech Admin</title>
 </head>
-<body class="admin-locked font-outfit bg-gray-50 text-gray-800">
+<body class="admin-locked font-outfit bg-gray-100 text-gray-800">
   <div class="admin-loading-overlay fixed right-6 bottom-6 z-[99999] items-center gap-2.5 rounded-xl border border-white/10 bg-brand-950 px-4 py-3.5 text-white shadow-lg" id="adminLoading" role="status" aria-live="polite" aria-hidden="true">
     <span class="admin-spinner h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" aria-hidden="true"></span>
     <strong class="text-sm font-medium">Loading...</strong>
@@ -32,11 +32,17 @@
         </label>
         <button class="primary btn-primary mt-2 h-11" type="submit">Sign in</button>
       </form>
-      <aside class="tailadmin-login-brand hidden flex-col justify-center gap-4 bg-brand-950 p-10 text-white lg:flex" aria-label="ACS Admin capabilities">
-        <img src="/logo-white.svg" alt="ACS Engitech" class="h-8 w-auto">
-        <h2 class="text-2xl font-semibold">One board for every ACS update.</h2>
-        <p class="text-sm text-white/70">Publish industrial insights, manage open roles, refine page SEO, and review first-party traffic from a single secure workspace.</p>
-        <div class="login-capabilities flex flex-wrap gap-2 text-xs font-medium">
+      <aside class="tailadmin-login-brand relative hidden flex-col justify-center gap-4 overflow-hidden bg-brand-950 p-10 text-white lg:flex" aria-label="ACS Admin capabilities">
+        <svg class="pointer-events-none absolute inset-0 h-full w-full opacity-20" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <pattern id="admin-dot-grid" width="24" height="24" patternUnits="userSpaceOnUse">
+            <circle cx="2" cy="2" r="1.5" fill="currentColor"></circle>
+          </pattern>
+          <rect width="100%" height="100%" fill="url(#admin-dot-grid)"></rect>
+        </svg>
+        <img src="/logo-white.svg" alt="ACS Engitech" class="relative h-8 w-auto">
+        <h2 class="relative text-title-md font-semibold">One board for every ACS update.</h2>
+        <p class="relative text-sm text-white/70">Publish industrial insights, manage open roles, refine page SEO, and review first-party traffic from a single secure workspace.</p>
+        <div class="login-capabilities relative flex flex-wrap gap-2 text-xs font-medium">
           <span class="rounded-full bg-white/10 px-3 py-1">SEO</span>
           <span class="rounded-full bg-white/10 px-3 py-1">Blogs</span>
           <span class="rounded-full bg-white/10 px-3 py-1">Careers</span>
@@ -48,7 +54,7 @@
 
   <div class="admin-app" x-data="adminShell()">
     <header class="tailadmin-topbar admin-topbar sticky top-0 z-40 flex items-center gap-4 border-b border-gray-200 bg-white px-4 py-3 lg:px-6">
-      <button id="adminMenuToggle" type="button" class="admin-menu-toggle flex h-10 w-10 flex-col items-center justify-center gap-1.5 rounded-lg border border-gray-200 text-gray-600" aria-controls="adminSidebar" aria-label="Open admin navigation" :class="sidebarOpen ? 'is-open' : ''" @click="sidebarOpen = !sidebarOpen" :aria-expanded="sidebarOpen.toString()">
+      <button id="adminMenuToggle" type="button" class="admin-menu-toggle flex h-11 w-11 flex-col items-center justify-center gap-1.5 rounded-lg border border-gray-200 text-gray-600" aria-controls="adminSidebar" aria-label="Open admin navigation" :class="sidebarOpen ? 'is-open' : ''" @click="sidebarOpen = !sidebarOpen" :aria-expanded="sidebarOpen.toString()">
         <span class="block h-0.5 w-5 bg-current transition-transform"></span>
         <span class="block h-0.5 w-5 bg-current transition-opacity"></span>
         <span class="block h-0.5 w-5 bg-current transition-transform"></span>
@@ -58,40 +64,47 @@
         <span class="text-sm font-semibold text-gray-800">ACS Admin</span>
       </a>
       <div class="top-actions ml-auto flex items-center gap-2">
-        <a href="/index.html" target="_blank" rel="noopener" class="btn-secondary">View site</a>
-        <button id="refreshBtn" type="button" class="btn-secondary">Refresh</button>
-        <button id="logoutBtn" type="button" class="inline-flex items-center justify-center rounded-lg bg-gray-800 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-900">Sign out</button>
+        <div class="hidden sm:flex items-center gap-2">
+          <a href="/index.html" target="_blank" rel="noopener" class="btn-secondary">View site</a>
+          <button id="refreshBtn" type="button" class="btn-secondary">Refresh</button>
+        </div>
+        <button id="logoutBtn" type="button" class="btn-dark whitespace-nowrap">Sign out</button>
       </div>
     </header>
 
     <main class="tailadmin-shell admin-shell flex items-start">
-      <aside class="tailadmin-sidebar admin-nav fixed inset-y-0 left-0 z-30 flex w-72 flex-col gap-1 overflow-y-auto border-r border-gray-200 bg-white px-4 pb-6" id="adminSidebar" aria-label="Admin sections" :class="sidebarOpen ? 'is-open' : ''">
-        <div class="nav-title ml-1 px-1 pb-4 pt-6">
-          <span class="block text-xs font-semibold uppercase tracking-wide text-gray-400">Control Modules</span>
-          <strong class="block text-sm font-semibold text-gray-800">ACS Admin</strong>
+      <aside class="tailadmin-sidebar admin-nav fixed inset-y-0 left-0 z-30 flex w-[290px] flex-col gap-2 overflow-y-auto border-r border-gray-200 bg-white px-5 pb-6" id="adminSidebar" aria-label="Admin sections" :class="sidebarOpen ? 'is-open' : ''">
+        <div class="nav-title px-1 pb-4 pt-8">
+          <span class="block text-xs font-semibold uppercase leading-[20px] tracking-wide text-gray-400">Menu</span>
         </div>
-        <button class="nav-btn flex flex-col items-start gap-0.5 rounded-lg px-3 py-2.5 text-left text-gray-600 hover:bg-gray-50" data-tab="overview" type="button" :class="{ active: activeTab === 'overview' }" @click="selectTab('overview')">
-          <span class="text-sm font-medium">Overview</span><small class="text-xs text-gray-400">Board summary</small>
+        <button class="nav-btn group" data-tab="overview" type="button" :class="{ active: activeTab === 'overview' }" @click="selectTab('overview')">
+          <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.5 3.25C4.257 3.25 3.25 4.257 3.25 5.5V9c0 1.243 1.007 2.25 2.25 2.25h3.5c1.243 0 2.25-1.007 2.25-2.25V5.5c0-1.243-1.007-2.25-2.25-2.25h-3.5Zm9 0c-1.243 0-2.25 1.007-2.25 2.25V9c0 1.243 1.007 2.25 2.25 2.25h3.5c1.243 0 2.25-1.007 2.25-2.25V5.5c0-1.243-1.007-2.25-2.25-2.25h-3.5ZM5.5 12.75c-1.243 0-2.25 1.007-2.25 2.25v3.5c0 1.243 1.007 2.25 2.25 2.25h3.5c1.243 0 2.25-1.007 2.25-2.25V15c0-1.243-1.007-2.25-2.25-2.25h-3.5Zm9 0c-1.243 0-2.25 1.007-2.25 2.25v3.5c0 1.243 1.007 2.25 2.25 2.25h3.5c1.243 0 2.25-1.007 2.25-2.25V15c0-1.243-1.007-2.25-2.25-2.25h-3.5Z"/></svg>
+          <span class="flex flex-col"><span class="text-sm font-medium">Overview</span><small class="text-xs font-normal text-gray-400">Board summary</small></span>
         </button>
-        <button class="nav-btn flex flex-col items-start gap-0.5 rounded-lg px-3 py-2.5 text-left text-gray-600 hover:bg-gray-50" data-tab="seo" type="button" :class="{ active: activeTab === 'seo' }" @click="selectTab('seo')">
-          <span class="text-sm font-medium">SEO</span><small class="text-xs text-gray-400">All page metadata</small>
+        <button class="nav-btn group" data-tab="seo" type="button" :class="{ active: activeTab === 'seo' }" @click="selectTab('seo')">
+          <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.5 4.75a5.75 5.75 0 1 0 0 11.5 5.75 5.75 0 0 0 0-11.5ZM3.25 10.5a7.25 7.25 0 1 1 12.98 4.44l3.415 3.415a.75.75 0 1 1-1.06 1.06l-3.416-3.414A7.25 7.25 0 0 1 3.25 10.5Z"/></svg>
+          <span class="flex flex-col"><span class="text-sm font-medium">SEO</span><small class="text-xs font-normal text-gray-400">All page metadata</small></span>
         </button>
-        <button class="nav-btn flex flex-col items-start gap-0.5 rounded-lg px-3 py-2.5 text-left text-gray-600 hover:bg-gray-50" data-tab="blogs" type="button" :class="{ active: activeTab === 'blogs' }" @click="selectTab('blogs')">
-          <span class="text-sm font-medium">Blogs</span><small class="text-xs text-gray-400">Drafts and publishing</small>
+        <button class="nav-btn group" data-tab="blogs" type="button" :class="{ active: activeTab === 'blogs' }" @click="selectTab('blogs')">
+          <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M6.5 3.25C5.257 3.25 4.25 4.257 4.25 5.5v13c0 1.243 1.007 2.25 2.25 2.25h11c1.243 0 2.25-1.007 2.25-2.25V9.31a2.25 2.25 0 0 0-.659-1.591l-3.81-3.81a2.25 2.25 0 0 0-1.591-.659H6.5Zm1.25 8.5a.75.75 0 0 1 .75-.75h7a.75.75 0 0 1 0 1.5h-7a.75.75 0 0 1-.75-.75Zm.75 3.25a.75.75 0 0 0 0 1.5h4.5a.75.75 0 0 0 0-1.5h-4.5Z"/></svg>
+          <span class="flex flex-col"><span class="text-sm font-medium">Blogs</span><small class="text-xs font-normal text-gray-400">Drafts and publishing</small></span>
         </button>
-        <button class="nav-btn flex flex-col items-start gap-0.5 rounded-lg px-3 py-2.5 text-left text-gray-600 hover:bg-gray-50" data-tab="careers" type="button" :class="{ active: activeTab === 'careers' }" @click="selectTab('careers')">
-          <span class="text-sm font-medium">Careers</span><small class="text-xs text-gray-400">Open role content</small>
+        <button class="nav-btn group" data-tab="careers" type="button" :class="{ active: activeTab === 'careers' }" @click="selectTab('careers')">
+          <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M9 3.75c-1.243 0-2.25 1.007-2.25 2.25v.75H5.5c-1.243 0-2.25 1.007-2.25 2.25v8.25c0 1.243 1.007 2.25 2.25 2.25h13c1.243 0 2.25-1.007 2.25-2.25V9c0-1.243-1.007-2.25-2.25-2.25h-1.25V6c0-1.243-1.007-2.25-2.25-2.25H9Zm6.25 3V6a.75.75 0 0 0-.75-.75H9a.75.75 0 0 0-.75.75v.75h6.5ZM4.75 12.5h14.5v4.5a.75.75 0 0 1-.75.75h-13a.75.75 0 0 1-.75-.75v-4.5Z"/></svg>
+          <span class="flex flex-col"><span class="text-sm font-medium">Careers</span><small class="text-xs font-normal text-gray-400">Open role content</small></span>
         </button>
-        <button class="nav-btn flex flex-col items-start gap-0.5 rounded-lg px-3 py-2.5 text-left text-gray-600 hover:bg-gray-50" data-tab="analytics" type="button" :class="{ active: activeTab === 'analytics' }" @click="selectTab('analytics')">
-          <span class="text-sm font-medium">Analytics</span><small class="text-xs text-gray-400">Traffic and sources</small>
+        <button class="nav-btn group" data-tab="analytics" type="button" :class="{ active: activeTab === 'analytics' }" @click="selectTab('analytics')">
+          <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M5 3.25a.75.75 0 0 1 .75.75v14.5H20a.75.75 0 0 1 0 1.5H5A1.75 1.75 0 0 1 3.25 18.25V4A.75.75 0 0 1 5 3.25ZM18.5 8a1 1 0 0 1 1 1v7.25a.75.75 0 0 1-1.5 0V9a1 1 0 0 1 1-1Zm-4.5 3a1 1 0 0 1 1 1v4.25a.75.75 0 0 1-1.5 0V12a1 1 0 0 1 1-1Zm-4.5 2a1 1 0 0 1 1 1v2.25a.75.75 0 0 1-1.5 0V14a1 1 0 0 1 1-1Z"/></svg>
+          <span class="flex flex-col"><span class="text-sm font-medium">Analytics</span><small class="text-xs font-normal text-gray-400">Traffic and sources</small></span>
         </button>
-        <button class="nav-btn flex flex-col items-start gap-0.5 rounded-lg px-3 py-2.5 text-left text-gray-600 hover:bg-gray-50" data-tab="settings" type="button" :class="{ active: activeTab === 'settings' }" @click="selectTab('settings')">
-          <span class="text-sm font-medium">Robots / LLMs</span><small class="text-xs text-gray-400">Crawler directives</small>
+        <button class="nav-btn group" data-tab="settings" type="button" :class="{ active: activeTab === 'settings' }" @click="selectTab('settings')">
+          <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2.75a1.75 1.75 0 0 1 .698.146l6.25 2.723A1.75 1.75 0 0 1 20 7.183v4.317c0 5.086-3.31 8.94-7.464 10.454a1.75 1.75 0 0 1-1.072 0C7.31 20.44 4 16.586 4 11.5V7.183c0-.702.416-1.338 1.052-1.614l6.25-2.723A1.75 1.75 0 0 1 12 2.75Zm3.28 6.47a.75.75 0 0 0-1.06-1.06l-3.47 3.47-1.47-1.47a.75.75 0 0 0-1.06 1.06l2 2a.75.75 0 0 0 1.06 0l4-4Z"/></svg>
+          <span class="flex flex-col"><span class="text-sm font-medium">Robots / LLMs</span><small class="text-xs font-normal text-gray-400">Crawler directives</small></span>
         </button>
       </aside>
 
-      <section class="tailadmin-content admin-content min-w-0 flex-1 p-4 lg:ml-72 lg:p-6">
-        <div id="statusBar" class="status-bar mb-4 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-500">Loading admin data...</div>
+      <section class="tailadmin-content admin-content min-w-0 flex-1 p-4 lg:ml-[290px] lg:p-6">
+        <div id="statusBar" class="status-bar" role="status" aria-live="polite">Loading admin data...</div>
 
         <section class="panel" id="overview" :class="{ active: activeTab === 'overview' }">
           <div class="section-head">
@@ -116,6 +129,7 @@
             <div class="list card p-2" id="pageList"></div>
             <form class="editor card space-y-5" id="seoForm">
               <h3 id="seoFormTitle" class="text-base font-semibold text-gray-800">Select a page</h3>
+              <h4 class="form-subhead">Page metadata</h4>
               <label class="field-label">Title tag <input name="title" maxlength="70" class="field-input"></label>
               <label class="field-label">Meta description <textarea name="description" maxlength="170" class="field-input"></textarea></label>
               <div class="two-col">
@@ -123,7 +137,7 @@
                 <label class="field-label">Robots <input name="robots" placeholder="index, follow" class="field-input"></label>
               </div>
               <label class="field-label">Keywords <input name="keywords" class="field-input"></label>
-              <h4 class="text-sm font-semibold text-gray-700">Open Graph / Social</h4>
+              <h4 class="form-subhead">Open Graph / Social</h4>
               <div class="two-col">
                 <label class="field-label">OG title <input name="ogTitle" class="field-input"></label>
                 <label class="field-label">OG image URL <input name="ogImage" class="field-input"></label>
@@ -134,7 +148,8 @@
                 <label class="field-label">Twitter image URL <input name="twitterImage" class="field-input"></label>
               </div>
               <label class="field-label">Twitter description <textarea name="twitterDescription" class="field-input"></textarea></label>
-              <label class="field-label">Structured data JSON-LD <textarea name="jsonLd" class="field-input code-field"></textarea></label>
+              <h4 class="form-subhead">Structured data</h4>
+              <label class="field-label">JSON-LD <textarea name="jsonLd" class="field-input code-field"></textarea></label>
             </form>
           </div>
         </section>
@@ -148,32 +163,33 @@
             <button id="newPostBtn" class="primary btn-primary" type="button">New post</button>
           </div>
           <div class="filters mb-4 flex flex-wrap gap-2">
-            <button class="active rounded-full border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600" data-post-filter="all" type="button">All</button>
-            <button class="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600" data-post-filter="published" type="button">Published</button>
-            <button class="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600" data-post-filter="scheduled" type="button">Scheduled</button>
-            <button class="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600" data-post-filter="draft" type="button">Drafts</button>
+            <button class="filter-chip active" data-post-filter="all" type="button">All</button>
+            <button class="filter-chip" data-post-filter="published" type="button">Published</button>
+            <button class="filter-chip" data-post-filter="scheduled" type="button">Scheduled</button>
+            <button class="filter-chip" data-post-filter="draft" type="button">Drafts</button>
           </div>
           <div class="split grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr]">
             <div class="list card p-2" id="postList"></div>
             <form class="editor card space-y-5" id="postForm">
               <h3 class="text-base font-semibold text-gray-800">Post editor</h3>
+              <h4 class="form-subhead">Content</h4>
               <label class="field-label">Title <input name="title" required class="field-input"></label>
-              <div class="two-col">
-                <label class="field-label">Slug <input name="slug" class="field-input"></label>
-                <label class="field-label">Publish date <input name="publishedAt" type="datetime-local" class="field-input"></label>
-              </div>
               <label class="field-label">Excerpt <textarea name="excerpt" class="field-input"></textarea></label>
-              <div class="two-col">
-                <label class="field-label">Author <input name="author" class="field-input"></label>
-                <label class="field-label">Tags <input name="tags" placeholder="PLC, SCADA, Automation" class="field-input"></label>
-              </div>
               <div class="two-col">
                 <label class="field-label">Cover image URL <input name="coverImage" class="field-input"></label>
                 <label class="field-label">Cover image alt <input name="coverAlt" class="field-input"></label>
               </div>
               <label class="field-label">Content HTML <textarea name="content" class="field-input large-field"></textarea></label>
-              <label class="field-label">Meta title <input name="metaTitle" class="field-input"></label>
-              <label class="field-label">Meta description <textarea name="metaDescription" class="field-input"></textarea></label>
+
+              <h4 class="form-subhead">Publishing</h4>
+              <div class="two-col">
+                <label class="field-label">Slug <input name="slug" class="field-input"></label>
+                <label class="field-label">Publish date <input name="publishedAt" type="datetime-local" class="field-input"></label>
+              </div>
+              <div class="two-col">
+                <label class="field-label">Author <input name="author" class="field-input"></label>
+                <label class="field-label">Tags <input name="tags" placeholder="PLC, SCADA, Automation" class="field-input"></label>
+              </div>
               <label class="field-label">Status
                 <select name="status" class="field-input">
                   <option value="published">Published</option>
@@ -181,10 +197,15 @@
                   <option value="draft">Draft</option>
                 </select>
               </label>
-              <div class="form-actions flex flex-wrap items-center gap-3">
+
+              <h4 class="form-subhead">SEO</h4>
+              <label class="field-label">Meta title <input name="metaTitle" class="field-input"></label>
+              <label class="field-label">Meta description <textarea name="metaDescription" class="field-input"></textarea></label>
+
+              <div class="form-actions">
                 <button class="primary btn-primary" type="submit">Save post</button>
                 <button id="deletePostBtn" class="danger btn-danger" type="button">Delete</button>
-                <a id="previewPostLink" href="/blog.html" target="_blank" rel="noopener" class="text-sm font-medium text-brand-600 hover:text-brand-700">Preview</a>
+                <a id="previewPostLink" href="/blog.html" target="_blank" rel="noopener">Preview</a>
               </div>
             </form>
           </div>
@@ -202,11 +223,13 @@
             <div class="list card p-2" id="jobList"></div>
             <form class="editor card space-y-5" id="jobForm">
               <h3 class="text-base font-semibold text-gray-800">Role editor</h3>
+              <h4 class="form-subhead">Basic</h4>
               <label class="field-label">Title <input name="title" required class="field-input"></label>
               <div class="two-col">
                 <label class="field-label">Department <input name="department" class="field-input"></label>
                 <label class="field-label">Location <input name="location" class="field-input"></label>
               </div>
+              <h4 class="form-subhead">Details</h4>
               <div class="two-col">
                 <label class="field-label">Type <input name="type" placeholder="Full time" class="field-input"></label>
                 <label class="field-label">Experience <input name="experience" class="field-input"></label>
@@ -214,10 +237,12 @@
               <label class="field-label">Qualification <input name="qualification" class="field-input"></label>
               <div class="two-col">
                 <label class="field-label">Vacancies <input name="vacancies" class="field-input"></label>
-                <label class="field-label">Gender <input name="gender" placeholder="Male / Female" class="field-input"></label>
+                <label class="field-label">Gender <input name="gender" placeholder="Any" class="field-input"></label>
               </div>
+              <h4 class="form-subhead">Description</h4>
               <label class="field-label">Description <textarea name="description" class="field-input"></textarea></label>
               <label class="field-label">Key responsibilities <textarea name="responsibilities" placeholder="One responsibility per line" class="field-input"></textarea></label>
+              <h4 class="form-subhead">Skills</h4>
               <label class="field-label">Hard skills <textarea name="hardSkills" class="field-input"></textarea></label>
               <label class="field-label">Soft skills <textarea name="softSkills" class="field-input"></textarea></label>
               <div class="two-col">
@@ -296,5 +321,20 @@
       </section>
     </main>
   </div>
+  <script>
+    // Toast auto-fade: purely presentational, does not touch admin-app.js state/behavior.
+    (function () {
+      var bar = document.getElementById('statusBar');
+      if (!bar) return;
+      var timer = null;
+      new MutationObserver(function () {
+        bar.classList.remove('is-faded');
+        clearTimeout(timer);
+        if (bar.textContent.trim() === 'All changes are loaded.') {
+          timer = setTimeout(function () { bar.classList.add('is-faded'); }, 3000);
+        }
+      }).observe(bar, { childList: true, characterData: true, subtree: true });
+    })();
+  </script>
 </body>
 </html>

@@ -131,18 +131,31 @@ body:not(.admin-locked) #adminLogin { display: none; }
 .admin-loading-overlay.is-visible { display: flex; }
 
 /* Shell component classes (TailAdmin-styled building blocks) */
-.card { @apply rounded-2xl border border-gray-200 bg-white p-5 md:p-6; }
-.section-head { @apply mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between; }
+.card { @apply rounded-2xl border border-gray-200 bg-white p-6 md:p-7; }
+.section-head { @apply mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between; }
+.section-head h1, .section-head h2 { @apply text-title-sm font-semibold text-gray-800; }
 .eyebrow { @apply text-xs font-semibold uppercase tracking-wide text-brand-500; }
 .field-label { @apply block text-sm font-medium text-gray-700; }
 .field-input { @apply mt-1.5 block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-3 focus:ring-brand-500/10; }
 .two-col { @apply grid grid-cols-1 gap-4 sm:grid-cols-2; }
-.btn-primary { @apply inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-600; }
-.btn-secondary { @apply inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50; }
-.btn-danger { @apply inline-flex items-center justify-center rounded-lg border border-red-300 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50; }
+.btn-primary { @apply inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-brand-600 active:bg-brand-700; }
+.btn-secondary { @apply inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50; }
+.btn-danger { @apply inline-flex items-center justify-center rounded-lg border border-red-300 bg-white px-4 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-50; }
+.btn-dark { @apply inline-flex items-center justify-center rounded-lg bg-gray-800 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-900; }
 .code-field { @apply font-mono text-xs; }
 .code-field.tall, textarea.large-field { min-height: 220px; }
-.metric-grid { @apply grid grid-cols-2 gap-4 sm:grid-cols-4; }
+.metric-grid { @apply grid grid-cols-2 gap-4 md:gap-6 sm:grid-cols-4; }
+.form-subhead { @apply mt-8 pt-6 first:mt-0 first:pt-0 flex items-center gap-2.5 text-sm font-semibold uppercase tracking-wide text-gray-500 border-t first:border-t-0 border-gray-100; }
+.form-subhead::before { content: ''; display: inline-block; width: 4px; height: 14px; border-radius: 2px; background-color: var(--color-brand-500); }
+.form-subhead:first-child { @apply -mt-2; }
+.editor.card { @apply p-6 md:p-8; }
+.editor.card > h3 { @apply text-base font-semibold text-gray-800 mb-6 pb-4 border-b border-gray-100; }
+.list.card { @apply p-3; }
+.filter-chip { @apply rounded-full border border-gray-300 bg-white px-3.5 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-50 hover:text-gray-800; }
+.filter-chip.active { @apply border-brand-500 bg-brand-50 text-brand-700; }
+.form-actions { @apply mt-8 pt-6 border-t border-gray-100 flex items-center gap-3 flex-wrap; }
+.form-actions a { @apply text-sm font-medium text-brand-600 hover:text-brand-700 ml-auto; }
+.tag-chip { @apply inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600; }
 
 /* Sidebar off-canvas on mobile, static on desktop */
 #adminSidebar { transform: translateX(-100%); transition: transform .2s ease; }
@@ -150,21 +163,90 @@ body:not(.admin-locked) #adminLogin { display: none; }
 @media (min-width: 861px) {
   #adminSidebar { position: static; transform: none; }
 }
-.nav-btn.active { @apply bg-brand-500/10 text-brand-700; }
+
+/* TailAdmin menu-item pattern, applied to the frozen .nav-btn hooks */
+.nav-btn { @apply menu-item menu-item-inactive w-full; }
+.nav-btn.active { @apply menu-item-active; }
+.nav-btn .menu-icon { @apply menu-item-icon-inactive shrink-0; }
+.nav-btn.active .menu-icon { @apply menu-item-icon-active; }
+@utility menu-item {
+  @apply text-sm relative flex items-center gap-3 rounded-lg px-3 py-3 font-medium text-left transition;
+}
+@utility menu-item-active {
+  @apply bg-brand-50 text-brand-700;
+}
+@utility menu-item-inactive {
+  @apply text-gray-600 hover:bg-gray-50 hover:text-gray-800;
+}
+@utility menu-item-icon-active {
+  @apply fill-brand-500;
+}
+@utility menu-item-icon-inactive {
+  @apply fill-gray-500 group-hover:fill-gray-700;
+}
 
 /* Logic-rendered components (built by admin-app.js — not present in static HTML) */
-.status-bar.ok { @apply border-success-200 bg-success-50 text-success-600; }
-.status-bar.error { @apply border-error-200 bg-error-50 text-error-600; }
-.status-bar.is-loading { @apply opacity-70; }
-.metric { @apply flex flex-col gap-1 rounded-2xl border border-gray-200 bg-white p-5; }
-.metric span { @apply text-xs font-medium uppercase tracking-wide text-gray-400; }
-.metric strong { @apply text-title-sm text-gray-900; }
-.row-card { @apply mb-1 block w-full rounded-lg border border-transparent p-3 text-left text-sm text-gray-600 hover:bg-gray-50; }
-.row-card.active { @apply border-brand-500 bg-brand-500/5 text-brand-700 ring-1 ring-brand-500; }
-.data-row { @apply flex items-center justify-between border-b border-gray-100 py-2 text-sm text-gray-600 last:border-b-0; }
-#dailyChart { @apply flex h-full items-end gap-1; }
-#dailyChart .bar { @apply flex-1 rounded-t bg-brand-500; }
-.empty-state { @apply text-sm text-gray-400; }
+#statusBar { @apply fixed right-6 bottom-6 z-50 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-500 shadow-lg transition-opacity duration-500 max-w-sm; animation: toastSlideUp .25s ease-out; }
+@media (max-width: 640px) {
+  #statusBar { left: 16px; right: 16px; bottom: 16px; max-width: none; }
+}
+.status-bar.ok { @apply border-success-200 bg-success-50 text-success-700; animation: toastSlideUp .25s ease-out, statusBarFadeOut 0.6s 2.4s ease-out forwards; }
+.status-bar.error { @apply border-error-200 bg-error-50 text-error-700; }
+.status-bar.is-loading { @apply border-brand-200 bg-brand-50 text-brand-700; }
+.status-bar.is-faded { @apply opacity-0 pointer-events-none; }
+@keyframes toastSlideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes statusBarFadeOut { to { opacity: 0; pointer-events: none; } }
+
+/* Metric card — icon bubble + label + big value + optional trend pill */
+.metric { @apply rounded-2xl border border-gray-200 bg-white p-6 transition; }
+.metric:hover { @apply shadow-sm; }
+.metric-icon { @apply flex h-11 w-11 items-center justify-center rounded-xl; }
+.metric-icon-brand { background-color: var(--color-brand-50); }
+.metric-icon-brand svg { fill: var(--color-brand-600); }
+.metric-icon-success { background-color: var(--color-success-50); }
+.metric-icon-success svg { fill: var(--color-success-600); }
+.metric-icon-warning { background-color: var(--color-orange-50); }
+.metric-icon-warning svg { fill: var(--color-orange-600); }
+.metric-icon-info { background-color: var(--color-blue-light-50); }
+.metric-icon-info svg { fill: var(--color-blue-light-600); }
+.metric-body { @apply mt-5 flex items-end justify-between gap-3; }
+.metric span { @apply block text-sm text-gray-500; }
+.metric strong { @apply mt-2 block text-title-sm font-bold text-gray-800; }
+.metric .trend { @apply inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-600; }
+
+/* Row cards for lists */
+.row-card { @apply mb-1.5 block w-full rounded-lg border border-transparent px-3.5 py-3 text-left text-sm text-gray-600 transition hover:bg-gray-50; }
+.row-card.active { @apply border-brand-500 bg-brand-50/60 text-brand-700; }
+.row-card strong { @apply flex items-center justify-between gap-2 text-gray-800 font-semibold; }
+.row-card.active strong { @apply text-brand-700; }
+.row-card .row-path { @apply block text-xs text-gray-400 mt-0.5; }
+.row-card .row-tags { @apply mt-2 flex flex-wrap gap-1; }
+
+/* Status pills */
+.status-pill { @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium; }
+.status-pill.status-published, .status-pill.status-open { @apply bg-success-50 text-success-700; }
+.status-pill.status-scheduled, .status-pill.status-paused { @apply bg-orange-50 text-orange-700; }
+.status-pill.status-draft, .status-pill.status-closed { @apply bg-gray-100 text-gray-600; }
+
+/* Data rows (top pages, top referrers) */
+.data-row { @apply flex items-center justify-between border-b border-gray-100 py-3 text-sm last:border-b-0; }
+.data-row span:first-child { @apply text-gray-700; }
+.data-row strong { @apply text-gray-900 font-semibold; }
+
+/* Analytics chart */
+#dailyChart { @apply flex h-full min-h-[260px] items-end gap-1.5 rounded-lg bg-gradient-to-b from-gray-50 to-white p-4 border border-gray-100; }
+#dailyChart .bar { @apply min-h-[24px] flex-1 rounded-t-md bg-brand-500 transition-all hover:bg-brand-600 relative cursor-pointer; }
+
+.empty-state { @apply text-sm text-gray-400 py-6 text-center block; }
+
+/* Analytics grid: chart, top pages, top referrers side-by-side on desktop */
+.analytics-grid { @apply grid grid-cols-1 gap-6 lg:grid-cols-3; }
+.analytics-grid > section { @apply rounded-2xl border border-gray-200 bg-white p-6 md:p-7; }
+.analytics-grid h3 { @apply mb-4 text-base font-semibold text-gray-800; }
+.status-pill.status-published, .status-pill.status-open { @apply bg-success-50 text-success-700; }
+.status-pill.status-scheduled, .status-pill.status-paused { @apply bg-warning-50 text-warning-700; }
+.status-pill.status-draft, .status-pill.status-closed { @apply bg-gray-100 text-gray-500; }
+.tag-chip { @apply inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500; }
 #adminMenuToggle.is-open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
 #adminMenuToggle.is-open span:nth-child(2) { opacity: 0; }
 #adminMenuToggle.is-open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
