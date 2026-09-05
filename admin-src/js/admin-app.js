@@ -189,8 +189,18 @@
     }
   }
 
-  function metric(label, value) {
-    return `<article class="metric"><span>${label}</span><strong>${value}</strong></article>`;
+  const METRIC_ICONS = {
+    grid: '<path fill-rule="evenodd" clip-rule="evenodd" d="M5.5 3.25C4.257 3.25 3.25 4.257 3.25 5.5V9c0 1.243 1.007 2.25 2.25 2.25h3.5c1.243 0 2.25-1.007 2.25-2.25V5.5c0-1.243-1.007-2.25-2.25-2.25h-3.5Zm9 0c-1.243 0-2.25 1.007-2.25 2.25V9c0 1.243 1.007 2.25 2.25 2.25h3.5c1.243 0 2.25-1.007 2.25-2.25V5.5c0-1.243-1.007-2.25-2.25-2.25h-3.5ZM5.5 12.75c-1.243 0-2.25 1.007-2.25 2.25v3.5c0 1.243 1.007 2.25 2.25 2.25h3.5c1.243 0 2.25-1.007 2.25-2.25V15c0-1.243-1.007-2.25-2.25-2.25h-3.5Zm9 0c-1.243 0-2.25 1.007-2.25 2.25v3.5c0 1.243 1.007 2.25 2.25 2.25h3.5c1.243 0 2.25-1.007 2.25-2.25V15c0-1.243-1.007-2.25-2.25-2.25h-3.5Z"/>',
+    doc: '<path fill-rule="evenodd" clip-rule="evenodd" d="M6.5 3.25C5.257 3.25 4.25 4.257 4.25 5.5v13c0 1.243 1.007 2.25 2.25 2.25h11c1.243 0 2.25-1.007 2.25-2.25V9.31a2.25 2.25 0 0 0-.659-1.591l-3.81-3.81a2.25 2.25 0 0 0-1.591-.659H6.5Zm1.25 8.5a.75.75 0 0 1 .75-.75h7a.75.75 0 0 1 0 1.5h-7a.75.75 0 0 1-.75-.75Zm.75 3.25a.75.75 0 0 0 0 1.5h4.5a.75.75 0 0 0 0-1.5h-4.5Z"/>',
+    clock: '<path fill-rule="evenodd" clip-rule="evenodd" d="M12 2.25a9.75 9.75 0 1 0 0 19.5 9.75 9.75 0 0 0 0-19.5ZM12.75 7a.75.75 0 0 0-1.5 0v5c0 .199.079.39.22.53l3 3a.75.75 0 1 0 1.06-1.06l-2.78-2.78V7Z"/>',
+    briefcase: '<path fill-rule="evenodd" clip-rule="evenodd" d="M9 3.75c-1.243 0-2.25 1.007-2.25 2.25v.75H5.5c-1.243 0-2.25 1.007-2.25 2.25v8.25c0 1.243 1.007 2.25 2.25 2.25h13c1.243 0 2.25-1.007 2.25-2.25V9c0-1.243-1.007-2.25-2.25-2.25h-1.25V6c0-1.243-1.007-2.25-2.25-2.25H9Zm6.25 3V6a.75.75 0 0 0-.75-.75H9a.75.75 0 0 0-.75.75v.75h6.5ZM4.75 12.5h14.5v4.5a.75.75 0 0 1-.75.75h-13a.75.75 0 0 1-.75-.75v-4.5Z"/>',
+    chart: '<path fill-rule="evenodd" clip-rule="evenodd" d="M5 3.25a.75.75 0 0 1 .75.75v14.5H20a.75.75 0 0 1 0 1.5H5A1.75 1.75 0 0 1 3.25 18.25V4A.75.75 0 0 1 5 3.25ZM18.5 8a1 1 0 0 1 1 1v7.25a.75.75 0 0 1-1.5 0V9a1 1 0 0 1 1-1Zm-4.5 3a1 1 0 0 1 1 1v4.25a.75.75 0 0 1-1.5 0V12a1 1 0 0 1 1-1Zm-4.5 2a1 1 0 0 1 1 1v2.25a.75.75 0 0 1-1.5 0V14a1 1 0 0 1 1-1Z"/>',
+    devices: '<path fill-rule="evenodd" clip-rule="evenodd" d="M4.75 5.5c0-1.243 1.007-2.25 2.25-2.25h10c1.243 0 2.25 1.007 2.25 2.25v9a2.25 2.25 0 0 1-2.25 2.25H13v1.5h2.25a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1 0-1.5H11v-1.5H7A2.25 2.25 0 0 1 4.75 14.5v-9ZM7 4.75a.75.75 0 0 0-.75.75v8.25c0 .414.336.75.75.75h10a.75.75 0 0 0 .75-.75V5.5a.75.75 0 0 0-.75-.75H7Z"/>',
+  };
+
+  function metric(label, value, icon) {
+    const path = METRIC_ICONS[icon] || METRIC_ICONS.grid;
+    return `<article class="metric"><svg class="metric-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${path}</svg><div class="mt-0 flex items-end justify-between"><div><span>${label}</span><strong>${value}</strong></div></div></article>`;
   }
 
   function renderOverview() {
@@ -198,10 +208,10 @@
     const scheduled = state.posts.filter((post) => post.status === 'scheduled').length;
     const openJobs = state.jobs.filter((job) => job.status === 'open').length;
     $('#overviewMetrics').innerHTML = [
-      metric('SEO pages', state.pages.length),
-      metric('Published blogs', published),
-      metric('Scheduled blogs', scheduled),
-      metric('Open roles', openJobs),
+      metric('SEO pages', state.pages.length, 'grid'),
+      metric('Published blogs', published, 'doc'),
+      metric('Scheduled blogs', scheduled, 'clock'),
+      metric('Open roles', openJobs, 'briefcase'),
     ].join('');
   }
 
@@ -209,7 +219,8 @@
     $('#pageList').innerHTML = state.pages.map((page) => `
       <button class="row-card ${page.path === state.selectedPage ? 'active' : ''}" data-page="${page.path}" type="button">
         <strong>${page.label}</strong>
-        <span>${displayPath(page.path)} - ${(state.pageSeo[page.path]?.title || page.defaults.title || '').slice(0, 90)}</span>
+        <span class="row-path">${displayPath(page.path)}</span>
+        <span class="block truncate text-gray-500">${(state.pageSeo[page.path]?.title || page.defaults.title || '').slice(0, 90)}</span>
       </button>
     `).join('');
 
@@ -225,11 +236,11 @@
     const posts = state.postFilter === 'all' ? state.posts : state.posts.filter((post) => post.status === state.postFilter);
     $('#postList').innerHTML = posts.map((post) => `
       <button class="row-card ${post.id === state.selectedPost ? 'active' : ''}" data-post="${post.id}" type="button">
-        <strong>${post.title} <small>${post.status}</small></strong>
-        <span>${new Date(post.publishedAt).toLocaleDateString()} - /blog?post=${post.slug}</span>
-        <span>${(post.tags || []).join(', ')}</span>
+        <strong>${post.title} <span class="status-pill status-${post.status}">${post.status}</span></strong>
+        <span class="row-path">${new Date(post.publishedAt).toLocaleDateString()} - /blog?post=${post.slug}</span>
+        <span class="row-tags">${(post.tags || []).map((tag) => `<span class="tag-chip">${tag}</span>`).join('')}</span>
       </button>
-    `).join('') || '<p>No posts in this view.</p>';
+    `).join('') || '<p class="empty-state">No posts in this view.</p>';
     $$('.filters button').forEach((button) => button.classList.toggle('active', button.dataset.postFilter === state.postFilter));
     fillPostForm();
   }
@@ -255,10 +266,10 @@
   function renderJobs() {
     $('#jobList').innerHTML = state.jobs.map((job) => `
       <button class="row-card ${job.id === state.selectedJob ? 'active' : ''}" data-job="${job.id}" type="button">
-        <strong>${job.title} <small>${job.status}</small></strong>
-        <span>${job.department || ''} - ${job.location || ''}</span>
+        <strong>${job.title} <span class="status-pill status-${job.status}">${job.status}</span></strong>
+        <span class="row-path">${job.department || ''} - ${job.location || ''}</span>
       </button>
-    `).join('') || '<p>No roles yet.</p>';
+    `).join('') || '<p class="empty-state">No roles yet.</p>';
     fillJobForm();
   }
 
@@ -280,10 +291,10 @@
       tagForm[name].value = state.settings[name] || '';
     });
     $('#analyticsMetrics').innerHTML = [
-      metric('Page views', analytics.pageViews || 0),
-      metric('Unique visitors', analytics.uniqueVisitors || 0),
-      metric('Avg views / day', analytics.avgViewsPerDay || 0),
-      metric('Devices', `D ${devices.desktop || 0} / M ${devices.mobile || 0}`),
+      metric('Page views', analytics.pageViews || 0, 'chart'),
+      metric('Unique visitors', analytics.uniqueVisitors || 0, 'grid'),
+      metric('Avg views / day', analytics.avgViewsPerDay || 0, 'clock'),
+      metric('Devices', `D ${devices.desktop || 0} / M ${devices.mobile || 0}`, 'devices'),
     ].join('');
 
     const peak = Math.max(1, ...(analytics.daily || []).map((day) => day.views));
@@ -295,7 +306,7 @@
   }
 
   function rows(items) {
-    return items.map(([label, value]) => `<div class="data-row"><span>${label}</span><strong>${value}</strong></div>`).join('') || '<p>No data yet.</p>';
+    return items.map(([label, value]) => `<div class="data-row"><span>${label}</span><strong>${value}</strong></div>`).join('') || '<p class="empty-state">No data yet.</p>';
   }
 
   function renderSettings() {
