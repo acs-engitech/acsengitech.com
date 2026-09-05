@@ -168,7 +168,7 @@
             <div><p class="acs-career-label">Soft Skills</p><p>${escapeHtml(job.softSkills || '')}</p></div>
           </div>
           <hr>
-          <div class="acs-career-actions"><a href="mailto:${applyEmail}?subject=Application for ${encodeURIComponent(job.title || 'ACS Engitech role')}">Apply Now <span aria-hidden="true">&rarr;</span></a></div>
+          <div class="acs-career-actions"><a href="#acs-job-form" onclick="if(window.acsSelectPosition){window.acsSelectPosition('${job.id || ''}');}else{window.location.href='mailto:${applyEmail}?subject=Application for ${encodeURIComponent(job.title || 'ACS Engitech role')}';}">Apply Now <span aria-hidden="true">&rarr;</span></a></div>
         </section>`;
     }).join('');
   }

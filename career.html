@@ -787,47 +787,24 @@ gtag("config", "G-53G17N64TE");
   }
 </style>
 <div class="acs-apply-form">
-<form action="https://formsubmit.co/hr@acsengitech.com" enctype="multipart/form-data" id="acs-job-form" method="POST">
-<!-- FormSubmit configuration -->
-<input name="_subject" type="hidden" value="New Job Application – ACS Engitech"/>
-<input name="_template" type="hidden" value="table"/>
-<input name="_captcha" type="hidden" value="false"/>
-<input name="_autoresponse" type="hidden" value="Thank you for applying to ACS Engitech. We have received your application and our HR team will review it shortly."/>
-<input name="_next" type="hidden" value="https://acsengitech.com/career/"/>
+<form id="acs-job-form">
+<!-- Position -->
+<p class="acs-section-label">Position</p>
+<div class="form-row full">
+<select id="acs-position-select" name="position_id" required="">
+<option value="">Select a position...</option>
+</select>
+</div>
+<hr class="acs-divider"/>
 <!-- Personal Details -->
 <p class="acs-section-label">Personal Details</p>
 <div class="form-row">
-<input name="first_name" placeholder="First Name" required="" type="text"/>
-<input name="last_name" placeholder="Last Name" required="" type="text"/>
+<input id="acs-name-input" name="name" placeholder="Full Name" required="" type="text"/>
+<input name="phone" placeholder="Contact Number" type="tel"/>
 </div>
 <div class="form-row">
 <input name="email" placeholder="Email" required="" type="email"/>
-<input name="contact_number" placeholder="Contact Number" required="" type="tel"/>
-</div>
-<div class="form-row full">
-<input name="current_location" placeholder="Current Location (e.g. Ahmedabad, Gujarat)" required="" type="text"/>
-</div>
-<hr class="acs-divider"/>
-<!-- Job Details -->
-<p class="acs-section-label">Job Details</p>
-<div class="form-row">
-<input name="position_applied" placeholder="Position Applied For" required="" type="text"/>
-<input name="work_experience" placeholder="Work Experience (e.g. 2 years – PLC Programming)" required="" type="text"/>
-</div>
-<div class="form-row">
-<input name="current_salary" placeholder="Current Salary (e.g. ₹4.5 LPA)" required="" type="text"/>
-<input name="expected_salary" placeholder="Expected Salary (e.g. ₹6 LPA)" required="" type="text"/>
-</div>
-<div class="form-row full">
-<select name="notice_period" required="">
-<option disabled="" selected="" value="">Notice Period</option>
-<option value="Immediately Available">Immediately Available</option>
-<option value="15 Days">15 Days</option>
-<option value="30 Days">30 Days</option>
-<option value="45 Days">45 Days</option>
-<option value="60 Days">60 Days</option>
-<option value="90 Days">90 Days</option>
-</select>
+<input name="years_experience" placeholder="Experience (e.g. 2 years - PLC Programming)" type="text"/>
 </div>
 <hr class="acs-divider"/>
 <!-- Resume -->
@@ -851,6 +828,8 @@ gtag("config", "G-53G17N64TE");
 <div class="form-row full">
 <textarea name="message" placeholder="Message (optional – tell us why you want to join ACS Engitech)"></textarea>
 </div>
+<!-- Feedback -->
+<p id="acs-form-message" role="status" style="display:none;margin:0 0 8px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;"></p>
 <!-- Submit -->
 <button id="acs-submit-btn" type="submit">Send Application</button>
 </form>
@@ -858,13 +837,65 @@ gtag("config", "G-53G17N64TE");
 <script>
 (function () {
   var form = document.getElementById('acs-job-form');
-  var btn  = document.getElementById('acs-submit-btn');
-  if (form && btn) {
-    form.addEventListener('submit', function () {
-      btn.disabled    = true;
-      btn.textContent = 'Sending…';
-    });
+  var btn = document.getElementById('acs-submit-btn');
+  var positionSelect = document.getElementById('acs-position-select');
+  var messageEl = document.getElementById('acs-form-message');
+  var nameInput = document.getElementById('acs-name-input');
+  if (!form || !btn) return;
+
+  window.acsSelectPosition = function (positionId) {
+    if (positionSelect && positionId) positionSelect.value = positionId;
+    var target = document.getElementById('acs-job-form');
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (nameInput) setTimeout(function () { nameInput.focus(); }, 400);
+  };
+
+  function loadPositions() {
+    fetch('/api/public').then(function (res) { return res.json(); }).then(function (data) {
+      var positions = data.positions || (data.jobs || []).filter(function (j) { return j.status !== 'closed'; });
+      if (!positionSelect || !positions.length) return;
+      positions.forEach(function (position) {
+        var option = document.createElement('option');
+        option.value = position.id;
+        option.textContent = position.title;
+        positionSelect.appendChild(option);
+      });
+    }).catch(function () {});
   }
+
+  function showMessage(text, isError) {
+    if (!messageEl) return;
+    messageEl.textContent = text;
+    messageEl.style.color = isError ? '#dc2626' : '#16a34a';
+    messageEl.style.display = 'block';
+  }
+
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    var selectedOption = positionSelect ? positionSelect.options[positionSelect.selectedIndex] : null;
+    var formData = new FormData(form);
+    if (selectedOption && selectedOption.value) formData.set('position_title', selectedOption.textContent);
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    messageEl.style.display = 'none';
+    fetch('/api/apply', { method: 'POST', body: formData })
+      .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+      .then(function (result) {
+        if (!result.ok) throw new Error(result.data.error || 'Could not submit application.');
+        showMessage('Thank you! Your application has been received.', false);
+        form.reset();
+        document.getElementById('acs-file-name').textContent = 'PDF, DOC, DOCX — Max 5MB';
+      })
+      .catch(function (error) {
+        showMessage(error.message || 'Something went wrong. Please try again.', true);
+      })
+      .finally(function () {
+        btn.disabled = false;
+        btn.textContent = 'Send Application';
+      });
+  });
+
+  loadPositions();
 })();
 </script> </div>
 </div>

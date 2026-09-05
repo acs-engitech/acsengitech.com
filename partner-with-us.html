@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Partner With Us | ACS Engitech</title>
+<meta name="description" content="Register as a partner or vendor with ACS Engitech - digital marketing, design, development, content, and consulting partners welcome."/>
+<link id="custom-clean-theme-styles" rel="stylesheet" href="global-custom.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=Heebo:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Heebo', sans-serif; color: #1e293b; background: #f8fafc; }
+  a { text-decoration: none; }
+  .acs-pw-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 32px; background: #ffffff; border-bottom: 1px solid #e2e8f0;
+  }
+  .acs-pw-header img { height: 34px; }
+  .acs-pw-header a.acs-pw-home { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; color: #1C3A62; }
+  .acs-pw-hero { text-align: center; padding: 56px 20px 32px; background: #e7f6ff; }
+  .acs-pw-hero p.acs-kicker { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #1c3a62; margin: 0 0 12px; }
+  .acs-pw-hero h1 { font-family: 'Inter', sans-serif; font-size: 36px; font-weight: 800; color: #1C3A62; margin: 0 0 12px; }
+  .acs-pw-hero p.acs-lead { font-family: 'Heebo', sans-serif; font-size: 15px; color: #6b7a8d; max-width: 560px; margin: 0 auto; }
+  .acs-pw-wrap { padding: 40px 20px 60px; }
+
+  .acs-apply-form * { box-sizing: border-box; }
+  .acs-apply-form { font-family: 'Heebo', sans-serif; max-width: 860px; margin: 0 auto; padding: 40px 40px 48px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 32px rgba(28,58,98,0.10); }
+  .acs-apply-form .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .acs-apply-form .form-row.full { grid-template-columns: 1fr; }
+  .acs-apply-form input[type="text"], .acs-apply-form input[type="email"], .acs-apply-form input[type="tel"], .acs-apply-form input[type="url"], .acs-apply-form select, .acs-apply-form textarea {
+    width: 100%; padding: 14px 18px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-family: 'Heebo', sans-serif; font-size: 15px; color: #1e293b; background: #ffffff; outline: none; transition: border-color 0.2s; appearance: none; -webkit-appearance: none;
+  }
+  .acs-apply-form select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; padding-right: 40px; cursor: pointer; }
+  .acs-apply-form input:focus, .acs-apply-form select:focus, .acs-apply-form textarea:focus { border-color: #1C3A62; box-shadow: 0 0 0 3px rgba(28,58,98,0.08); }
+  .acs-apply-form input::placeholder, .acs-apply-form textarea::placeholder { color: #94a3b8; }
+  .acs-apply-form textarea { min-height: 110px; resize: vertical; }
+  .acs-section-label { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: #94a3b8; margin: 20px 0 10px; }
+  .acs-divider { border: none; border-top: 1px solid #e2e8f0; margin: 20px 0 18px; }
+
+  .acs-portfolio-row { display: flex; gap: 10px; margin-bottom: 10px; }
+  .acs-portfolio-row input { flex: 1; }
+  .acs-portfolio-remove { flex-shrink: 0; width: 44px; border: 1.5px solid #fda29b; border-radius: 8px; background: #fef3f2; color: #d92d20; font-size: 18px; cursor: pointer; }
+  #acs-add-portfolio { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; color: #1C3A62; background: none; border: none; cursor: pointer; padding: 4px 0 16px; }
+
+  .acs-file-wrap { position: relative; display: flex; align-items: center; gap: 14px; padding: 12px 18px; border: 1.5px dashed #b3d9f2; border-radius: 8px; background: #f0f9ff; cursor: pointer; transition: border-color 0.2s, background 0.2s; margin-bottom: 14px; }
+  .acs-file-wrap:hover { border-color: #1C3A62; background: #e7f6ff; }
+  .acs-file-wrap input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .acs-file-icon { width: 36px; height: 36px; background: #1C3A62; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .acs-file-icon svg { width: 18px; height: 18px; fill: #fff; }
+  .acs-file-label { font-family: 'Heebo', sans-serif; font-size: 14px; color: #475569; }
+  .acs-file-label strong { display: block; color: #1C3A62; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; }
+  #acs-partner-file-name { font-size: 13px; color: #64748b; }
+
+  .acs-apply-form button[type="submit"] { width: 100%; padding: 16px; background: #1C3A62; color: #fff; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s, transform 0.1s; margin-top: 6px; }
+  .acs-apply-form button[type="submit"]:hover { background: #162d4e; }
+  .acs-apply-form button[type="submit"]:active { transform: scale(0.99); }
+  .acs-apply-form button[type="submit"]:disabled { background: #94a3b8; cursor: not-allowed; }
+
+  .acs-pw-footer { text-align: center; padding: 28px 20px; font-family: 'Inter', sans-serif; font-size: 12px; color: #94a3b8; background: #ffffff; border-top: 1px solid #e2e8f0; }
+
+  @media (max-width: 600px) {
+    .acs-apply-form { padding: 24px 18px 32px; }
+    .acs-apply-form .form-row { grid-template-columns: 1fr; }
+    .acs-pw-header { padding: 14px 18px; }
+  }
+</style>
+</head>
+<body>
+<header class="acs-pw-header">
+  <a href="/index.html"><img src="/logo-1.svg" alt="ACS Engitech"></a>
+  <a class="acs-pw-home" href="/index.html">&larr; Back to acsengitech.com</a>
+</header>
+
+<div class="acs-pw-hero">
+  <p class="acs-kicker">Partner With Us</p>
+  <h1>Grow with <span>ACS Engitech</span></h1>
+  <p class="acs-lead">We work with independent vendors and agencies across marketing, design, development, and content. Register below and our team will reach out.</p>
+</div>
+
+<div class="acs-pw-wrap">
+<div class="acs-apply-form">
+<form id="acs-partner-form">
+<p class="acs-section-label">Category</p>
+<div class="form-row full">
+<select id="acs-partner-category" name="category" required>
+<option value="">Select a category...</option>
+</select>
+</div>
+<hr class="acs-divider"/>
+
+<p class="acs-section-label">Contact Details</p>
+<div class="form-row">
+<input name="name" placeholder="Full Name / Company Name" required type="text"/>
+<input name="email" placeholder="Email" required type="email"/>
+</div>
+<div class="form-row">
+<input name="phone" placeholder="Contact Number" type="tel"/>
+<input name="city" placeholder="City" type="text"/>
+</div>
+<div class="form-row">
+<input name="entity_type" placeholder="Entity Type (Individual / Agency / Company)" type="text"/>
+<input name="years_experience" placeholder="Years of Experience" type="text"/>
+</div>
+<hr class="acs-divider"/>
+
+<p class="acs-section-label">Portfolio Links</p>
+<div id="acs-portfolio-list">
+  <div class="acs-portfolio-row">
+    <input type="url" name="portfolio_url" placeholder="https://your-portfolio-or-profile.com">
+    <button type="button" class="acs-portfolio-remove" aria-label="Remove">&times;</button>
+  </div>
+</div>
+<button type="button" id="acs-add-portfolio">+ Add another</button>
+<hr class="acs-divider"/>
+
+<p class="acs-section-label">Profile / Portfolio File (optional)</p>
+<div class="acs-file-wrap">
+<input accept=".pdf,.doc,.docx,.zip" id="acs-partner-file-input" name="profile" onchange="document.getElementById('acs-partner-file-name').textContent = this.files[0] ? this.files[0].name : 'No file chosen'" type="file"/>
+<div class="acs-file-icon">
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"></path><polyline fill="none" points="14 2 14 8 20 8" stroke="#fff" stroke-width="2"></polyline></svg>
+</div>
+<div class="acs-file-label">
+<strong>Upload Profile / Portfolio</strong>
+<span id="acs-partner-file-name">PDF, DOC, DOCX, ZIP — Max 10MB</span>
+</div>
+</div>
+<hr class="acs-divider"/>
+
+<p class="acs-section-label">About You</p>
+<div class="form-row full">
+<textarea name="description" placeholder="Tell us about your work and how you'd like to partner with ACS Engitech (optional)"></textarea>
+</div>
+
+<p id="acs-partner-form-message" role="status" style="display:none;margin:0 0 8px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;"></p>
+<button id="acs-partner-submit-btn" type="submit">Send Registration</button>
+</form>
+</div>
+</div>
+
+<footer class="acs-pw-footer">&copy; <span id="acs-pw-year"></span> ACS Engitech Private Limited. All rights reserved.</footer>
+
+<script src="/acs-runtime.js"></script>
+<script>
+(function () {
+  document.getElementById('acs-pw-year').textContent = new Date().getFullYear();
+
+  var form = document.getElementById('acs-partner-form');
+  var btn = document.getElementById('acs-partner-submit-btn');
+  var categorySelect = document.getElementById('acs-partner-category');
+  var messageEl = document.getElementById('acs-partner-form-message');
+  var portfolioList = document.getElementById('acs-portfolio-list');
+
+  fetch('/api/public').then(function (res) { return res.json(); }).then(function (data) {
+    (data.partnerCategories || []).forEach(function (category) {
+      var option = document.createElement('option');
+      option.value = category;
+      option.textContent = category;
+      categorySelect.appendChild(option);
+    });
+  }).catch(function () {});
+
+  document.getElementById('acs-add-portfolio').addEventListener('click', function () {
+    var row = document.createElement('div');
+    row.className = 'acs-portfolio-row';
+    row.innerHTML = '<input type="url" name="portfolio_url" placeholder="https://your-portfolio-or-profile.com"><button type="button" class="acs-portfolio-remove" aria-label="Remove">&times;</button>';
+    portfolioList.appendChild(row);
+  });
+
+  portfolioList.addEventListener('click', function (event) {
+    if (!event.target.classList.contains('acs-portfolio-remove')) return;
+    if (portfolioList.children.length > 1) event.target.closest('.acs-portfolio-row').remove();
+    else event.target.closest('.acs-portfolio-row').querySelector('input').value = '';
+  });
+
+  function showMessage(text, isError) {
+    messageEl.textContent = text;
+    messageEl.style.color = isError ? '#dc2626' : '#16a34a';
+    messageEl.style.display = 'block';
+  }
+
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    var urls = Array.from(form.querySelectorAll('input[name="portfolio_url"]')).map(function (input) { return input.value.trim(); }).filter(Boolean);
+    var formData = new FormData(form);
+    formData.delete('portfolio_url');
+    formData.set('portfolio_urls', JSON.stringify(urls));
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    messageEl.style.display = 'none';
+    fetch('/api/partner', { method: 'POST', body: formData })
+      .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+      .then(function (result) {
+        if (!result.ok) throw new Error(result.data.error || 'Could not submit registration.');
+        showMessage('Thank you! Your registration has been received.', false);
+        form.reset();
+        document.getElementById('acs-partner-file-name').textContent = 'PDF, DOC, DOCX, ZIP — Max 10MB';
+      })
+      .catch(function (error) { showMessage(error.message || 'Something went wrong. Please try again.', true); })
+      .finally(function () { btn.disabled = false; btn.textContent = 'Send Registration'; });
+  });
+})();
+</script>
+</body>
+</html>

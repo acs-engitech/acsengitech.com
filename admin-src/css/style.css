@@ -252,3 +252,41 @@ body:not(.admin-locked) #adminLogin { display: none; }
 #adminMenuToggle.is-open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
 #adminMenuToggle.is-open span:nth-child(2) { opacity: 0; }
 #adminMenuToggle.is-open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+/* Applications / Partners list rows */
+.list-full { @apply flex flex-col gap-2; }
+.entity-row { @apply flex flex-wrap items-center gap-3 rounded-xl border border-gray-200 bg-white p-4 text-sm; }
+.entity-row .entity-main { @apply flex min-w-0 flex-1 flex-col gap-1; }
+.entity-row .entity-title { @apply flex flex-wrap items-center gap-2 font-semibold text-gray-800; }
+.entity-row .entity-sub { @apply text-xs text-gray-500; }
+.entity-row .entity-actions { @apply flex flex-wrap items-center gap-2; }
+.entity-row select.field-input { @apply mt-0 h-9 w-auto py-0 text-xs; }
+.entity-row .btn-secondary, .entity-row .btn-danger { @apply h-9 px-3 text-xs; }
+.filter-row label.field-label { @apply text-xs; }
+.filter-row input, .filter-row select { @apply mt-1.5 h-10; }
+
+/* Drawer (slide from right) */
+.drawer { position: fixed; inset: 0; z-index: 70; display: none; }
+.drawer.is-open { display: block; }
+.drawer-backdrop { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.4); }
+.drawer-panel {
+  position: absolute; top: 0; right: 0; bottom: 0; width: min(480px, 100vw);
+  background: #fff; box-shadow: -12px 0 32px rgba(15, 23, 42, 0.15);
+  display: flex; flex-direction: column; padding: 1.5rem;
+  transform: translateX(100%); transition: transform .25s ease;
+  overflow-y: auto;
+}
+.drawer.is-open .drawer-panel { transform: translateX(0); }
+.drawer-head { @apply flex items-center justify-between border-b border-gray-100 pb-4 mb-4; }
+.drawer-close { @apply flex h-8 w-8 items-center justify-center rounded-full text-xl leading-none text-gray-400 hover:bg-gray-100 hover:text-gray-700; }
+.drawer-body { @apply flex-1 space-y-2 text-sm text-gray-700; }
+.drawer-body .drawer-field { @apply flex justify-between gap-3 border-b border-gray-50 py-2; }
+.drawer-body .drawer-field span:first-child { @apply text-gray-400; }
+.drawer-foot { @apply mt-4 border-t border-gray-100 pt-4; }
+
+/* Modal (type/category manager) */
+.modal { position: fixed; inset: 0; z-index: 80; display: none; align-items: center; justify-content: center; }
+.modal.is-open { display: flex; }
+.modal-backdrop { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.4); }
+.modal-panel { position: relative; width: min(420px, calc(100vw - 2rem)); max-height: 80vh; overflow-y: auto; }
+.type-row { @apply flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 text-sm; }

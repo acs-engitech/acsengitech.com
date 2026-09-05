@@ -1,4 +1,4 @@
-const { getAll, saveAll, getAnalytics } = require('./_store');
+const store = require('./_store');
 const { summarizeAnalytics } = require('../lib/admin-core');
 const crypto = require('node:crypto');
 
@@ -29,14 +29,29 @@ function safeEqual(left, right) {
   return crypto.timingSafeEqual(Buffer.from(left), Buffer.from(right));
 }
 
+async function runAction(payload) {
+  switch (payload.action) {
+    case 'application.update':
+      return store.updateApplication(payload.id, payload.patch || {});
+    case 'application.delete':
+      return store.deleteApplications(payload.ids || []);
+    case 'partner.update':
+      return store.updatePartner(payload.id, payload.patch || {});
+    case 'partner.delete':
+      return store.deletePartners(payload.ids || []);
+    default:
+      throw new Error(`Unknown action: ${payload.action}`);
+  }
+}
+
 module.exports = async function handler(req, res) {
   try {
     if (!authorized(req)) return send(res, 401, { error: 'Invalid admin email or password' });
 
     if (req.method === 'GET') {
-      const data = await getAll();
+      const data = await store.getAll();
       const days = Number(req.query?.days || 30);
-      const analytics = summarizeAnalytics(await getAnalytics(days), new Date(), days);
+      const analytics = summarizeAnalytics(await store.getAnalytics(days), new Date(), days);
       return send(res, 200, { ...data, analytics });
     }
 
@@ -44,7 +59,14 @@ module.exports = async function handler(req, res) {
       const chunks = [];
       for await (const chunk of req) chunks.push(chunk);
       const payload = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
-      const data = await saveAll(payload);
+
+      if (payload.action) {
+        await runAction(payload);
+        const data = await store.getAll();
+        return send(res, 200, data);
+      }
+
+      const data = await store.saveAll(payload);
       return send(res, 200, data);
     }
 

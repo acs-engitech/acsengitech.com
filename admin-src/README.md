@@ -28,6 +28,14 @@ asset/image paths (`assets/*`, `images/*`); without it those paths resolve
 against the wrong base URL. Do not add a rewrite or redirect targeting bare
 `/admin` as a destination — every path must land on `/admin/`.
 
+## Required environment variables
+
+Set these on the Vercel project (Project Settings -> Environment Variables):
+
+- `DATABASE_URL` - Neon Postgres connection string. All admin content, applications, and partner registrations are stored here.
+- `BLOB_READ_WRITE_TOKEN` - enables resume/profile file uploads (`/api/apply`, `/api/partner`) via `@vercel/blob`. Enable **Vercel Blob** on the project (Storage tab) and Vercel injects this automatically; no manual value needed. Without it, uploads fall back to a local stub path (`/uploads/...`) and log a warning - fine for local dev, not for production.
+- `ACS_ADMIN_EMAIL` / `ACS_ADMIN_PASSWORD_HASH` - admin login credentials (`ACS_ADMIN_PASSWORD_HASH` is a sha256 hex digest of the password). Falls back to a built-in default if unset - set both in production.
+
 ## Pre-merge deploy-preview checklist (manual, required)
 
 This gate cannot be automated in CI and must be run by the repo owner

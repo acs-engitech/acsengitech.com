@@ -89,9 +89,17 @@
           <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M6.5 3.25C5.257 3.25 4.25 4.257 4.25 5.5v13c0 1.243 1.007 2.25 2.25 2.25h11c1.243 0 2.25-1.007 2.25-2.25V9.31a2.25 2.25 0 0 0-.659-1.591l-3.81-3.81a2.25 2.25 0 0 0-1.591-.659H6.5Zm1.25 8.5a.75.75 0 0 1 .75-.75h7a.75.75 0 0 1 0 1.5h-7a.75.75 0 0 1-.75-.75Zm.75 3.25a.75.75 0 0 0 0 1.5h4.5a.75.75 0 0 0 0-1.5h-4.5Z"/></svg>
           <span class="flex flex-col"><span class="text-sm font-medium">Blogs</span><small class="text-xs font-normal text-gray-400">Drafts and publishing</small></span>
         </button>
-        <button class="nav-btn group" data-tab="careers" type="button" :class="{ active: activeTab === 'careers' }" @click="selectTab('careers')">
+        <button class="nav-btn group" data-tab="positions" type="button" :class="{ active: activeTab === 'positions' }" @click="selectTab('positions')">
           <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M9 3.75c-1.243 0-2.25 1.007-2.25 2.25v.75H5.5c-1.243 0-2.25 1.007-2.25 2.25v8.25c0 1.243 1.007 2.25 2.25 2.25h13c1.243 0 2.25-1.007 2.25-2.25V9c0-1.243-1.007-2.25-2.25-2.25h-1.25V6c0-1.243-1.007-2.25-2.25-2.25H9Zm6.25 3V6a.75.75 0 0 0-.75-.75H9a.75.75 0 0 0-.75.75v.75h6.5ZM4.75 12.5h14.5v4.5a.75.75 0 0 1-.75.75h-13a.75.75 0 0 1-.75-.75v-4.5Z"/></svg>
-          <span class="flex flex-col"><span class="text-sm font-medium">Careers</span><small class="text-xs font-normal text-gray-400">Open role content</small></span>
+          <span class="flex flex-col"><span class="text-sm font-medium">Positions</span><small class="text-xs font-normal text-gray-400">Open roles & internships</small></span>
+        </button>
+        <button class="nav-btn group" data-tab="applications" type="button" :class="{ active: activeTab === 'applications' }" @click="selectTab('applications')">
+          <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M4.75 5.5c0-1.243 1.007-2.25 2.25-2.25h10c1.243 0 2.25 1.007 2.25 2.25v7.25h-4.19a.75.75 0 0 0-.67.415l-.67 1.34a.75.75 0 0 1-.67.415h-3.5a.75.75 0 0 1-.67-.415l-.67-1.34a.75.75 0 0 0-.67-.415H4.75V5.5Zm0 8.75h3.72l.45.9c.382.763 1.163 1.25 2.01 1.25h3.5c.847 0 1.628-.487 2.01-1.25l.45-.9h3.72v3.25a2.25 2.25 0 0 1-2.25 2.25H7a2.25 2.25 0 0 1-2.25-2.25v-3.25Z"/></svg>
+          <span class="flex flex-col"><span class="text-sm font-medium">Applications</span><small class="text-xs font-normal text-gray-400">Job submissions</small></span>
+        </button>
+        <button class="nav-btn group" data-tab="partners" type="button" :class="{ active: activeTab === 'partners' }" @click="selectTab('partners')">
+          <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 12.75c1.795 0 3.25-1.455 3.25-3.25S13.795 6.25 12 6.25 8.75 7.705 8.75 9.5s1.455 3.25 3.25 3.25Zm-6.5 6.5c0-2.485 2.91-4.5 6.5-4.5s6.5 2.015 6.5 4.5v.5a.75.75 0 0 1-.75.75h-11.5a.75.75 0 0 1-.75-.75v-.5Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M18.19 5.31a.75.75 0 0 1 1.06 0l1.44 1.44a.75.75 0 0 1 0 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-2-2a.75.75 0 1 1 1.06-1.06l1.47 1.47 3.97-3.97-1.44-1.44Z" opacity="0.55"/></svg>
+          <span class="flex flex-col"><span class="text-sm font-medium">Partners</span><small class="text-xs font-normal text-gray-400">Vendor registrations</small></span>
         </button>
         <button class="nav-btn group" data-tab="analytics" type="button" :class="{ active: activeTab === 'analytics' }" @click="selectTab('analytics')">
           <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M5 3.25a.75.75 0 0 1 .75.75v14.5H20a.75.75 0 0 1 0 1.5H5A1.75 1.75 0 0 1 3.25 18.25V4A.75.75 0 0 1 5 3.25ZM18.5 8a1 1 0 0 1 1 1v7.25a.75.75 0 0 1-1.5 0V9a1 1 0 0 1 1-1Zm-4.5 3a1 1 0 0 1 1 1v4.25a.75.75 0 0 1-1.5 0V12a1 1 0 0 1 1-1Zm-4.5 2a1 1 0 0 1 1 1v2.25a.75.75 0 0 1-1.5 0V14a1 1 0 0 1 1-1Z"/></svg>
@@ -211,17 +219,21 @@
           </div>
         </section>
 
-        <section class="panel" id="careers" :class="{ active: activeTab === 'careers' }">
+        <section class="panel" id="positions" :class="{ active: activeTab === 'positions' }">
           <div class="section-head">
             <div>
               <p class="eyebrow">Open roles</p>
-              <h2 class="text-xl font-semibold text-gray-800">Careers manager</h2>
+              <h2 class="text-xl font-semibold text-gray-800">Positions manager</h2>
             </div>
-            <button id="newJobBtn" class="primary btn-primary" type="button">New role</button>
+            <div class="section-actions flex flex-wrap items-center gap-2">
+              <button id="managePositionTypesBtn" class="btn-secondary" type="button">Manage types</button>
+              <a href="/career" target="_blank" rel="noopener" class="btn-secondary">View careers page</a>
+              <button id="newPositionBtn" class="primary btn-primary" type="button">New position</button>
+            </div>
           </div>
           <div class="split grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr]">
-            <div class="list card p-2" id="jobList"></div>
-            <form class="editor card space-y-5" id="jobForm">
+            <div class="list card p-2" id="positionList"></div>
+            <form class="editor card space-y-5" id="positionForm">
               <h3 class="text-base font-semibold text-gray-800">Role editor</h3>
               <h4 class="form-subhead">Basic</h4>
               <label class="field-label">Title <input name="title" required class="field-input"></label>
@@ -231,7 +243,10 @@
               </div>
               <h4 class="form-subhead">Details</h4>
               <div class="two-col">
-                <label class="field-label">Type <input name="type" placeholder="Full time" class="field-input"></label>
+                <label class="field-label">Type
+                  <select name="type" id="positionTypeSelect" class="field-input"></select>
+                  <a href="#" id="positionTypeManageLink" class="text-xs font-medium text-brand-600 hover:text-brand-700">+ Manage types</a>
+                </label>
                 <label class="field-label">Experience <input name="experience" class="field-input"></label>
               </div>
               <label class="field-label">Qualification <input name="qualification" class="field-input"></label>
@@ -239,6 +254,8 @@
                 <label class="field-label">Vacancies <input name="vacancies" class="field-input"></label>
                 <label class="field-label">Gender <input name="gender" placeholder="Any" class="field-input"></label>
               </div>
+              <label class="field-label">Tags <input name="tags" placeholder="PLC, SCADA, Automation" class="field-input"></label>
+              <div id="positionTagChips" class="row-tags flex flex-wrap gap-1"></div>
               <h4 class="form-subhead">Description</h4>
               <label class="field-label">Description <textarea name="description" class="field-input"></textarea></label>
               <label class="field-label">Key responsibilities <textarea name="responsibilities" placeholder="One responsibility per line" class="field-input"></textarea></label>
@@ -247,20 +264,80 @@
               <label class="field-label">Soft skills <textarea name="softSkills" class="field-input"></textarea></label>
               <div class="two-col">
                 <label class="field-label">Apply email <input name="applyEmail" type="email" class="field-input"></label>
-                <label class="field-label">Status
-                  <select name="status" class="field-input">
-                    <option value="open">Open</option>
-                    <option value="paused">Paused</option>
-                    <option value="closed">Closed</option>
-                  </select>
-                </label>
+                <fieldset class="field-label">Status
+                  <div class="flex items-center gap-4 mt-1.5">
+                    <label class="flex items-center gap-1.5 text-sm font-normal text-gray-700"><input type="radio" name="status" value="live"> Live</label>
+                    <label class="flex items-center gap-1.5 text-sm font-normal text-gray-700"><input type="radio" name="status" value="closed"> Closed</label>
+                  </div>
+                </fieldset>
               </div>
               <div class="form-actions flex flex-wrap items-center gap-3">
                 <button class="primary btn-primary" type="submit">Save role</button>
-                <button id="deleteJobBtn" class="danger btn-danger" type="button">Delete</button>
+                <button id="deletePositionBtn" class="danger btn-danger" type="button">Delete</button>
               </div>
             </form>
           </div>
+        </section>
+
+        <section class="panel" id="applications" :class="{ active: activeTab === 'applications' }">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Job applications</p>
+              <h2 class="text-xl font-semibold text-gray-800">Applications</h2>
+            </div>
+            <div class="section-actions flex flex-wrap items-center gap-2">
+              <button id="refreshApplicationsBtn" class="btn-secondary" type="button">Refresh</button>
+              <button id="exportApplicationsBtn" class="btn-secondary" type="button">Export CSV</button>
+            </div>
+          </div>
+          <div class="filters mb-3 flex flex-wrap gap-2" id="applicationWorkflowFilters"></div>
+          <div class="filter-row card mb-4 flex flex-wrap items-end gap-3 p-4" id="applicationFilterRow">
+            <label class="field-label">Position
+              <select id="applicationPositionFilter" class="field-input mt-1.5"><option value="">All positions</option></select>
+            </label>
+            <label class="field-label">From <input type="date" id="applicationFromDate" class="field-input mt-1.5"></label>
+            <label class="field-label">To <input type="date" id="applicationToDate" class="field-input mt-1.5"></label>
+            <label class="field-label">Search <input type="search" id="applicationSearch" placeholder="Name or email" class="field-input mt-1.5"></label>
+            <button id="clearApplicationFiltersBtn" class="btn-secondary" type="button">Clear</button>
+          </div>
+          <div class="bulk-row card mb-4 flex flex-wrap items-center gap-3 p-4">
+            <label class="flex items-center gap-2 text-sm font-medium text-gray-700"><input type="checkbox" id="applicationSelectAll"> Select all shown</label>
+            <span class="text-sm text-gray-500" id="applicationSelectedCount">0 selected</span>
+            <button id="deleteApplicationsBtn" class="danger btn-danger" type="button">Delete selected</button>
+            <span class="ml-auto text-sm text-gray-400" id="applicationShownCount"></span>
+          </div>
+          <div class="list-full space-y-2" id="applicationList"></div>
+        </section>
+
+        <section class="panel" id="partners" :class="{ active: activeTab === 'partners' }">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Partner registrations</p>
+              <h2 class="text-xl font-semibold text-gray-800">Partners</h2>
+            </div>
+            <div class="section-actions flex flex-wrap items-center gap-2">
+              <button id="managePartnerCategoriesBtn" class="btn-secondary" type="button">Manage categories</button>
+              <button id="refreshPartnersBtn" class="btn-secondary" type="button">Refresh</button>
+              <button id="exportPartnersBtn" class="btn-secondary" type="button">Export CSV</button>
+            </div>
+          </div>
+          <div class="filters mb-3 flex flex-wrap gap-2" id="partnerWorkflowFilters"></div>
+          <div class="filter-row card mb-4 flex flex-wrap items-end gap-3 p-4" id="partnerFilterRow">
+            <label class="field-label">Category
+              <select id="partnerCategoryFilter" class="field-input mt-1.5"><option value="">All categories</option></select>
+            </label>
+            <label class="field-label">From <input type="date" id="partnerFromDate" class="field-input mt-1.5"></label>
+            <label class="field-label">To <input type="date" id="partnerToDate" class="field-input mt-1.5"></label>
+            <label class="field-label">Search <input type="search" id="partnerSearch" placeholder="Name or email" class="field-input mt-1.5"></label>
+            <button id="clearPartnerFiltersBtn" class="btn-secondary" type="button">Clear</button>
+          </div>
+          <div class="bulk-row card mb-4 flex flex-wrap items-center gap-3 p-4">
+            <label class="flex items-center gap-2 text-sm font-medium text-gray-700"><input type="checkbox" id="partnerSelectAll"> Select all shown</label>
+            <span class="text-sm text-gray-500" id="partnerSelectedCount">0 selected</span>
+            <button id="deletePartnersBtn" class="danger btn-danger" type="button">Delete selected</button>
+            <span class="ml-auto text-sm text-gray-400" id="partnerShownCount"></span>
+          </div>
+          <div class="list-full space-y-2" id="partnerList"></div>
         </section>
 
         <section class="panel" id="analytics" :class="{ active: activeTab === 'analytics' }">
@@ -320,6 +397,51 @@
         </section>
       </section>
     </main>
+
+    <aside class="drawer" id="applicationDrawer" aria-hidden="true">
+      <div class="drawer-backdrop" data-drawer-close></div>
+      <div class="drawer-panel">
+        <div class="drawer-head">
+          <h3 class="text-base font-semibold text-gray-800">Application details</h3>
+          <button type="button" class="drawer-close" data-drawer-close aria-label="Close">&times;</button>
+        </div>
+        <div class="drawer-body" id="applicationDrawerBody"></div>
+        <div class="drawer-foot">
+          <label class="field-label">Notes <textarea id="applicationNotesField" class="field-input" rows="4"></textarea></label>
+          <button type="button" id="saveApplicationNotesBtn" class="primary btn-primary mt-3">Save</button>
+        </div>
+      </div>
+    </aside>
+
+    <aside class="drawer" id="partnerDrawer" aria-hidden="true">
+      <div class="drawer-backdrop" data-drawer-close></div>
+      <div class="drawer-panel">
+        <div class="drawer-head">
+          <h3 class="text-base font-semibold text-gray-800">Partner details</h3>
+          <button type="button" class="drawer-close" data-drawer-close aria-label="Close">&times;</button>
+        </div>
+        <div class="drawer-body" id="partnerDrawerBody"></div>
+        <div class="drawer-foot">
+          <label class="field-label">Notes <textarea id="partnerNotesField" class="field-input" rows="4"></textarea></label>
+          <button type="button" id="savePartnerNotesBtn" class="primary btn-primary mt-3">Save</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="modal" id="typeManagerModal" aria-hidden="true">
+      <div class="modal-backdrop" data-modal-close></div>
+      <div class="modal-panel card">
+        <div class="drawer-head">
+          <h3 class="text-base font-semibold text-gray-800" id="typeManagerTitle">Manage types</h3>
+          <button type="button" class="drawer-close" data-modal-close aria-label="Close">&times;</button>
+        </div>
+        <div id="typeManagerList" class="space-y-2 my-4"></div>
+        <form id="typeManagerForm" class="flex gap-2">
+          <input type="text" id="typeManagerInput" class="field-input mt-0" placeholder="Add new...">
+          <button type="submit" class="btn-primary primary">Add</button>
+        </form>
+      </div>
+    </div>
   </div>
   <script>
     // Toast auto-fade: purely presentational, does not touch admin-app.js state/behavior.
