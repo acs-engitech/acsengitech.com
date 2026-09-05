@@ -12,16 +12,34 @@ function send(res, status, payload) {
   res.end(JSON.stringify(payload));
 }
 
-function parsePortfolioUrls(value) {
-  if (Array.isArray(value)) return value.map((v) => String(v).trim()).filter(Boolean);
-  if (!value) return [];
+function isSafeHttpUrl(candidate) {
+  const trimmed = String(candidate || '').trim();
+  if (!/^https?:\/\//i.test(trimmed)) return false;
   try {
-    const parsed = JSON.parse(value);
-    if (Array.isArray(parsed)) return parsed.map((v) => String(v).trim()).filter(Boolean);
+    const u = new URL(trimmed);
+    return u.protocol === 'http:' || u.protocol === 'https:';
   } catch {
-    // not JSON — fall through to comma/newline splitting
+    return false;
   }
-  return String(value).split(/[\n,]/).map((v) => v.trim()).filter(Boolean);
+}
+
+function parsePortfolioUrls(value) {
+  // Collect candidates from all possible input shapes
+  let candidates;
+  if (Array.isArray(value)) {
+    candidates = value;
+  } else if (!value) {
+    candidates = [];
+  } else {
+    try {
+      const parsed = JSON.parse(value);
+      candidates = Array.isArray(parsed) ? parsed : String(value).split(/[\n,]/);
+    } catch {
+      candidates = String(value).split(/[\n,]/);
+    }
+  }
+  // Trim, drop empties, and reject any URL whose scheme isn't http/https
+  return candidates.map((v) => String(v).trim()).filter((u) => u && isSafeHttpUrl(u));
 }
 
 module.exports = async function handler(req, res) {

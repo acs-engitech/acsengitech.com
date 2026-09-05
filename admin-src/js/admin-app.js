@@ -118,6 +118,14 @@
     return String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
   }
 
+  // Safe href for user-submitted URLs: escapes for HTML-attribute context AND
+  // rejects any scheme that is not http/https (blocks javascript:, data:, etc.).
+  function safeHref(value) {
+    const raw = String(value ?? '').trim();
+    if (!/^https?:\/\//i.test(raw)) return '#';
+    return escapeHtml(raw);
+  }
+
   function normalizePost(post) {
     const content = post.content || '';
     const text = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -392,7 +400,7 @@
           <div class="entity-sub">${escapeHtml(app.email)} ${app.phone ? '- ' + escapeHtml(app.phone) : ''} ${app.yearsExperience ? '- ' + escapeHtml(app.yearsExperience) : ''}</div>
         </div>
         <div class="entity-actions">
-          ${app.resumeUrl ? `<a href="${app.resumeUrl}" target="_blank" rel="noopener" class="btn-secondary">Resume${app.resumeSize ? ' (' + formatBytes(app.resumeSize) + ')' : ''}</a>` : '<span class="text-xs text-gray-400">No resume</span>'}
+          ${app.resumeUrl ? `<a href="${safeHref(app.resumeUrl)}" target="_blank" rel="noopener noreferrer" class="btn-secondary">Resume${app.resumeSize ? ' (' + formatBytes(app.resumeSize) + ')' : ''}</a>` : '<span class="text-xs text-gray-400">No resume</span>'}
           <select class="field-input application-status-select" data-application-status="${app.id}">
             ${APPLICATION_STATUSES.map((s) => `<option value="${s}" ${s === app.status ? 'selected' : ''}>${s}</option>`).join('')}
           </select>
@@ -417,7 +425,7 @@
       ['Status', app.status], ['Submitted', new Date(app.createdAt).toLocaleString()],
       ['Message', app.message || '-'],
     ].map(([label, value]) => `<div class="drawer-field"><span>${label}</span><strong>${escapeHtml(value)}</strong></div>`).join('')
-      + (app.resumeUrl ? `<p class="mt-3"><a href="${app.resumeUrl}" target="_blank" rel="noopener" class="btn-secondary">Open resume</a></p>` : '');
+      + (app.resumeUrl ? `<p class="mt-3"><a href="${safeHref(app.resumeUrl)}" target="_blank" rel="noopener noreferrer" class="btn-secondary">Open resume</a></p>` : '');
     $('#applicationNotesField').value = app.adminNotes || '';
     $('#applicationDrawer').classList.add('is-open');
     $('#applicationDrawer').setAttribute('aria-hidden', 'false');
@@ -472,11 +480,11 @@
           <div class="entity-title">${escapeHtml(p.name)} <span class="status-pill status-${p.status === 'new' ? 'open' : p.status === 'rejected' ? 'closed' : 'scheduled'}">${p.status}</span></div>
           <div class="entity-sub">${escapeHtml(p.category || 'Uncategorized')} - ${escapeHtml(p.city || '')} - ${escapeHtml(p.entityType || '')} - ${escapeHtml(p.yearsExperience || '')}</div>
           <div class="entity-sub">${escapeHtml(p.email)} ${p.phone ? '- ' + escapeHtml(p.phone) : ''}</div>
-          <div class="entity-sub">${(p.portfolioUrls || []).map((url) => `<a href="${url}" target="_blank" rel="noopener" class="text-brand-600">${escapeHtml(url)}</a>`).join(', ')}</div>
+          <div class="entity-sub">${(p.portfolioUrls || []).map((url) => `<a href="${safeHref(url)}" target="_blank" rel="noopener noreferrer" class="text-brand-600">${escapeHtml(url)}</a>`).join(', ')}</div>
           <div class="entity-sub">${new Date(p.createdAt).toLocaleDateString()}</div>
         </div>
         <div class="entity-actions">
-          ${p.profileUrl ? `<a href="${p.profileUrl}" target="_blank" rel="noopener" class="btn-secondary">Profile${p.profileSize ? ' (' + formatBytes(p.profileSize) + ')' : ''}</a>` : '<span class="text-xs text-gray-400">No profile file</span>'}
+          ${p.profileUrl ? `<a href="${safeHref(p.profileUrl)}" target="_blank" rel="noopener noreferrer" class="btn-secondary">Profile${p.profileSize ? ' (' + formatBytes(p.profileSize) + ')' : ''}</a>` : '<span class="text-xs text-gray-400">No profile file</span>'}
           <select class="field-input partner-status-select" data-partner-status="${p.id}">
             ${APPLICATION_STATUSES.map((s) => `<option value="${s}" ${s === p.status ? 'selected' : ''}>${s}</option>`).join('')}
           </select>
@@ -501,8 +509,8 @@
       ['Experience', p.yearsExperience || '-'], ['Status', p.status], ['Submitted', new Date(p.createdAt).toLocaleString()],
       ['Description', p.description || '-'],
     ].map(([label, value]) => `<div class="drawer-field"><span>${label}</span><strong>${escapeHtml(value)}</strong></div>`).join('')
-      + ((p.portfolioUrls || []).length ? `<p class="mt-3">${p.portfolioUrls.map((url) => `<a href="${url}" target="_blank" rel="noopener" class="block text-brand-600">${escapeHtml(url)}</a>`).join('')}</p>` : '')
-      + (p.profileUrl ? `<p class="mt-3"><a href="${p.profileUrl}" target="_blank" rel="noopener" class="btn-secondary">Open profile file</a></p>` : '');
+      + ((p.portfolioUrls || []).length ? `<p class="mt-3">${p.portfolioUrls.map((url) => `<a href="${safeHref(url)}" target="_blank" rel="noopener noreferrer" class="block text-brand-600">${escapeHtml(url)}</a>`).join('')}</p>` : '')
+      + (p.profileUrl ? `<p class="mt-3"><a href="${safeHref(p.profileUrl)}" target="_blank" rel="noopener noreferrer" class="btn-secondary">Open profile file</a></p>` : '');
     $('#partnerNotesField').value = p.adminNotes || '';
     $('#partnerDrawer').classList.add('is-open');
     $('#partnerDrawer').setAttribute('aria-hidden', 'false');

@@ -168,7 +168,7 @@
             <div><p class="acs-career-label">Soft Skills</p><p>${escapeHtml(job.softSkills || '')}</p></div>
           </div>
           <hr>
-          <div class="acs-career-actions"><a href="#acs-job-form" onclick="if(window.acsSelectPosition){window.acsSelectPosition('${job.id || ''}');}else{window.location.href='mailto:${applyEmail}?subject=Application for ${encodeURIComponent(job.title || 'ACS Engitech role')}';}">Apply Now <span aria-hidden="true">&rarr;</span></a></div>
+          <div class="acs-career-actions"><a href="#acs-job-form" class="acs-apply-link" data-position-id="${escapeHtml(job.id || '')}" data-apply-email="${escapeHtml(applyEmail)}" data-apply-title="${escapeHtml(job.title || 'ACS Engitech role')}">Apply Now <span aria-hidden="true">&rarr;</span></a></div>
         </section>`;
     }).join('');
   }
@@ -246,6 +246,30 @@
         </div>
       </div>`;
   }
+
+  // Delegated click handler for career "Apply Now" links.
+  // Reads data-* attributes (safely escaped at render time), never
+  // interpolates user data into an inline JS string. If the on-page
+  // application form exists (window.acsSelectPosition present), pre-fills
+  // the position and lets the anchor scroll to #acs-job-form. Otherwise
+  // safely falls back to a mailto composed via URL builders (no user
+  // data ever inserted into an HTML/JS context).
+  document.addEventListener('click', (event) => {
+    const link = event.target && event.target.closest && event.target.closest('a.acs-apply-link');
+    if (!link) return;
+    const positionId = link.getAttribute('data-position-id') || '';
+    if (typeof window.acsSelectPosition === 'function') {
+      try { window.acsSelectPosition(positionId); } catch { /* ignore */ }
+      return; // let the browser scroll to #acs-job-form
+    }
+    event.preventDefault();
+    const email = (link.getAttribute('data-apply-email') || '').trim();
+    // Only allow simple email addresses in the mailto fallback
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+    const title = link.getAttribute('data-apply-title') || 'ACS Engitech role';
+    const params = new URLSearchParams({ subject: `Application for ${title}` });
+    window.location.href = `mailto:${email}?${params.toString()}`;
+  });
 
   async function init() {
     injectBlogNav();
