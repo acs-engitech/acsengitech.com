@@ -11,6 +11,8 @@ loadEnv('.env.local');
 const apiRoutes = {
   '/api/admin': './api/admin',
   '/api/public': './api/public',
+  '/api/apply': './api/apply',
+  '/api/partner': './api/partner',
   '/api/robots': './api/robots',
   '/api/llms': './api/llms',
   '/robots.txt': './api/robots',

@@ -1,5 +1,5 @@
 const { neon } = require('@neondatabase/serverless');
-const { PAGE_DEFAULTS, DEFAULT_SETTINGS, DEFAULT_JOBS } = require('../lib/acs-defaults');
+const { PAGE_DEFAULTS, DEFAULT_SETTINGS, DEFAULT_JOBS, DEFAULT_POSITION_TYPES, DEFAULT_PARTNER_CATEGORIES } = require('../lib/acs-defaults');
 
 let sql;
 
@@ -26,6 +26,42 @@ async function init() {
     user_agent text,
     created_at timestamptz NOT NULL DEFAULT now()
   )`;
+  await db()`CREATE TABLE IF NOT EXISTS acs_applications (
+    id bigserial PRIMARY KEY,
+    position_id text,
+    position_title text,
+    name text NOT NULL,
+    email text NOT NULL,
+    phone text,
+    years_experience text,
+    message text,
+    resume_url text,
+    resume_filename text,
+    resume_size integer,
+    status text NOT NULL DEFAULT 'new',
+    admin_notes text,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
+  )`;
+  await db()`CREATE TABLE IF NOT EXISTS acs_partners (
+    id bigserial PRIMARY KEY,
+    category text,
+    name text NOT NULL,
+    email text NOT NULL,
+    phone text,
+    city text,
+    entity_type text,
+    years_experience text,
+    portfolio_urls jsonb DEFAULT '[]'::jsonb,
+    profile_url text,
+    profile_filename text,
+    profile_size integer,
+    description text,
+    status text NOT NULL DEFAULT 'new',
+    admin_notes text,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
+  )`;
 }
 
 async function getValue(key, fallback) {
@@ -42,9 +78,159 @@ async function setValue(key, value) {
   return value;
 }
 
+function migrateJobToPosition(job) {
+  return {
+    ...job,
+    type: job.type || 'Full-time',
+    tags: Array.isArray(job.tags) ? job.tags : [],
+    status: job.status === 'closed' ? 'closed' : 'live',
+  };
+}
+
+async function getPositions() {
+  const jobs = await getValue('jobs', DEFAULT_JOBS);
+  let positions = await getValue('positions', []);
+  if (!positions || !positions.length) {
+    positions = (jobs || []).map(migrateJobToPosition);
+    await setValue('positions', positions);
+  }
+  return positions;
+}
+
+async function getPositionTypes() {
+  return getValue('positionTypes', DEFAULT_POSITION_TYPES);
+}
+
+async function setPositionTypes(list) {
+  return setValue('positionTypes', Array.isArray(list) ? list : DEFAULT_POSITION_TYPES);
+}
+
+async function getPartnerCategories() {
+  return getValue('partnerCategories', DEFAULT_PARTNER_CATEGORIES);
+}
+
+async function setPartnerCategories(list) {
+  return setValue('partnerCategories', Array.isArray(list) ? list : DEFAULT_PARTNER_CATEGORIES);
+}
+
+function rowToApplication(row) {
+  return {
+    id: String(row.id),
+    positionId: row.position_id,
+    positionTitle: row.position_title,
+    name: row.name,
+    email: row.email,
+    phone: row.phone,
+    yearsExperience: row.years_experience,
+    message: row.message,
+    resumeUrl: row.resume_url,
+    resumeFilename: row.resume_filename,
+    resumeSize: row.resume_size,
+    status: row.status,
+    adminNotes: row.admin_notes,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+async function insertApplication(row) {
+  await init();
+  const rows = await db()`INSERT INTO acs_applications
+    (position_id, position_title, name, email, phone, years_experience, message, resume_url, resume_filename, resume_size, status)
+    VALUES (${row.positionId || null}, ${row.positionTitle || null}, ${row.name}, ${row.email}, ${row.phone || null}, ${row.yearsExperience || null}, ${row.message || null}, ${row.resumeUrl || null}, ${row.resumeFilename || null}, ${row.resumeSize || null}, 'new')
+    RETURNING *`;
+  return rowToApplication(rows[0]);
+}
+
+async function listApplications() {
+  await init();
+  const rows = await db()`SELECT * FROM acs_applications ORDER BY created_at DESC`;
+  return rows.map(rowToApplication);
+}
+
+async function updateApplication(id, patch) {
+  await init();
+  const current = await db()`SELECT * FROM acs_applications WHERE id = ${id}`;
+  if (!current[0]) return null;
+  const status = patch.status ?? current[0].status;
+  const notes = patch.adminNotes ?? current[0].admin_notes;
+  const rows = await db()`UPDATE acs_applications SET status = ${status}, admin_notes = ${notes}, updated_at = now() WHERE id = ${id} RETURNING *`;
+  return rowToApplication(rows[0]);
+}
+
+async function deleteApplications(ids) {
+  await init();
+  const numericIds = (ids || []).map(Number).filter((n) => Number.isFinite(n));
+  if (!numericIds.length) return [];
+  await db()`DELETE FROM acs_applications WHERE id = ANY(${numericIds})`;
+  return numericIds;
+}
+
+function rowToPartner(row) {
+  return {
+    id: String(row.id),
+    category: row.category,
+    name: row.name,
+    email: row.email,
+    phone: row.phone,
+    city: row.city,
+    entityType: row.entity_type,
+    yearsExperience: row.years_experience,
+    portfolioUrls: row.portfolio_urls || [],
+    profileUrl: row.profile_url,
+    profileFilename: row.profile_filename,
+    profileSize: row.profile_size,
+    description: row.description,
+    status: row.status,
+    adminNotes: row.admin_notes,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+async function insertPartner(row) {
+  await init();
+  const rows = await db()`INSERT INTO acs_partners
+    (category, name, email, phone, city, entity_type, years_experience, portfolio_urls, profile_url, profile_filename, profile_size, description, status)
+    VALUES (${row.category || null}, ${row.name}, ${row.email}, ${row.phone || null}, ${row.city || null}, ${row.entityType || null}, ${row.yearsExperience || null}, ${JSON.stringify(row.portfolioUrls || [])}::jsonb, ${row.profileUrl || null}, ${row.profileFilename || null}, ${row.profileSize || null}, ${row.description || null}, 'new')
+    RETURNING *`;
+  return rowToPartner(rows[0]);
+}
+
+async function listPartners() {
+  await init();
+  const rows = await db()`SELECT * FROM acs_partners ORDER BY created_at DESC`;
+  return rows.map(rowToPartner);
+}
+
+async function updatePartner(id, patch) {
+  await init();
+  const current = await db()`SELECT * FROM acs_partners WHERE id = ${id}`;
+  if (!current[0]) return null;
+  const status = patch.status ?? current[0].status;
+  const notes = patch.adminNotes ?? current[0].admin_notes;
+  const rows = await db()`UPDATE acs_partners SET status = ${status}, admin_notes = ${notes}, updated_at = now() WHERE id = ${id} RETURNING *`;
+  return rowToPartner(rows[0]);
+}
+
+async function deletePartners(ids) {
+  await init();
+  const numericIds = (ids || []).map(Number).filter((n) => Number.isFinite(n));
+  if (!numericIds.length) return [];
+  await db()`DELETE FROM acs_partners WHERE id = ANY(${numericIds})`;
+  return numericIds;
+}
+
 async function getAll() {
   const pageSeo = await getValue('pageSeo', {});
   const settings = await getValue('settings', {});
+  const [positions, positionTypes, partnerCategories, applications, partners] = await Promise.all([
+    getPositions(),
+    getPositionTypes(),
+    getPartnerCategories(),
+    listApplications(),
+    listPartners(),
+  ]);
   return {
     pages: PAGE_DEFAULTS.map((page) => ({
       path: page.path,
@@ -55,6 +241,11 @@ async function getAll() {
     })),
     posts: await getValue('posts', []),
     jobs: await getValue('jobs', DEFAULT_JOBS),
+    positions,
+    positionTypes,
+    applications,
+    partners,
+    partnerCategories,
     settings: { ...DEFAULT_SETTINGS, ...settings },
   };
 }
@@ -64,6 +255,9 @@ async function saveAll(payload) {
   if (payload.pageSeo) writes.push(setValue('pageSeo', payload.pageSeo));
   if (payload.posts) writes.push(setValue('posts', payload.posts));
   if (payload.jobs) writes.push(setValue('jobs', payload.jobs));
+  if (payload.positions) writes.push(setValue('positions', payload.positions));
+  if (payload.positionTypes) writes.push(setPositionTypes(payload.positionTypes));
+  if (payload.partnerCategories) writes.push(setPartnerCategories(payload.partnerCategories));
   if (payload.settings) writes.push(setValue('settings', { ...DEFAULT_SETTINGS, ...payload.settings }));
   await Promise.all(writes);
   return getAll();
@@ -90,4 +284,17 @@ module.exports = {
   saveAll,
   recordAnalytics,
   getAnalytics,
+  getPositions,
+  getPositionTypes,
+  setPositionTypes,
+  getPartnerCategories,
+  setPartnerCategories,
+  insertApplication,
+  listApplications,
+  updateApplication,
+  deleteApplications,
+  insertPartner,
+  listPartners,
+  updatePartner,
+  deletePartners,
 };

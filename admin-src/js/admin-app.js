@@ -3,13 +3,24 @@
     pages: [],
     pageSeo: {},
     posts: [],
-    jobs: [],
+    positions: [],
+    positionTypes: [],
+    applications: [],
+    partners: [],
+    partnerCategories: [],
     settings: {},
     analytics: {},
     selectedPage: '/',
     selectedPost: null,
-    selectedJob: null,
+    selectedPosition: null,
+    selectedApplication: null,
+    selectedPartner: null,
     postFilter: 'all',
+    applicationFilters: { status: 'all', positionId: '', from: '', to: '', search: '' },
+    partnerFilters: { status: 'all', category: '', from: '', to: '', search: '' },
+    applicationSelectedIds: new Set(),
+    partnerSelectedIds: new Set(),
+    typeManagerTarget: null, // 'positionTypes' | 'partnerCategories'
     email: '',
     password: '',
     authenticated: false,
@@ -103,6 +114,18 @@
     return path || '/';
   }
 
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
+  }
+
+  // Safe href for user-submitted URLs: escapes for HTML-attribute context AND
+  // rejects any scheme that is not http/https (blocks javascript:, data:, etc.).
+  function safeHref(value) {
+    const raw = String(value ?? '').trim();
+    if (!/^https?:\/\//i.test(raw)) return '#';
+    return escapeHtml(raw);
+  }
+
   function normalizePost(post) {
     const content = post.content || '';
     const text = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -144,16 +167,11 @@
     try {
       const days = $('#analyticsDays')?.value || 30;
       const data = await api(`/api/admin?days=${days}`);
-      state.pages = data.pages || [];
-      state.pageSeo = Object.fromEntries(state.pages.map((page) => [page.path, page.seo || {}]));
-      state.posts = data.posts || [];
-      state.jobs = data.jobs || [];
-      state.settings = data.settings || {};
-      state.analytics = data.analytics || {};
+      applyData(data);
       state.authenticated = true;
       state.selectedPage ||= state.pages[0]?.path || '/';
       state.selectedPost ||= state.posts[0]?.id || null;
-      state.selectedJob ||= state.jobs[0]?.id || null;
+      state.selectedPosition ||= state.positions[0]?.id || null;
       render();
       hideSignIn();
       setStatus('All changes are loaded.', 'ok');
@@ -169,21 +187,45 @@
     }
   }
 
+  function applyData(data) {
+    state.pages = data.pages || state.pages;
+    state.pageSeo = Object.fromEntries(state.pages.map((page) => [page.path, page.seo || {}]));
+    state.posts = data.posts || state.posts;
+    state.positions = data.positions || state.positions;
+    state.positionTypes = data.positionTypes || state.positionTypes;
+    state.applications = data.applications || state.applications;
+    state.partners = data.partners || state.partners;
+    state.partnerCategories = data.partnerCategories || state.partnerCategories;
+    state.settings = data.settings || state.settings;
+    if (data.analytics) state.analytics = data.analytics;
+  }
+
   async function save(payload, message) {
     setBusy(true, 'Saving changes...');
     setStatus('Saving changes...');
     try {
       const data = await api('/api/admin', { method: 'POST', body: JSON.stringify(payload) });
-      state.pages = data.pages || state.pages;
-      state.pageSeo = Object.fromEntries(state.pages.map((page) => [page.path, page.seo || {}]));
-      state.posts = data.posts || state.posts;
-      state.jobs = data.jobs || state.jobs;
-      state.settings = data.settings || state.settings;
+      applyData(data);
       render();
       setStatus(message || 'Saved.', 'ok');
     } catch (error) {
       if (error.code === 'AUTH_REQUIRED') showSignIn(error.message);
       setStatus(error.message || 'Could not save changes.', 'error');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function apiAction(action, body, message) {
+    setBusy(true, 'Working...');
+    try {
+      const data = await api('/api/admin', { method: 'POST', body: JSON.stringify({ action, ...body }) });
+      applyData(data);
+      render();
+      if (message) setStatus(message, 'ok');
+    } catch (error) {
+      if (error.code === 'AUTH_REQUIRED') showSignIn(error.message);
+      setStatus(error.message || 'Action failed.', 'error');
     } finally {
       setBusy(false);
     }
@@ -207,12 +249,12 @@
   function renderOverview() {
     const published = state.posts.filter((post) => post.status === 'published').length;
     const scheduled = state.posts.filter((post) => post.status === 'scheduled').length;
-    const openJobs = state.jobs.filter((job) => job.status === 'open').length;
+    const openPositions = state.positions.filter((position) => position.status !== 'closed').length;
     $('#overviewMetrics').innerHTML = [
       metric('SEO pages', state.pages.length, 'grid', 'brand'),
       metric('Published blogs', published, 'doc', 'success'),
       metric('Scheduled blogs', scheduled, 'clock', 'warning'),
-      metric('Open roles', openJobs, 'briefcase', 'info'),
+      metric('Open positions', openPositions, 'briefcase', 'info'),
     ].join('');
   }
 
@@ -242,7 +284,7 @@
         <span class="row-tags">${(post.tags || []).map((tag) => `<span class="tag-chip">${tag}</span>`).join('')}</span>
       </button>
     `).join('') || '<p class="empty-state">No posts in this view.</p>';
-    $$('.filters button').forEach((button) => button.classList.toggle('active', button.dataset.postFilter === state.postFilter));
+    $$('.filters button[data-post-filter]').forEach((button) => button.classList.toggle('active', button.dataset.postFilter === state.postFilter));
     fillPostForm();
   }
 
@@ -264,25 +306,258 @@
     $('#previewPostLink').href = `/blog?post=${post.slug || ''}`;
   }
 
-  function renderJobs() {
-    $('#jobList').innerHTML = state.jobs.map((job) => `
-      <button class="row-card ${job.id === state.selectedJob ? 'active' : ''}" data-job="${job.id}" type="button">
-        <strong>${job.title} <span class="status-pill status-${job.status}">${job.status}</span></strong>
-        <span class="row-path">${job.department || ''} - ${job.location || ''}</span>
+  // ---------- Positions ----------
+
+  function renderPositions() {
+    $('#positionList').innerHTML = state.positions.map((position) => `
+      <button class="row-card ${position.id === state.selectedPosition ? 'active' : ''}" data-position="${position.id}" type="button">
+        <strong>${escapeHtml(position.title)} <span class="status-pill status-${position.status === 'closed' ? 'closed' : 'open'}">${position.status === 'closed' ? 'closed' : 'live'}</span></strong>
+        <span class="row-path">${escapeHtml(position.type || 'Full-time')} - ${escapeHtml(position.department || '')} - ${escapeHtml(position.location || '')}</span>
       </button>
-    `).join('') || '<p class="empty-state">No roles yet.</p>';
-    fillJobForm();
+    `).join('') || '<p class="empty-state">No positions yet.</p>';
+    fillPositionTypeSelect();
+    fillPositionForm();
   }
 
-  function fillJobForm() {
-    const job = state.jobs.find((item) => item.id === state.selectedJob) || {};
-    const form = $('#jobForm');
-    ['title', 'department', 'location', 'type', 'experience', 'qualification', 'description', 'vacancies', 'gender', 'hardSkills', 'softSkills', 'applyEmail'].forEach((name) => {
-      form[name].value = job[name] || '';
-    });
-    form.responsibilities.value = Array.isArray(job.responsibilities) ? job.responsibilities.join('\n') : job.responsibilities || '';
-    form.status.value = job.status || 'open';
+  function fillPositionTypeSelect() {
+    const select = $('#positionTypeSelect');
+    if (!select) return;
+    const current = select.value;
+    select.innerHTML = state.positionTypes.map((type) => `<option value="${escapeHtml(type)}">${escapeHtml(type)}</option>`).join('');
+    if (current) select.value = current;
   }
+
+  function fillPositionForm() {
+    const position = state.positions.find((item) => item.id === state.selectedPosition) || {};
+    const form = $('#positionForm');
+    ['title', 'department', 'location', 'experience', 'qualification', 'description', 'vacancies', 'gender', 'hardSkills', 'softSkills', 'applyEmail'].forEach((name) => {
+      form[name].value = position[name] || '';
+    });
+    form.responsibilities.value = Array.isArray(position.responsibilities) ? position.responsibilities.join('\n') : position.responsibilities || '';
+    form.tags.value = Array.isArray(position.tags) ? position.tags.join(', ') : '';
+    $('#positionTagChips').innerHTML = (position.tags || []).map((tag) => `<span class="tag-chip">${escapeHtml(tag)}</span>`).join('');
+    $('#positionTypeSelect').value = position.type || state.positionTypes[0] || 'Full-time';
+    const statusValue = position.status === 'closed' ? 'closed' : 'live';
+    $$('#positionForm input[name="status"]').forEach((radio) => { radio.checked = radio.value === statusValue; });
+  }
+
+  // ---------- Applications ----------
+
+  const APPLICATION_STATUSES = ['new', 'reviewed', 'shortlisted', 'rejected'];
+
+  function filteredApplications() {
+    const f = state.applicationFilters;
+    return state.applications.filter((app) => {
+      if (f.status !== 'all' && app.status !== f.status) return false;
+      if (f.positionId && app.positionId !== f.positionId) return false;
+      if (f.from && new Date(app.createdAt) < new Date(f.from)) return false;
+      if (f.to && new Date(app.createdAt) > new Date(f.to + 'T23:59:59')) return false;
+      if (f.search) {
+        const term = f.search.toLowerCase();
+        if (!`${app.name} ${app.email}`.toLowerCase().includes(term)) return false;
+      }
+      return true;
+    });
+  }
+
+  function formatBytes(bytes) {
+    if (!bytes) return '';
+    if (bytes < 1024) return `${bytes} B`;
+    return `${Math.round(bytes / 1024)} KB`;
+  }
+
+  function renderApplicationFilterChips() {
+    const counts = { all: state.applications.length };
+    APPLICATION_STATUSES.forEach((status) => { counts[status] = state.applications.filter((a) => a.status === status).length; });
+    $('#applicationWorkflowFilters').innerHTML = ['all', ...APPLICATION_STATUSES].map((status) => `
+      <button class="filter-chip ${state.applicationFilters.status === status ? 'active' : ''}" data-app-filter="${status}" type="button">
+        ${status[0].toUpperCase() + status.slice(1)} (${counts[status] || 0})
+      </button>
+    `).join('');
+  }
+
+  function renderApplications() {
+    renderApplicationFilterChips();
+    const positionSelect = $('#applicationPositionFilter');
+    positionSelect.innerHTML = '<option value="">All positions</option>' + state.positions.map((p) => `<option value="${p.id}">${escapeHtml(p.title)}</option>`).join('');
+    positionSelect.value = state.applicationFilters.positionId;
+    $('#applicationFromDate').value = state.applicationFilters.from;
+    $('#applicationToDate').value = state.applicationFilters.to;
+    $('#applicationSearch').value = state.applicationFilters.search;
+
+    const shown = filteredApplications();
+    const shownIds = new Set(shown.map((a) => a.id));
+    for (const id of Array.from(state.applicationSelectedIds)) {
+      if (!shownIds.has(id)) state.applicationSelectedIds.delete(id);
+    }
+
+    $('#applicationList').innerHTML = shown.map((app) => `
+      <article class="entity-row" data-application-row="${app.id}">
+        <input type="checkbox" class="application-select" data-select-application="${app.id}" ${state.applicationSelectedIds.has(app.id) ? 'checked' : ''}>
+        <div class="entity-main">
+          <div class="entity-title">${escapeHtml(app.name)} <span class="status-pill status-${app.status === 'new' ? 'open' : app.status === 'rejected' ? 'closed' : 'scheduled'}">${app.status}</span></div>
+          <div class="entity-sub">${escapeHtml(app.positionTitle || 'General application')}</div>
+          <div class="entity-sub">${escapeHtml(app.email)} ${app.phone ? '- ' + escapeHtml(app.phone) : ''} ${app.yearsExperience ? '- ' + escapeHtml(app.yearsExperience) : ''}</div>
+        </div>
+        <div class="entity-actions">
+          ${app.resumeUrl ? `<a href="${safeHref(app.resumeUrl)}" target="_blank" rel="noopener noreferrer" class="btn-secondary">Resume${app.resumeSize ? ' (' + formatBytes(app.resumeSize) + ')' : ''}</a>` : '<span class="text-xs text-gray-400">No resume</span>'}
+          <select class="field-input application-status-select" data-application-status="${app.id}">
+            ${APPLICATION_STATUSES.map((s) => `<option value="${s}" ${s === app.status ? 'selected' : ''}>${s}</option>`).join('')}
+          </select>
+          <button type="button" class="btn-secondary" data-application-details="${app.id}">Details</button>
+          <button type="button" class="btn-danger danger" data-application-delete="${app.id}">Delete</button>
+        </div>
+      </article>
+    `).join('') || '<p class="empty-state">No applications match this view.</p>';
+
+    $('#applicationShownCount').textContent = `${shown.length} of ${state.applications.length} shown`;
+    $('#applicationSelectedCount').textContent = `${state.applicationSelectedIds.size} selected`;
+    $('#applicationSelectAll').checked = shown.length > 0 && shown.every((a) => state.applicationSelectedIds.has(a.id));
+  }
+
+  function openApplicationDrawer(id) {
+    const app = state.applications.find((a) => a.id === id);
+    if (!app) return;
+    state.selectedApplication = id;
+    $('#applicationDrawerBody').innerHTML = [
+      ['Name', app.name], ['Email', app.email], ['Phone', app.phone || '-'],
+      ['Position', app.positionTitle || '-'], ['Experience', app.yearsExperience || '-'],
+      ['Status', app.status], ['Submitted', new Date(app.createdAt).toLocaleString()],
+      ['Message', app.message || '-'],
+    ].map(([label, value]) => `<div class="drawer-field"><span>${label}</span><strong>${escapeHtml(value)}</strong></div>`).join('')
+      + (app.resumeUrl ? `<p class="mt-3"><a href="${safeHref(app.resumeUrl)}" target="_blank" rel="noopener noreferrer" class="btn-secondary">Open resume</a></p>` : '');
+    $('#applicationNotesField').value = app.adminNotes || '';
+    $('#applicationDrawer').classList.add('is-open');
+    $('#applicationDrawer').setAttribute('aria-hidden', 'false');
+  }
+
+  // ---------- Partners ----------
+
+  function filteredPartners() {
+    const f = state.partnerFilters;
+    return state.partners.filter((p) => {
+      if (f.status !== 'all' && p.status !== f.status) return false;
+      if (f.category && p.category !== f.category) return false;
+      if (f.from && new Date(p.createdAt) < new Date(f.from)) return false;
+      if (f.to && new Date(p.createdAt) > new Date(f.to + 'T23:59:59')) return false;
+      if (f.search) {
+        const term = f.search.toLowerCase();
+        if (!`${p.name} ${p.email}`.toLowerCase().includes(term)) return false;
+      }
+      return true;
+    });
+  }
+
+  function renderPartnerFilterChips() {
+    const counts = { all: state.partners.length };
+    APPLICATION_STATUSES.forEach((status) => { counts[status] = state.partners.filter((p) => p.status === status).length; });
+    $('#partnerWorkflowFilters').innerHTML = ['all', ...APPLICATION_STATUSES].map((status) => `
+      <button class="filter-chip ${state.partnerFilters.status === status ? 'active' : ''}" data-partner-filter="${status}" type="button">
+        ${status[0].toUpperCase() + status.slice(1)} (${counts[status] || 0})
+      </button>
+    `).join('');
+  }
+
+  function renderPartners() {
+    renderPartnerFilterChips();
+    const categorySelect = $('#partnerCategoryFilter');
+    categorySelect.innerHTML = '<option value="">All categories</option>' + state.partnerCategories.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    categorySelect.value = state.partnerFilters.category;
+    $('#partnerFromDate').value = state.partnerFilters.from;
+    $('#partnerToDate').value = state.partnerFilters.to;
+    $('#partnerSearch').value = state.partnerFilters.search;
+
+    const shown = filteredPartners();
+    const shownIds = new Set(shown.map((p) => p.id));
+    for (const id of Array.from(state.partnerSelectedIds)) {
+      if (!shownIds.has(id)) state.partnerSelectedIds.delete(id);
+    }
+
+    $('#partnerList').innerHTML = shown.map((p) => `
+      <article class="entity-row" data-partner-row="${p.id}">
+        <input type="checkbox" class="partner-select" data-select-partner="${p.id}" ${state.partnerSelectedIds.has(p.id) ? 'checked' : ''}>
+        <div class="entity-main">
+          <div class="entity-title">${escapeHtml(p.name)} <span class="status-pill status-${p.status === 'new' ? 'open' : p.status === 'rejected' ? 'closed' : 'scheduled'}">${p.status}</span></div>
+          <div class="entity-sub">${escapeHtml(p.category || 'Uncategorized')} - ${escapeHtml(p.city || '')} - ${escapeHtml(p.entityType || '')} - ${escapeHtml(p.yearsExperience || '')}</div>
+          <div class="entity-sub">${escapeHtml(p.email)} ${p.phone ? '- ' + escapeHtml(p.phone) : ''}</div>
+          <div class="entity-sub">${(p.portfolioUrls || []).map((url) => `<a href="${safeHref(url)}" target="_blank" rel="noopener noreferrer" class="text-brand-600">${escapeHtml(url)}</a>`).join(', ')}</div>
+          <div class="entity-sub">${new Date(p.createdAt).toLocaleDateString()}</div>
+        </div>
+        <div class="entity-actions">
+          ${p.profileUrl ? `<a href="${safeHref(p.profileUrl)}" target="_blank" rel="noopener noreferrer" class="btn-secondary">Profile${p.profileSize ? ' (' + formatBytes(p.profileSize) + ')' : ''}</a>` : '<span class="text-xs text-gray-400">No profile file</span>'}
+          <select class="field-input partner-status-select" data-partner-status="${p.id}">
+            ${APPLICATION_STATUSES.map((s) => `<option value="${s}" ${s === p.status ? 'selected' : ''}>${s}</option>`).join('')}
+          </select>
+          <button type="button" class="btn-secondary" data-partner-details="${p.id}">Details</button>
+          <button type="button" class="btn-danger danger" data-partner-delete="${p.id}">Delete</button>
+        </div>
+      </article>
+    `).join('') || '<p class="empty-state">No partners match this view.</p>';
+
+    $('#partnerShownCount').textContent = `${shown.length} of ${state.partners.length} shown`;
+    $('#partnerSelectedCount').textContent = `${state.partnerSelectedIds.size} selected`;
+    $('#partnerSelectAll').checked = shown.length > 0 && shown.every((p) => state.partnerSelectedIds.has(p.id));
+  }
+
+  function openPartnerDrawer(id) {
+    const p = state.partners.find((item) => item.id === id);
+    if (!p) return;
+    state.selectedPartner = id;
+    $('#partnerDrawerBody').innerHTML = [
+      ['Name', p.name], ['Email', p.email], ['Phone', p.phone || '-'],
+      ['Category', p.category || '-'], ['City', p.city || '-'], ['Entity type', p.entityType || '-'],
+      ['Experience', p.yearsExperience || '-'], ['Status', p.status], ['Submitted', new Date(p.createdAt).toLocaleString()],
+      ['Description', p.description || '-'],
+    ].map(([label, value]) => `<div class="drawer-field"><span>${label}</span><strong>${escapeHtml(value)}</strong></div>`).join('')
+      + ((p.portfolioUrls || []).length ? `<p class="mt-3">${p.portfolioUrls.map((url) => `<a href="${safeHref(url)}" target="_blank" rel="noopener noreferrer" class="block text-brand-600">${escapeHtml(url)}</a>`).join('')}</p>` : '')
+      + (p.profileUrl ? `<p class="mt-3"><a href="${safeHref(p.profileUrl)}" target="_blank" rel="noopener noreferrer" class="btn-secondary">Open profile file</a></p>` : '');
+    $('#partnerNotesField').value = p.adminNotes || '';
+    $('#partnerDrawer').classList.add('is-open');
+    $('#partnerDrawer').setAttribute('aria-hidden', 'false');
+  }
+
+  function closeDrawers() {
+    $$('.drawer.is-open').forEach((drawer) => { drawer.classList.remove('is-open'); drawer.setAttribute('aria-hidden', 'true'); });
+  }
+
+  // ---------- Type / category manager ----------
+
+  function openTypeManager(target) {
+    state.typeManagerTarget = target;
+    $('#typeManagerTitle').textContent = target === 'positionTypes' ? 'Manage position types' : 'Manage partner categories';
+    renderTypeManager();
+    $('#typeManagerModal').classList.add('is-open');
+    $('#typeManagerModal').setAttribute('aria-hidden', 'false');
+  }
+
+  function closeTypeManager() {
+    $('#typeManagerModal').classList.remove('is-open');
+    $('#typeManagerModal').setAttribute('aria-hidden', 'true');
+  }
+
+  function renderTypeManager() {
+    const list = state[state.typeManagerTarget] || [];
+    $('#typeManagerList').innerHTML = list.map((item, index) => `
+      <div class="type-row"><span>${escapeHtml(item)}</span><button type="button" class="btn-danger danger" data-remove-type="${index}">Remove</button></div>
+    `).join('') || '<p class="empty-state">No entries yet.</p>';
+  }
+
+  function exportCsv(rows, columns, filename) {
+    const header = columns.map((c) => c.label).join(',');
+    const lines = rows.map((row) => columns.map((c) => `"${String(c.value(row) ?? '').replace(/"/g, '""')}"`).join(','));
+    const csv = [header, ...lines].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  // ---------- Analytics / settings (unchanged) ----------
 
   function renderAnalytics() {
     const analytics = state.analytics || {};
@@ -321,7 +596,9 @@
     renderOverview();
     renderSeo();
     renderPosts();
-    renderJobs();
+    renderPositions();
+    renderApplications();
+    renderPartners();
     renderAnalytics();
     renderSettings();
   }
@@ -383,14 +660,7 @@
       renderPosts();
     });
 
-    $('#jobList').addEventListener('click', (event) => {
-      const button = event.target.closest('[data-job]');
-      if (!button) return;
-      state.selectedJob = button.dataset.job;
-      renderJobs();
-    });
-
-    $$('.filters button').forEach((button) => button.addEventListener('click', () => {
+    $$('.filters button[data-post-filter]').forEach((button) => button.addEventListener('click', () => {
       state.postFilter = button.dataset.postFilter;
       renderPosts();
     }));
@@ -432,44 +702,221 @@
       await save({ posts: state.posts }, 'Post deleted.');
     });
 
-    $('#newJobBtn').addEventListener('click', () => {
-      const job = { id: crypto.randomUUID(), title: 'New role', department: 'Automation', location: 'Ahmedabad, Gujarat', type: 'Full time', vacancies: '1', gender: 'Open', responsibilities: [], status: 'open', applyEmail: 'sales@acsengitech.com' };
-      state.jobs.unshift(job);
-      state.selectedJob = job.id;
-      renderJobs();
+    // ---- Positions ----
+
+    $('#positionList').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-position]');
+      if (!button) return;
+      state.selectedPosition = button.dataset.position;
+      renderPositions();
     });
 
-    $('#jobForm').addEventListener('submit', async (event) => {
+    $('#newPositionBtn').addEventListener('click', () => {
+      const position = { id: crypto.randomUUID(), title: 'New position', department: 'Automation', location: 'Ahmedabad, Gujarat', type: state.positionTypes[0] || 'Full-time', tags: [], vacancies: '1', gender: 'Open', responsibilities: [], status: 'live', applyEmail: 'sales@acsengitech.com' };
+      state.positions.unshift(position);
+      state.selectedPosition = position.id;
+      renderPositions();
+    });
+
+    $('#positionForm').addEventListener('submit', async (event) => {
       event.preventDefault();
       const form = event.currentTarget;
-      const job = {
-        id: state.selectedJob || crypto.randomUUID(),
+      const statusValue = form.querySelector('input[name="status"]:checked')?.value || 'live';
+      const position = {
+        id: state.selectedPosition || crypto.randomUUID(),
         title: form.title.value.trim(),
         department: form.department.value.trim(),
         location: form.location.value.trim(),
-        type: form.type.value.trim(),
+        type: $('#positionTypeSelect').value,
         experience: form.experience.value.trim(),
         qualification: form.qualification.value.trim(),
         description: form.description.value.trim(),
         vacancies: form.vacancies.value.trim(),
         gender: form.gender.value.trim(),
+        tags: form.tags.value.split(',').map((t) => t.trim()).filter(Boolean),
         responsibilities: form.responsibilities.value.split(/\r?\n/).map((item) => item.trim()).filter(Boolean),
         hardSkills: form.hardSkills.value.trim(),
         softSkills: form.softSkills.value.trim(),
         applyEmail: form.applyEmail.value.trim(),
-        status: form.status.value,
+        status: statusValue,
       };
-      state.jobs = [job, ...state.jobs.filter((item) => item.id !== job.id)];
-      state.selectedJob = job.id;
-      await save({ jobs: state.jobs }, 'Role saved.');
+      state.positions = [position, ...state.positions.filter((item) => item.id !== position.id)];
+      state.selectedPosition = position.id;
+      await save({ positions: state.positions }, 'Position saved.');
     });
 
-    $('#deleteJobBtn').addEventListener('click', async () => {
-      if (!state.selectedJob || !confirm('Delete this role?')) return;
-      state.jobs = state.jobs.filter((job) => job.id !== state.selectedJob);
-      state.selectedJob = state.jobs[0]?.id || null;
-      await save({ jobs: state.jobs }, 'Role deleted.');
+    $('#deletePositionBtn').addEventListener('click', async () => {
+      if (!state.selectedPosition || !confirm('Delete this position?')) return;
+      state.positions = state.positions.filter((position) => position.id !== state.selectedPosition);
+      state.selectedPosition = state.positions[0]?.id || null;
+      await save({ positions: state.positions }, 'Position deleted.');
     });
+
+    $('#managePositionTypesBtn').addEventListener('click', () => openTypeManager('positionTypes'));
+    $('#positionTypeManageLink').addEventListener('click', (event) => { event.preventDefault(); openTypeManager('positionTypes'); });
+    $('#managePartnerCategoriesBtn').addEventListener('click', () => openTypeManager('partnerCategories'));
+
+    $('#typeManagerForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const input = $('#typeManagerInput');
+      const value = input.value.trim();
+      if (!value) return;
+      const key = state.typeManagerTarget;
+      if (!state[key].includes(value)) state[key] = [...state[key], value];
+      input.value = '';
+      renderTypeManager();
+      await save({ [key]: state[key] }, key === 'positionTypes' ? 'Position types saved.' : 'Partner categories saved.');
+      fillPositionTypeSelect();
+    });
+
+    $('#typeManagerList').addEventListener('click', async (event) => {
+      const button = event.target.closest('[data-remove-type]');
+      if (!button) return;
+      const key = state.typeManagerTarget;
+      const index = Number(button.dataset.removeType);
+      state[key] = state[key].filter((_, i) => i !== index);
+      renderTypeManager();
+      await save({ [key]: state[key] }, key === 'positionTypes' ? 'Position types saved.' : 'Partner categories saved.');
+      fillPositionTypeSelect();
+    });
+
+    $$('[data-modal-close]').forEach((el) => el.addEventListener('click', closeTypeManager));
+
+    // ---- Applications ----
+
+    $('#applicationWorkflowFilters').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-app-filter]');
+      if (!button) return;
+      state.applicationFilters.status = button.dataset.appFilter;
+      renderApplications();
+    });
+    $('#applicationPositionFilter').addEventListener('change', (event) => { state.applicationFilters.positionId = event.target.value; renderApplications(); });
+    $('#applicationFromDate').addEventListener('change', (event) => { state.applicationFilters.from = event.target.value; renderApplications(); });
+    $('#applicationToDate').addEventListener('change', (event) => { state.applicationFilters.to = event.target.value; renderApplications(); });
+    $('#applicationSearch').addEventListener('input', (event) => { state.applicationFilters.search = event.target.value; renderApplications(); });
+    $('#clearApplicationFiltersBtn').addEventListener('click', () => {
+      state.applicationFilters = { status: 'all', positionId: '', from: '', to: '', search: '' };
+      renderApplications();
+    });
+    $('#refreshApplicationsBtn').addEventListener('click', load);
+    $('#exportApplicationsBtn').addEventListener('click', () => {
+      exportCsv(filteredApplications(), [
+        { label: 'Name', value: (a) => a.name }, { label: 'Email', value: (a) => a.email }, { label: 'Phone', value: (a) => a.phone },
+        { label: 'Position', value: (a) => a.positionTitle }, { label: 'Experience', value: (a) => a.yearsExperience },
+        { label: 'Status', value: (a) => a.status }, { label: 'Submitted', value: (a) => a.createdAt },
+      ], 'applications.csv');
+    });
+
+    $('#applicationSelectAll').addEventListener('change', (event) => {
+      const shown = filteredApplications();
+      if (event.target.checked) shown.forEach((a) => state.applicationSelectedIds.add(a.id));
+      else shown.forEach((a) => state.applicationSelectedIds.delete(a.id));
+      renderApplications();
+    });
+
+    $('#applicationList').addEventListener('click', (event) => {
+      const select = event.target.closest('[data-select-application]');
+      if (select) {
+        const id = select.dataset.selectApplication;
+        if (select.checked) state.applicationSelectedIds.add(id); else state.applicationSelectedIds.delete(id);
+        renderApplications();
+        return;
+      }
+      const details = event.target.closest('[data-application-details]');
+      if (details) { openApplicationDrawer(details.dataset.applicationDetails); return; }
+      const del = event.target.closest('[data-application-delete]');
+      if (del) {
+        if (!confirm('Delete this application?')) return;
+        apiAction('application.delete', { ids: [del.dataset.applicationDelete] }, 'Application deleted.');
+      }
+    });
+
+    $('#applicationList').addEventListener('change', (event) => {
+      const select = event.target.closest('[data-application-status]');
+      if (!select) return;
+      apiAction('application.update', { id: select.dataset.applicationStatus, patch: { status: select.value } }, 'Status updated.');
+    });
+
+    $('#deleteApplicationsBtn').addEventListener('click', () => {
+      const ids = Array.from(state.applicationSelectedIds);
+      if (!ids.length || !confirm(`Delete ${ids.length} selected application(s)?`)) return;
+      apiAction('application.delete', { ids }, 'Applications deleted.');
+      state.applicationSelectedIds.clear();
+    });
+
+    $('#saveApplicationNotesBtn').addEventListener('click', () => {
+      if (!state.selectedApplication) return;
+      apiAction('application.update', { id: state.selectedApplication, patch: { adminNotes: $('#applicationNotesField').value } }, 'Notes saved.');
+    });
+
+    // ---- Partners ----
+
+    $('#partnerWorkflowFilters').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-partner-filter]');
+      if (!button) return;
+      state.partnerFilters.status = button.dataset.partnerFilter;
+      renderPartners();
+    });
+    $('#partnerCategoryFilter').addEventListener('change', (event) => { state.partnerFilters.category = event.target.value; renderPartners(); });
+    $('#partnerFromDate').addEventListener('change', (event) => { state.partnerFilters.from = event.target.value; renderPartners(); });
+    $('#partnerToDate').addEventListener('change', (event) => { state.partnerFilters.to = event.target.value; renderPartners(); });
+    $('#partnerSearch').addEventListener('input', (event) => { state.partnerFilters.search = event.target.value; renderPartners(); });
+    $('#clearPartnerFiltersBtn').addEventListener('click', () => {
+      state.partnerFilters = { status: 'all', category: '', from: '', to: '', search: '' };
+      renderPartners();
+    });
+    $('#refreshPartnersBtn').addEventListener('click', load);
+    $('#exportPartnersBtn').addEventListener('click', () => {
+      exportCsv(filteredPartners(), [
+        { label: 'Name', value: (p) => p.name }, { label: 'Email', value: (p) => p.email }, { label: 'Phone', value: (p) => p.phone },
+        { label: 'Category', value: (p) => p.category }, { label: 'City', value: (p) => p.city }, { label: 'Entity type', value: (p) => p.entityType },
+        { label: 'Status', value: (p) => p.status }, { label: 'Submitted', value: (p) => p.createdAt },
+      ], 'partners.csv');
+    });
+
+    $('#partnerSelectAll').addEventListener('change', (event) => {
+      const shown = filteredPartners();
+      if (event.target.checked) shown.forEach((p) => state.partnerSelectedIds.add(p.id));
+      else shown.forEach((p) => state.partnerSelectedIds.delete(p.id));
+      renderPartners();
+    });
+
+    $('#partnerList').addEventListener('click', (event) => {
+      const select = event.target.closest('[data-select-partner]');
+      if (select) {
+        const id = select.dataset.selectPartner;
+        if (select.checked) state.partnerSelectedIds.add(id); else state.partnerSelectedIds.delete(id);
+        renderPartners();
+        return;
+      }
+      const details = event.target.closest('[data-partner-details]');
+      if (details) { openPartnerDrawer(details.dataset.partnerDetails); return; }
+      const del = event.target.closest('[data-partner-delete]');
+      if (del) {
+        if (!confirm('Delete this partner?')) return;
+        apiAction('partner.delete', { ids: [del.dataset.partnerDelete] }, 'Partner deleted.');
+      }
+    });
+
+    $('#partnerList').addEventListener('change', (event) => {
+      const select = event.target.closest('[data-partner-status]');
+      if (!select) return;
+      apiAction('partner.update', { id: select.dataset.partnerStatus, patch: { status: select.value } }, 'Status updated.');
+    });
+
+    $('#deletePartnersBtn').addEventListener('click', () => {
+      const ids = Array.from(state.partnerSelectedIds);
+      if (!ids.length || !confirm(`Delete ${ids.length} selected partner(s)?`)) return;
+      apiAction('partner.delete', { ids }, 'Partners deleted.');
+      state.partnerSelectedIds.clear();
+    });
+
+    $('#savePartnerNotesBtn').addEventListener('click', () => {
+      if (!state.selectedPartner) return;
+      apiAction('partner.update', { id: state.selectedPartner, patch: { adminNotes: $('#partnerNotesField').value } }, 'Notes saved.');
+    });
+
+    $$('[data-drawer-close]').forEach((el) => el.addEventListener('click', closeDrawers));
 
     $('#saveSeoBtn').addEventListener('click', async () => {
       collectSeo();
@@ -479,7 +926,7 @@
     $('#saveSettingsBtn').addEventListener('click', async () => save({ settings: { ...state.settings, ...collectCrawlerSettings() } }, 'Crawler settings saved.'));
     $('#saveAllTop').addEventListener('click', async () => {
       collectSeo();
-      await save({ pageSeo: state.pageSeo, posts: state.posts, jobs: state.jobs, settings: collectSettings() }, 'All changes saved.');
+      await save({ pageSeo: state.pageSeo, posts: state.posts, positions: state.positions, settings: collectSettings() }, 'All changes saved.');
     });
     $('#refreshBtn').addEventListener('click', load);
     $('#analyticsDays').addEventListener('change', load);
