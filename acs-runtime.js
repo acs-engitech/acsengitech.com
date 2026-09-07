@@ -267,26 +267,34 @@
     }
   }
 
+  // Admin-entered GTM/GA IDs are interpolated into inline <script> text below.
+  // Enforce their well-known formats first so a malicious/typo'd value typed
+  // into the admin Analytics tab can never break out of the string literal.
+  var GTM_ID_RE = /^GTM-[A-Z0-9]+$/;
+  var GA4_ID_RE = /^G-[A-Z0-9]+$/;
+
   function injectAnalytics(settings) {
-    if (settings?.gtmContainerId && !document.querySelector('[data-acs-gtm]')) {
+    var gtmId = settings?.gtmContainerId && GTM_ID_RE.test(settings.gtmContainerId) ? settings.gtmContainerId : null;
+    var gaId = settings?.gaMeasurementId && GA4_ID_RE.test(settings.gaMeasurementId) ? settings.gaMeasurementId : null;
+    if (gtmId && !document.querySelector('[data-acs-gtm]')) {
       const script = document.createElement('script');
       script.dataset.acsGtm = 'true';
-      script.textContent = `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${settings.gtmContainerId}');`;
+      script.textContent = `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${gtmId}');`;
       document.head.appendChild(script);
       const noscript = document.createElement('noscript');
       noscript.dataset.acsGtm = 'true';
-      noscript.innerHTML = `<iframe src="https://www.googletagmanager.com/ns.html?id=${settings.gtmContainerId}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`;
+      noscript.innerHTML = `<iframe src="https://www.googletagmanager.com/ns.html?id=${gtmId}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`;
       document.body.insertBefore(noscript, document.body.firstChild);
     }
-    if (settings?.gaMeasurementId && !document.querySelector('[data-acs-ga]')) {
+    if (gaId && !document.querySelector('[data-acs-ga]')) {
       const script = document.createElement('script');
       script.async = true;
       script.dataset.acsGa = 'true';
-      script.src = `https://www.googletagmanager.com/gtag/js?id=${settings.gaMeasurementId}`;
+      script.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
       document.head.appendChild(script);
       const config = document.createElement('script');
       config.dataset.acsGa = 'true';
-      config.textContent = `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${settings.gaMeasurementId}');`;
+      config.textContent = `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${gaId}');`;
       document.head.appendChild(config);
     }
   }
@@ -327,6 +335,21 @@
       '"': '&quot;',
       "'": '&#039;',
     }[char]));
+  }
+
+  // Blog post "Content HTML" is an intentional rich-content field (the admin
+  // panel's editor is a raw-HTML textarea by design) so it is rendered as
+  // real markup, not escaped. This strips the handful of tags/attributes
+  // that would let a compromised admin session plant script that runs for
+  // every site visitor, while leaving normal formatting (headings, links,
+  // images, lists) untouched. Defense-in-depth against an already-privileged
+  // threat, not a substitute for keeping the admin account itself secure.
+  function sanitizeBlogHtml(html) {
+    return String(html || '')
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[\s\S]*?<\/style>/gi, '')
+      .replace(/\son\w+\s*=\s*(".*?"|'.*?'|[^\s>]+)/gi, '')
+      .replace(/(href|src)\s*=\s*(["'])\s*(javascript:|data:)/gi, '$1=$2#blocked:');
   }
 
   function navItems(items) {
@@ -727,7 +750,7 @@
             <p class="acs-lead">${escapeHtml(selected.excerpt || '')}</p>
           </div>
           <div class="acs-blog-content-card">
-            <div class="acs-blog-content">${selected.content || `<p>${escapeHtml(selected.excerpt || 'Article content will be updated soon.')}</p>`}</div>
+            <div class="acs-blog-content">${selected.content ? sanitizeBlogHtml(selected.content) : `<p>${escapeHtml(selected.excerpt || 'Article content will be updated soon.')}</p>`}</div>
           </div>
         </article>`;
       return;
