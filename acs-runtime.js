@@ -1,4 +1,17 @@
 (function () {
+  // Several pages in this repo (a leftover from the original WordPress export)
+  // include this script twice — once as an early `async` tag and once again
+  // near the end of body. Each `<script src>` re-runs this whole IIFE with a
+  // fresh closure, so any state that must be shared across those instances
+  // (has the shell been installed / has init already run) lives on `window`
+  // instead of in a local `let`, making repeat loads idempotent no-ops.
+  const acsShared = (window.__acsLabRuntime = window.__acsLabRuntime || {
+    shellEventsBound: false,
+    runtimeStarted: false,
+    runtimeAttempts: 0,
+    applyLinkHandlerBound: false,
+  });
+
   function resolveApiUrl(path) {
     if (/^https?:\/\//i.test(path)) return path;
     const localHost = ['localhost', '127.0.0.1'].includes(location.hostname);
@@ -40,7 +53,8 @@
     { label: 'Blog', href: 'blog.html' },
     { label: 'Career', href: 'career.html' },
     { label: 'Certificates', href: 'certificates.html' },
-    { label: 'Contact Us', href: 'contact-us.html' },
+    { label: 'Partner With Us', href: 'partner-with-us.html' },
+    { label: 'Contact Us', href: 'contact.html' },
   ];
   const acsImages = {
     engineers: 'assets/acs/process-automation.jpg',
@@ -165,11 +179,18 @@
       image: acsImages.panels,
       focus: ['Control Panels', 'Project Execution', 'Automation Systems', 'Plant Work'],
     },
-    '/contact-us': {
+    '/contact': {
       kicker: 'Contact ACS Engitech',
       title: 'Talk to ACS about your automation requirement.',
       lead: 'Reach ACS Engitech for control panels, PLC SCADA programming, process automation, machine automation, and engineering support.',
       contact: true,
+    },
+    '/partner-with-us': {
+      kicker: 'Partner With Us',
+      title: 'Grow with ACS Engitech.',
+      lead: 'Register as a vendor or agency partner across marketing, design, development, content, and consulting to work with ACS Engitech.',
+      image: acsImages.team,
+      focus: ['Marketing & Design Partners', 'Development Partners', 'Consulting Partners'],
     },
   };
   const aliases = {
@@ -252,6 +273,10 @@
       script.dataset.acsGtm = 'true';
       script.textContent = `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${settings.gtmContainerId}');`;
       document.head.appendChild(script);
+      const noscript = document.createElement('noscript');
+      noscript.dataset.acsGtm = 'true';
+      noscript.innerHTML = `<iframe src="https://www.googletagmanager.com/ns.html?id=${settings.gtmContainerId}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`;
+      document.body.insertBefore(noscript, document.body.firstChild);
     }
     if (settings?.gaMeasurementId && !document.querySelector('[data-acs-ga]')) {
       const script = document.createElement('script');
@@ -343,7 +368,7 @@
           <nav class="acs-lab-menu" aria-label="Primary navigation">
             <ul>${navItems(primaryNav)}</ul>
           </nav>
-          <a class="acs-lab-cta" href="contact-us.html">Get In Touch <span aria-hidden="true">→</span></a>
+          <a class="acs-lab-cta" href="contact.html">Get In Touch <span aria-hidden="true">→</span></a>
           <button class="acs-lab-toggle" type="button" aria-expanded="false" aria-controls="acsMobileMenu" aria-label="Open menu" onclick="window.acsToggleMobileMenu && window.acsToggleMobileMenu(event)">
             <span></span><span></span><span></span>
           </button>
@@ -409,8 +434,6 @@
     }
   }
 
-  let shellEventsBound = false;
-
   function toggleMobileMenu(event) {
     const toggle = event.target.closest('.acs-lab-toggle');
     const panel = document.getElementById('acsMobileMenu');
@@ -426,8 +449,8 @@
 
   function bindSharedShell() {
     window.acsToggleMobileMenu = toggleMobileMenu;
-    if (shellEventsBound) return;
-    shellEventsBound = true;
+    if (acsShared.shellEventsBound) return;
+    acsShared.shellEventsBound = true;
     document.addEventListener('click', (event) => {
       const toggle = event.target.closest('.acs-lab-toggle');
       if (toggle) {
@@ -452,156 +475,6 @@
       image: acsImages.team,
       focus: ['16+ years of experience', '7000+ work orders', 'Siemens automation expertise'],
     });
-    return;
-    const root = document.querySelector('main#main .entry-content') || document.querySelector('.entry-content') || document.querySelector('main#main');
-    if (!root || root.dataset.acsRebuilt === 'true') return;
-    root.dataset.acsRebuilt = 'true';
-    root.innerHTML = `
-      <section class="acs-lab-page-hero acs-page-hero acs-about-hero">
-        <div class="acs-lab-page-hero-media"><img src="${acsImages.team}" alt="ACS Engitech automation team in Ahmedabad"></div>
-        <div class="acs-template-container acs-lab-hero-content">
-          <p class="acs-template-kicker">About ACS Engitech</p>
-          <h1>Industrial automation built with precision.</h1>
-          <p>Control panels, PLC and SCADA programming, process automation, machine automation, and plant engineering support from Ahmedabad.</p>
-          <a class="acs-lab-hero-link" href="#acs-about-intro">Discover ACS <span aria-hidden="true">→</span></a>
-        </div>
-      </section>
-
-      <section class="acs-lab-feature-strip" aria-label="ACS credentials">
-        <article><strong>16+ years</strong><span>Industrial automation experience</span></article>
-        <article><strong>7000+ orders</strong><span>Executed across industrial sectors</span></article>
-        <article><strong>Siemens partner</strong><span>Automation and drive expertise</span></article>
-      </section>
-
-      <section class="acs-template-section acs-about-intro" id="acs-about-intro">
-        <div class="acs-template-container acs-intro-grid">
-          <div class="acs-image-stack">
-            <img src="${acsImages.engineers}" alt="ACS automation engineers working on industrial systems">
-            <div class="acs-image-card">
-              <strong>16+</strong>
-              <span>Years of automation experience</span>
-            </div>
-          </div>
-          <div class="acs-template-copy">
-            <p class="acs-template-kicker">About our company</p>
-            <h2>We are ACS Automation</h2>
-            <p>Established in 2009 in Ahmedabad, ACS Engitech has grown from a focused automation team into a trusted engineering partner for control panels, PLC, HMI, SCADA, machine automation, plant automation, and process automation.</p>
-            <p>Our in-house manufacturing facility supports customized control panel requirements with quality execution, commissioning support, and practical automation know-how.</p>
-            <div class="acs-check-grid">
-              <span>PLC Panel Manufacturing</span>
-              <span>SCADA / HMI Programming</span>
-              <span>System Integration</span>
-              <span>Process Automation</span>
-              <span>Siemens Channel Partner</span>
-              <span>ISO 9001:2015 Certified</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="acs-stat-strip">
-        <div class="acs-template-container acs-stat-grid">
-          <article><strong>16+</strong><span>Experience Years</span></article>
-          <article><strong>200+</strong><span>Happy Clients</span></article>
-          <article><strong>7000+</strong><span>Work Orders</span></article>
-          <article><strong>90+</strong><span>Team Members</span></article>
-        </div>
-      </section>
-
-      <section class="acs-blue-section acs-history-section">
-        <div class="acs-template-container">
-          <div class="acs-section-title is-centered">
-            <p class="acs-template-kicker">Our history</p>
-            <h2>A tradition of accuracy</h2>
-            <p>From a focused team in 2009 to a 90+ strong force with 7000+ successful installations across industries.</p>
-          </div>
-          <div class="acs-timeline">
-            ${[
-              ['2009', 'Establishment', 'Founded in Ahmedabad and executed first automation panel order through OEM.'],
-              ['2012', 'Export Order', 'Executed automation panel work for international OEM clients.'],
-              ['2014', 'Quality Management System', 'Became ISO 9001:2015 certified and an authorized Siemens channel partner.'],
-              ['2018', 'Siemens System House', 'Became Authorized System House of Siemens for Automation & Drive.'],
-              ['2021', 'CPRI Approval', 'CPRI approved PMCC panel as per IEC 61439 after short circuit test.'],
-              ['2026 - Now', 'Where We Stand Today', 'More than 90 employees and 7000+ successful installations worldwide.'],
-            ].map(([year, title, copy], index) => `
-              <article class="${index % 2 ? 'is-right' : ''}">
-                <span>${year}</span>
-                <h3>${title}</h3>
-                <p>${copy}</p>
-              </article>
-            `).join('')}
-          </div>
-        </div>
-      </section>
-
-      <section class="acs-template-section">
-        <div class="acs-template-container">
-          <div class="acs-section-title is-centered">
-            <p class="acs-template-kicker">Our expertise team</p>
-            <h2>Your partners in precision</h2>
-            <p>A dedicated team of engineers, automation specialists, and project managers bringing practical industrial experience.</p>
-          </div>
-          <div class="acs-team-showcase">
-            <img src="${acsImages.team}" alt="ACS Engitech team Ahmedabad Gujarat">
-            <div>
-              <p>ACS combines technical depth with manufacturing discipline to deliver control panels, PLC, SCADA, commissioning, and support for industrial clients.</p>
-              <p>We focus on dependable execution, responsive service, and long-term relationships with OEMs, factories, and process plants.</p>
-              <div class="acs-credential-list">
-                <span>Siemens Channel Partner</span>
-                <span>Siemens System House</span>
-                <span>ISO 9001:2015 Certified</span>
-                <span>CPRI Approved PMCC Panel</span>
-                <span>Global Installations via OEMs</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="acs-blue-section">
-        <div class="acs-template-container">
-          <div class="acs-section-title is-centered">
-            <p class="acs-template-kicker">Our foundation</p>
-            <h2>Vision, mission & values</h2>
-          </div>
-          <div class="acs-value-grid">
-            <article><h3>Our Vision</h3><p>To be a preferred solution provider in specific industrial automation segments.</p></article>
-            <article><h3>Our Mission</h3><p>To provide accurate, user-friendly control and monitoring solutions for industrial machinery.</p></article>
-            <article><h3>Our Values</h3><p>Transparent business, ethical conduct, and customer-first engineering support.</p></article>
-          </div>
-        </div>
-      </section>
-
-      <section class="acs-template-section">
-        <div class="acs-template-container">
-          <div class="acs-section-title is-centered">
-            <p class="acs-template-kicker">Our capabilities</p>
-            <h2>What we do?</h2>
-          </div>
-          <div class="acs-capability-grid">
-            ${[
-              ['System Integration', 'PLC, HMI, SCADA, motion control drives, process instruments, and sensing devices.'],
-              ['Software & Technologies', 'IoT based solutions, smart data logger, energy monitoring, and data management systems.'],
-              ['Manufacturing Control Panels', 'Design and manufacturing of PLC, drive, MCC, SCADA, and instrumentation panels.'],
-              ['Project Execution', 'Concept to commissioning with EPLAN, Siemens TIA Portal, Profinet, Ethernet, Modbus, and USS field bus.'],
-              ['Custom Built for OEMs', 'Develop and commission customized applications as per control philosophy.'],
-              ['AMC', 'Annual maintenance support for Siemens PLC panels, SCADA systems, and plant machinery.'],
-            ].map(([title, copy]) => `<article><h3>${title}</h3><p>${copy}</p></article>`).join('')}
-          </div>
-        </div>
-      </section>
-
-      <section class="acs-blue-cta">
-        <div class="acs-template-container">
-          <div>
-            <p class="acs-template-kicker">Start a project</p>
-            <h2>Looking to automate your plant or process?</h2>
-            <p>Talk to ACS about PLC panels, SCADA systems, process automation, machine automation, and system integration.</p>
-          </div>
-          <a href="contact-us.html">Contact Us Now <span aria-hidden="true">→</span></a>
-        </div>
-      </section>
-    `;
   }
 
   function findContentRoot() {
@@ -625,7 +498,7 @@
           <p class="acs-template-kicker">${escapeHtml(blueprint.kicker)}</p>
           <h1>${escapeHtml(blueprint.title)}</h1>
           <p>${escapeHtml(blueprint.lead)}</p>
-          <a class="acs-lab-hero-link" href="contact-us.html">Discuss your project <span aria-hidden="true">→</span></a>
+          <a class="acs-lab-hero-link" href="contact.html">Discuss your project <span aria-hidden="true">→</span></a>
         </div>
       </section>
       ${focus.length ? `<section class="acs-lab-feature-strip" aria-label="Key capabilities">
@@ -715,7 +588,7 @@
     if (root.querySelector('.acs-preserved-project-cta')) return;
     const cta = document.createElement('section');
     cta.className = 'acs-blue-cta acs-lab-project-cta acs-preserved-project-cta';
-    cta.innerHTML = `<div class="acs-template-container"><div><p class="acs-template-kicker">Start a project</p><h2>Need dependable automation execution?</h2><p>Talk to ACS Engitech about PLC panels, SCADA systems, process automation, machine automation, data logging, or Siemens automation support.</p></div><a href="contact-us.html">Contact Us Now <span aria-hidden="true">→</span></a></div>`;
+    cta.innerHTML = `<div class="acs-template-container"><div><p class="acs-template-kicker">Start a project</p><h2>Need dependable automation execution?</h2><p>Talk to ACS Engitech about PLC panels, SCADA systems, process automation, machine automation, data logging, or Siemens automation support.</p></div><a href="contact.html">Contact Us Now <span aria-hidden="true">→</span></a></div>`;
     root.appendChild(cta);
   }
 
@@ -742,92 +615,6 @@
     const blueprint = pageBlueprints[path] || pageBlueprints[aliases[path]];
     if (!blueprint) return;
     preserveExistingPage(blueprint);
-    return;
-    const root = findContentRoot();
-    if (!root || root.dataset.acsRebuilt === 'true') return;
-    root.dataset.acsRebuilt = 'true';
-    const focus = blueprint.focus || ['Automation Engineering', 'PLC & SCADA', 'Control Panels', 'Commissioning Support'];
-    const cards = blueprint.cards || serviceCards;
-    const heroImage = blueprint.image || cards[0]?.[3] || acsImages.engineers;
-    const featureItems = focus.slice(0, 3);
-    root.innerHTML = `
-      <section class="acs-lab-page-hero acs-page-hero">
-        <div class="acs-lab-page-hero-media"><img src="${heroImage}" alt="${escapeHtml(blueprint.kicker)} by ACS Engitech"></div>
-        <div class="acs-template-container acs-lab-hero-content">
-          <p class="acs-template-kicker">${escapeHtml(blueprint.kicker)}</p>
-          <h1>${escapeHtml(blueprint.title)}</h1>
-          <p>${escapeHtml(blueprint.lead)}</p>
-          <a class="acs-lab-hero-link" href="${blueprint.contact ? 'tel:+917048520058' : 'contact-us.html'}">${blueprint.contact ? 'Call ACS' : 'Discuss your project'} <span aria-hidden="true">→</span></a>
-        </div>
-      </section>
-
-      <section class="acs-lab-feature-strip" aria-label="Key capabilities">
-        ${featureItems.map((item, index) => `<article><span>0${index + 1}</span><strong>${escapeHtml(item)}</strong><small>Engineered and supported by ACS Engitech</small></article>`).join('')}
-      </section>
-
-      <section class="acs-template-section acs-lab-overview">
-        <div class="acs-template-container acs-lab-overview-grid">
-          <div class="acs-lab-overview-media"><img src="${heroImage}" alt="${escapeHtml(blueprint.title.replace(/\.$/, ''))}"></div>
-          <div class="acs-template-copy">
-            <p class="acs-template-kicker">ACS capability</p>
-            <h2>${escapeHtml(blueprint.title.replace(/\.$/, ''))}</h2>
-            <p>${escapeHtml(blueprint.lead)}</p>
-            <div class="acs-check-grid">
-              ${focus.map((item) => `<span>${escapeHtml(item)}</span>`).join('')}
-            </div>
-            <a class="acs-inline-link" href="about.html">Why industries choose ACS <span aria-hidden="true">→</span></a>
-          </div>
-        </div>
-      </section>
-
-      ${blueprint.contact ? `
-        <section class="acs-template-section acs-contact-section">
-          <div class="acs-template-container acs-contact-grid">
-            <article><span>Phone</span><a href="tel:+917048520058">+91 70485 20058</a></article>
-            <article><span>Email</span><a href="mailto:sales@acsengitech.com">sales@acsengitech.com</a></article>
-            <article><span>Office</span><p>A-98, Swayam Industrial Park, Opposite Gharda Ghar, Vill-Kuha, Taluka-Daskroi, Ahmedabad-382433</p></article>
-          </div>
-        </section>
-      ` : `
-        <section class="acs-lab-services-section">
-          <div class="acs-template-container">
-            <div class="acs-section-title">
-              <p class="acs-template-kicker">What we handle</p>
-              <h2>Industrial services connected to this work</h2>
-              <p>One engineering partner from panel manufacture and PLC programming through commissioning, reporting, and ongoing support.</p>
-            </div>
-            <div class="acs-lab-service-grid">
-              ${cards.slice(0, 6).map(([title, copy, href, image], index) => `
-                <article class="acs-lab-service-card">
-                  <div><span>0${index + 1}</span><h3>${escapeHtml(title)}</h3><p>${escapeHtml(copy)}</p><a href="${href}">Explore service <span aria-hidden="true">→</span></a></div>
-                  <img src="${image || [acsImages.engineers, acsImages.automation, acsImages.software, acsImages.server, acsImages.panels, acsImages.automation][index]}" alt="${escapeHtml(title)}">
-                </article>
-              `).join('')}
-            </div>
-          </div>
-        </section>
-      `}
-
-      <section class="acs-lab-proof-strip">
-        <div class="acs-template-container">
-          <article><strong>16+</strong><span>Years of experience</span></article>
-          <article><strong>200+</strong><span>Industrial clients</span></article>
-          <article><strong>7000+</strong><span>Work orders</span></article>
-          <article><strong>90+</strong><span>Team members</span></article>
-        </div>
-      </section>
-
-      <section class="acs-blue-cta acs-lab-project-cta">
-        <div class="acs-template-container">
-          <div>
-            <p class="acs-template-kicker">Start a project</p>
-            <h2>Need dependable automation execution?</h2>
-            <p>Talk to ACS Engitech about PLC panels, SCADA systems, process automation, machine automation, data logging, or Siemens automation support.</p>
-          </div>
-          <a href="contact-us.html">Contact Us Now <span aria-hidden="true">→</span></a>
-        </div>
-      </section>
-    `;
   }
 
   function asList(value) {
@@ -883,14 +670,21 @@
             <div><p class="acs-career-label">Soft Skills</p><p>${escapeHtml(job.softSkills || '')}</p></div>
           </div>
           <hr>
-          <div class="acs-career-actions"><a href="mailto:${applyEmail}?subject=Application for ${encodeURIComponent(job.title || 'ACS Engitech role')}">Apply Now <span aria-hidden="true">→</span></a></div>
+          <div class="acs-career-actions"><a href="#acs-job-form" class="acs-apply-link" data-position-id="${escapeHtml(job.id || '')}" data-apply-email="${applyEmail}" data-apply-title="${escapeHtml(job.title || 'ACS Engitech role')}">Apply Now <span aria-hidden="true">→</span></a></div>
         </section>`;
     }).join('');
   }
 
   function replaceExistingCareerBoard(jobs) {
     if (!/career/i.test(location.pathname)) return false;
+    // Idempotent: safe to call more than once (this repo's WordPress-era
+    // pages sometimes load acs-runtime.js twice - see acsShared above).
+    if (document.querySelector('.acs-career-existing-board')) return true;
     const candidates = Array.from(document.querySelectorAll('section.elementor-top-section')).filter((node) => {
+      // Never touch the section that holds the real, working apply form -
+      // its position <select> is populated from the same job titles this
+      // regex looks for, so once options load it can start matching too.
+      if (node.querySelector('#acs-job-form, .acs-apply-form')) return false;
       const text = node.textContent || '';
       return /Automation Engineer|Field Sales Engineer|Apply Now/i.test(text);
     });
@@ -963,9 +757,6 @@
       </div>`;
   }
 
-  let runtimeStarted = false;
-  let runtimeAttempts = 0;
-
   function hasEnoughDomToStart() {
     if (!document.body) return false;
     const path = normalizePath(location.pathname);
@@ -973,14 +764,41 @@
     return !needsPageRoot || Boolean(findContentRoot());
   }
 
+  // Delegated click handler for career "Apply Now" links.
+  // Reads data-* attributes (safely escaped at render time), never
+  // interpolates user data into an inline JS string. If the on-page
+  // application form exists (window.acsSelectPosition present), pre-fills
+  // the position and lets the anchor scroll to #acs-job-form. Otherwise
+  // safely falls back to a mailto composed via URL builders (no user
+  // data ever inserted into an HTML/JS context).
+  if (!acsShared.applyLinkHandlerBound) {
+    acsShared.applyLinkHandlerBound = true;
+    document.addEventListener('click', (event) => {
+      const link = event.target && event.target.closest && event.target.closest('a.acs-apply-link');
+      if (!link) return;
+      const positionId = link.getAttribute('data-position-id') || '';
+      if (typeof window.acsSelectPosition === 'function') {
+        try { window.acsSelectPosition(positionId); } catch { /* ignore */ }
+        return; // let the browser scroll to #acs-job-form
+      }
+      event.preventDefault();
+      const email = (link.getAttribute('data-apply-email') || '').trim();
+      // Only allow simple email addresses in the mailto fallback
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+      const title = link.getAttribute('data-apply-title') || 'ACS Engitech role';
+      const params = new URLSearchParams({ subject: `Application for ${title}` });
+      window.location.href = `mailto:${email}?${params.toString()}`;
+    });
+  }
+
   async function init() {
-    if (runtimeStarted) {
+    if (acsShared.runtimeStarted) {
       installSharedShell();
       bindSharedShell();
       return;
     }
     if (!hasEnoughDomToStart()) return;
-    runtimeStarted = true;
+    acsShared.runtimeStarted = true;
     installSharedShell();
     bindSharedShell();
     rebuildAboutPage();
@@ -1006,8 +824,8 @@
 
   function scheduleInit() {
     init();
-    if (!runtimeStarted && runtimeAttempts < 600) {
-      runtimeAttempts += 1;
+    if (!acsShared.runtimeStarted && acsShared.runtimeAttempts < 600) {
+      acsShared.runtimeAttempts += 1;
       window.setTimeout(scheduleInit, 50);
     }
   }

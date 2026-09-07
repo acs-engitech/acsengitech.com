@@ -1,6 +1,6 @@
 const store = require('./_store');
 const { isPostVisible, mergeSeo, normalizePagePath } = require('../lib/admin-core');
-const { PAGE_DEFAULTS, DEFAULT_SETTINGS, DEFAULT_JOBS } = require('../lib/acs-defaults');
+const { PAGE_DEFAULTS, DEFAULT_SETTINGS, DEFAULT_JOBS, DEFAULT_POSITION_TYPES, DEFAULT_PARTNER_CATEGORIES } = require('../lib/acs-defaults');
 
 function send(res, status, payload) {
   res.statusCode = status;
@@ -50,6 +50,8 @@ module.exports = async function handler(req, res) {
     return send(res, 200, {
       settings: DEFAULT_SETTINGS,
       jobs: DEFAULT_JOBS.filter((job) => job.status !== 'closed'),
+      positionTypes: DEFAULT_POSITION_TYPES,
+      partnerCategories: DEFAULT_PARTNER_CATEGORIES,
       posts: [],
       pageSeo,
       currentPath: normalizePagePath(req.query?.path || '/'),
