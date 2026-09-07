@@ -38,6 +38,38 @@
     statusBar.className = `status-bar ${type || ''}`;
   }
 
+  // ---------- Session persistence (survives page refresh; never stores the raw password) ----------
+
+  const SESSION_KEY = 'acsAdminSession';
+
+  function getStoredSession() {
+    try {
+      const raw = sessionStorage.getItem(SESSION_KEY);
+      if (!raw) return null;
+      const session = JSON.parse(raw);
+      if (!session?.token || !session?.email || !session?.expiresAt) return null;
+      if (Date.now() >= session.expiresAt) return null;
+      return session;
+    } catch {
+      return null;
+    }
+  }
+
+  function hasValidSession() {
+    return !!getStoredSession();
+  }
+
+  function storeSession(data) {
+    if (!data?.sessionToken || !data?.sessionExpiresAt) return;
+    try {
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify({ email: state.email, token: data.sessionToken, expiresAt: data.sessionExpiresAt }));
+    } catch {}
+  }
+
+  function clearSession() {
+    try { sessionStorage.removeItem(SESSION_KEY); } catch {}
+  }
+
   function setBusy(isBusy, message) {
     document.body.classList.toggle('admin-busy', isBusy);
     adminLoading?.classList.toggle('is-visible', isBusy);
@@ -54,6 +86,7 @@
     state.authenticated = false;
     state.email = '';
     state.password = '';
+    clearSession();
     setLoginLoading(false);
     if (loginForm) loginForm.reset();
     if (loginError) loginError.textContent = message || '';
@@ -74,7 +107,10 @@
   }
 
   function authHeaders() {
-    return state.email && state.password ? { 'x-admin-email': state.email, 'x-admin-password': state.password } : {};
+    const session = getStoredSession();
+    if (session) return { 'x-admin-session': session.token, 'x-admin-email': session.email };
+    if (state.email && state.password) return { 'x-admin-email': state.email, 'x-admin-password': state.password };
+    return {};
   }
 
   function resolveApiUrl(path) {
@@ -102,6 +138,7 @@
       throw error;
     }
     if (!response.ok) throw new Error(data.error || 'Request failed');
+    storeSession(data);
     return data;
   }
 
@@ -158,7 +195,7 @@
   }
 
   async function load() {
-    if (!state.email || !state.password) {
+    if (!state.email || (!state.password && !hasValidSession())) {
       showSignIn();
       return;
     }
@@ -216,18 +253,21 @@
     }
   }
 
-  async function apiAction(action, body, message) {
-    setBusy(true, 'Working...');
+  // Optimistic mutation: applies the change to `state` and re-renders instantly, then fires the
+  // request in the background. No setBusy() here on purpose — that's the blocking full-screen
+  // overlay, and optimistic actions should feel instant with no spinner. On failure, reverts.
+  async function mutate({ apply, rerender, request, successMessage, revert }) {
+    apply();
+    rerender();
     try {
-      const data = await api('/api/admin', { method: 'POST', body: JSON.stringify({ action, ...body }) });
+      const data = await request();
       applyData(data);
-      render();
-      if (message) setStatus(message, 'ok');
+      rerender();
+      setStatus(successMessage || 'Saved.', 'ok');
     } catch (error) {
+      if (revert) { revert(); rerender(); }
       if (error.code === 'AUTH_REQUIRED') showSignIn(error.message);
-      setStatus(error.message || 'Action failed.', 'error');
-    } finally {
-      setBusy(false);
+      setStatus(error.message || 'Could not save changes.', 'error');
     }
   }
 
@@ -238,6 +278,7 @@
     briefcase: '<path fill-rule="evenodd" clip-rule="evenodd" d="M9 3.75c-1.243 0-2.25 1.007-2.25 2.25v.75H5.5c-1.243 0-2.25 1.007-2.25 2.25v8.25c0 1.243 1.007 2.25 2.25 2.25h13c1.243 0 2.25-1.007 2.25-2.25V9c0-1.243-1.007-2.25-2.25-2.25h-1.25V6c0-1.243-1.007-2.25-2.25-2.25H9Zm6.25 3V6a.75.75 0 0 0-.75-.75H9a.75.75 0 0 0-.75.75v.75h6.5ZM4.75 12.5h14.5v4.5a.75.75 0 0 1-.75.75h-13a.75.75 0 0 1-.75-.75v-4.5Z"/>',
     chart: '<path fill-rule="evenodd" clip-rule="evenodd" d="M5 3.25a.75.75 0 0 1 .75.75v14.5H20a.75.75 0 0 1 0 1.5H5A1.75 1.75 0 0 1 3.25 18.25V4A.75.75 0 0 1 5 3.25ZM18.5 8a1 1 0 0 1 1 1v7.25a.75.75 0 0 1-1.5 0V9a1 1 0 0 1 1-1Zm-4.5 3a1 1 0 0 1 1 1v4.25a.75.75 0 0 1-1.5 0V12a1 1 0 0 1 1-1Zm-4.5 2a1 1 0 0 1 1 1v2.25a.75.75 0 0 1-1.5 0V14a1 1 0 0 1 1-1Z"/>',
     devices: '<path fill-rule="evenodd" clip-rule="evenodd" d="M4.75 5.5c0-1.243 1.007-2.25 2.25-2.25h10c1.243 0 2.25 1.007 2.25 2.25v9a2.25 2.25 0 0 1-2.25 2.25H13v1.5h2.25a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1 0-1.5H11v-1.5H7A2.25 2.25 0 0 1 4.75 14.5v-9ZM7 4.75a.75.75 0 0 0-.75.75v8.25c0 .414.336.75.75.75h10a.75.75 0 0 0 .75-.75V5.5a.75.75 0 0 0-.75-.75H7Z"/>',
+    user: '<path fill-rule="evenodd" clip-rule="evenodd" d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm-7.25 8a7.25 7.25 0 0 1 14.5 0 .75.75 0 0 1-.75.75H5.5a.75.75 0 0 1-.75-.75Z"/>',
   };
 
   function metric(label, value, icon, tone) {
@@ -250,11 +291,17 @@
     const published = state.posts.filter((post) => post.status === 'published').length;
     const scheduled = state.posts.filter((post) => post.status === 'scheduled').length;
     const openPositions = state.positions.filter((position) => position.status !== 'closed').length;
+    const newApplications = state.applications.filter((app) => app.status === 'new').length;
+    const newPartners = state.partners.filter((partner) => partner.status === 'new').length;
     $('#overviewMetrics').innerHTML = [
       metric('SEO pages', state.pages.length, 'grid', 'brand'),
       metric('Published blogs', published, 'doc', 'success'),
       metric('Scheduled blogs', scheduled, 'clock', 'warning'),
       metric('Open positions', openPositions, 'briefcase', 'info'),
+      metric('New applications', newApplications, 'user', 'warning'),
+      metric('Total applications', state.applications.length, 'user', 'brand'),
+      metric('New partner registrations', newPartners, 'briefcase', 'warning'),
+      metric('Total partners', state.partners.length, 'briefcase', 'brand'),
     ].join('');
   }
 
@@ -675,6 +722,8 @@
     $('#postForm').addEventListener('submit', async (event) => {
       event.preventDefault();
       const form = event.currentTarget;
+      const previousPosts = state.posts;
+      const previousSelected = state.selectedPost;
       const post = normalizePost({
         id: state.selectedPost,
         title: form.title.value,
@@ -690,16 +739,32 @@
         metaTitle: form.metaTitle.value,
         metaDescription: form.metaDescription.value,
       });
-      state.posts = [post, ...state.posts.filter((item) => item.id !== post.id)];
-      state.selectedPost = post.id;
-      await save({ posts: state.posts }, 'Post saved.');
+      await mutate({
+        apply: () => {
+          state.posts = [post, ...state.posts.filter((item) => item.id !== post.id)];
+          state.selectedPost = post.id;
+        },
+        rerender: () => { renderPosts(); renderOverview(); },
+        request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ posts: state.posts }) }),
+        successMessage: 'Post saved.',
+        revert: () => { state.posts = previousPosts; state.selectedPost = previousSelected; },
+      });
     });
 
     $('#deletePostBtn').addEventListener('click', async () => {
       if (!state.selectedPost || !confirm('Delete this post?')) return;
-      state.posts = state.posts.filter((post) => post.id !== state.selectedPost);
-      state.selectedPost = state.posts[0]?.id || null;
-      await save({ posts: state.posts }, 'Post deleted.');
+      const previousPosts = state.posts;
+      const previousSelected = state.selectedPost;
+      await mutate({
+        apply: () => {
+          state.posts = state.posts.filter((post) => post.id !== state.selectedPost);
+          state.selectedPost = state.posts[0]?.id || null;
+        },
+        rerender: () => { renderPosts(); renderOverview(); },
+        request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ posts: state.posts }) }),
+        successMessage: 'Post deleted.',
+        revert: () => { state.posts = previousPosts; state.selectedPost = previousSelected; },
+      });
     });
 
     // ---- Positions ----
@@ -740,16 +805,34 @@
         applyEmail: form.applyEmail.value.trim(),
         status: statusValue,
       };
-      state.positions = [position, ...state.positions.filter((item) => item.id !== position.id)];
-      state.selectedPosition = position.id;
-      await save({ positions: state.positions }, 'Position saved.');
+      const previousPositions = state.positions;
+      const previousSelected = state.selectedPosition;
+      await mutate({
+        apply: () => {
+          state.positions = [position, ...state.positions.filter((item) => item.id !== position.id)];
+          state.selectedPosition = position.id;
+        },
+        rerender: () => { renderPositions(); renderOverview(); },
+        request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ positions: state.positions }) }),
+        successMessage: 'Position saved.',
+        revert: () => { state.positions = previousPositions; state.selectedPosition = previousSelected; },
+      });
     });
 
     $('#deletePositionBtn').addEventListener('click', async () => {
       if (!state.selectedPosition || !confirm('Delete this position?')) return;
-      state.positions = state.positions.filter((position) => position.id !== state.selectedPosition);
-      state.selectedPosition = state.positions[0]?.id || null;
-      await save({ positions: state.positions }, 'Position deleted.');
+      const previousPositions = state.positions;
+      const previousSelected = state.selectedPosition;
+      await mutate({
+        apply: () => {
+          state.positions = state.positions.filter((position) => position.id !== state.selectedPosition);
+          state.selectedPosition = state.positions[0]?.id || null;
+        },
+        rerender: () => { renderPositions(); renderOverview(); },
+        request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ positions: state.positions }) }),
+        successMessage: 'Position deleted.',
+        revert: () => { state.positions = previousPositions; state.selectedPosition = previousSelected; },
+      });
     });
 
     $('#managePositionTypesBtn').addEventListener('click', () => openTypeManager('positionTypes'));
@@ -762,11 +845,15 @@
       const value = input.value.trim();
       if (!value) return;
       const key = state.typeManagerTarget;
-      if (!state[key].includes(value)) state[key] = [...state[key], value];
+      const previous = state[key];
       input.value = '';
-      renderTypeManager();
-      await save({ [key]: state[key] }, key === 'positionTypes' ? 'Position types saved.' : 'Partner categories saved.');
-      fillPositionTypeSelect();
+      await mutate({
+        apply: () => { if (!state[key].includes(value)) state[key] = [...state[key], value]; },
+        rerender: () => { renderTypeManager(); fillPositionTypeSelect(); },
+        request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ [key]: state[key] }) }),
+        successMessage: key === 'positionTypes' ? 'Position types saved.' : 'Partner categories saved.',
+        revert: () => { state[key] = previous; },
+      });
     });
 
     $('#typeManagerList').addEventListener('click', async (event) => {
@@ -774,10 +861,14 @@
       if (!button) return;
       const key = state.typeManagerTarget;
       const index = Number(button.dataset.removeType);
-      state[key] = state[key].filter((_, i) => i !== index);
-      renderTypeManager();
-      await save({ [key]: state[key] }, key === 'positionTypes' ? 'Position types saved.' : 'Partner categories saved.');
-      fillPositionTypeSelect();
+      const previous = state[key];
+      await mutate({
+        apply: () => { state[key] = state[key].filter((_, i) => i !== index); },
+        rerender: () => { renderTypeManager(); fillPositionTypeSelect(); },
+        request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ [key]: state[key] }) }),
+        successMessage: key === 'positionTypes' ? 'Position types saved.' : 'Partner categories saved.',
+        revert: () => { state[key] = previous; },
+      });
     });
 
     $$('[data-modal-close]').forEach((el) => el.addEventListener('click', closeTypeManager));
@@ -827,26 +918,68 @@
       const del = event.target.closest('[data-application-delete]');
       if (del) {
         if (!confirm('Delete this application?')) return;
-        apiAction('application.delete', { ids: [del.dataset.applicationDelete] }, 'Application deleted.');
+        const id = del.dataset.applicationDelete;
+        const previousApplications = state.applications;
+        mutate({
+          apply: () => {
+            state.applications = state.applications.filter((a) => a.id !== id);
+            state.applicationSelectedIds.delete(id);
+          },
+          rerender: renderApplications,
+          request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ action: 'application.delete', ids: [id] }) }),
+          successMessage: 'Application deleted.',
+          revert: () => { state.applications = previousApplications; },
+        });
       }
     });
 
     $('#applicationList').addEventListener('change', (event) => {
       const select = event.target.closest('[data-application-status]');
       if (!select) return;
-      apiAction('application.update', { id: select.dataset.applicationStatus, patch: { status: select.value } }, 'Status updated.');
+      const id = select.dataset.applicationStatus;
+      const app = state.applications.find((a) => a.id === id);
+      if (!app) return;
+      const previousStatus = app.status;
+      const nextStatus = select.value;
+      mutate({
+        apply: () => { app.status = nextStatus; },
+        rerender: renderApplications,
+        request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ action: 'application.update', id, patch: { status: nextStatus } }) }),
+        successMessage: 'Status updated.',
+        revert: () => { app.status = previousStatus; },
+      });
     });
 
     $('#deleteApplicationsBtn').addEventListener('click', () => {
       const ids = Array.from(state.applicationSelectedIds);
       if (!ids.length || !confirm(`Delete ${ids.length} selected application(s)?`)) return;
-      apiAction('application.delete', { ids }, 'Applications deleted.');
-      state.applicationSelectedIds.clear();
+      const previousApplications = state.applications;
+      const idSet = new Set(ids);
+      mutate({
+        apply: () => {
+          state.applications = state.applications.filter((a) => !idSet.has(a.id));
+          state.applicationSelectedIds.clear();
+        },
+        rerender: renderApplications,
+        request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ action: 'application.delete', ids }) }),
+        successMessage: 'Applications deleted.',
+        revert: () => { state.applications = previousApplications; },
+      });
     });
 
     $('#saveApplicationNotesBtn').addEventListener('click', () => {
       if (!state.selectedApplication) return;
-      apiAction('application.update', { id: state.selectedApplication, patch: { adminNotes: $('#applicationNotesField').value } }, 'Notes saved.');
+      const id = state.selectedApplication;
+      const app = state.applications.find((a) => a.id === id);
+      const notes = $('#applicationNotesField').value;
+      const previousNotes = app?.adminNotes;
+      mutate({
+        apply: () => { if (app) app.adminNotes = notes; },
+        rerender: () => {},
+        request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ action: 'application.update', id, patch: { adminNotes: notes } }) }),
+        successMessage: 'Notes saved.',
+        revert: () => { if (app) app.adminNotes = previousNotes; },
+      });
     });
 
     // ---- Partners ----
@@ -894,36 +1027,93 @@
       const del = event.target.closest('[data-partner-delete]');
       if (del) {
         if (!confirm('Delete this partner?')) return;
-        apiAction('partner.delete', { ids: [del.dataset.partnerDelete] }, 'Partner deleted.');
+        const id = del.dataset.partnerDelete;
+        const previousPartners = state.partners;
+        mutate({
+          apply: () => {
+            state.partners = state.partners.filter((p) => p.id !== id);
+            state.partnerSelectedIds.delete(id);
+          },
+          rerender: renderPartners,
+          request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ action: 'partner.delete', ids: [id] }) }),
+          successMessage: 'Partner deleted.',
+          revert: () => { state.partners = previousPartners; },
+        });
       }
     });
 
     $('#partnerList').addEventListener('change', (event) => {
       const select = event.target.closest('[data-partner-status]');
       if (!select) return;
-      apiAction('partner.update', { id: select.dataset.partnerStatus, patch: { status: select.value } }, 'Status updated.');
+      const id = select.dataset.partnerStatus;
+      const partner = state.partners.find((p) => p.id === id);
+      if (!partner) return;
+      const previousStatus = partner.status;
+      const nextStatus = select.value;
+      mutate({
+        apply: () => { partner.status = nextStatus; },
+        rerender: renderPartners,
+        request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ action: 'partner.update', id, patch: { status: nextStatus } }) }),
+        successMessage: 'Status updated.',
+        revert: () => { partner.status = previousStatus; },
+      });
     });
 
     $('#deletePartnersBtn').addEventListener('click', () => {
       const ids = Array.from(state.partnerSelectedIds);
       if (!ids.length || !confirm(`Delete ${ids.length} selected partner(s)?`)) return;
-      apiAction('partner.delete', { ids }, 'Partners deleted.');
-      state.partnerSelectedIds.clear();
+      const previousPartners = state.partners;
+      const idSet = new Set(ids);
+      mutate({
+        apply: () => {
+          state.partners = state.partners.filter((p) => !idSet.has(p.id));
+          state.partnerSelectedIds.clear();
+        },
+        rerender: renderPartners,
+        request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ action: 'partner.delete', ids }) }),
+        successMessage: 'Partners deleted.',
+        revert: () => { state.partners = previousPartners; },
+      });
     });
 
     $('#savePartnerNotesBtn').addEventListener('click', () => {
       if (!state.selectedPartner) return;
-      apiAction('partner.update', { id: state.selectedPartner, patch: { adminNotes: $('#partnerNotesField').value } }, 'Notes saved.');
+      const id = state.selectedPartner;
+      const partner = state.partners.find((p) => p.id === id);
+      const notes = $('#partnerNotesField').value;
+      const previousNotes = partner?.adminNotes;
+      mutate({
+        apply: () => { if (partner) partner.adminNotes = notes; },
+        rerender: () => {},
+        request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ action: 'partner.update', id, patch: { adminNotes: notes } }) }),
+        successMessage: 'Notes saved.',
+        revert: () => { if (partner) partner.adminNotes = previousNotes; },
+      });
     });
 
     $$('[data-drawer-close]').forEach((el) => el.addEventListener('click', closeDrawers));
 
     $('#saveSeoBtn').addEventListener('click', async () => {
       collectSeo();
-      await save({ pageSeo: state.pageSeo }, 'SEO saved.');
+      await mutate({
+        apply: () => {},
+        rerender: renderSeo,
+        request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ pageSeo: state.pageSeo }) }),
+        successMessage: 'SEO saved.',
+      });
     });
-    $('#saveAnalyticsTagsBtn').addEventListener('click', async () => save({ settings: { ...state.settings, ...collectAnalyticsTags() } }, 'Analytics tags saved.'));
-    $('#saveSettingsBtn').addEventListener('click', async () => save({ settings: { ...state.settings, ...collectCrawlerSettings() } }, 'Crawler settings saved.'));
+    $('#saveAnalyticsTagsBtn').addEventListener('click', async () => mutate({
+      apply: () => {},
+      rerender: renderAnalytics,
+      request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ settings: { ...state.settings, ...collectAnalyticsTags() } }) }),
+      successMessage: 'Analytics tags saved.',
+    }));
+    $('#saveSettingsBtn').addEventListener('click', async () => mutate({
+      apply: () => {},
+      rerender: renderSettings,
+      request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ settings: { ...state.settings, ...collectCrawlerSettings() } }) }),
+      successMessage: 'Crawler settings saved.',
+    }));
     $('#saveAllTop').addEventListener('click', async () => {
       collectSeo();
       await save({ pageSeo: state.pageSeo, posts: state.posts, positions: state.positions, settings: collectSettings() }, 'All changes saved.');
@@ -931,6 +1121,11 @@
     $('#refreshBtn').addEventListener('click', load);
     $('#analyticsDays').addEventListener('change', load);
   }
+
+  // Restore email from a still-valid session so a page refresh doesn't force re-login. The
+  // password itself is never persisted, so state.password stays empty until the next login.
+  const restoredSession = getStoredSession();
+  if (restoredSession) state.email = restoredSession.email;
 
   bindEvents();
   load();

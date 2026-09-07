@@ -758,6 +758,55 @@ gtag("config", "G-53G17N64TE");
     font-size: 13px;
     color: #64748b;
   }
+  /* Phone field: fixed +91 prefix + 10-digit-only input */
+  .acs-phone-field {
+    display: flex;
+    align-items: stretch;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    background: #ffffff;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .acs-phone-field:focus-within {
+    border-color: #1C3A62;
+    box-shadow: 0 0 0 3px rgba(28,58,98,0.08);
+  }
+  .acs-phone-field.is-invalid {
+    border-color: #dc2626;
+  }
+  .acs-phone-prefix {
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #475569;
+    background: #f1f5f9;
+    border-right: 1.5px solid #cbd5e1;
+    flex-shrink: 0;
+  }
+  .acs-phone-field input[type="tel"] {
+    border: none;
+    border-radius: 0;
+    flex: 1;
+    min-width: 0;
+  }
+  .acs-phone-field input[type="tel"]:focus {
+    box-shadow: none;
+  }
+  .acs-phone-error {
+    display: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #dc2626;
+    margin: 6px 0 0;
+  }
+  .acs-phone-error.is-visible {
+    display: block;
+  }
   /* Submit */
   .acs-apply-form button[type="submit"] {
     width: 100%;
@@ -800,7 +849,13 @@ gtag("config", "G-53G17N64TE");
 <p class="acs-section-label">Personal Details</p>
 <div class="form-row">
 <input id="acs-name-input" name="name" placeholder="Full Name" required="" type="text"/>
-<input name="phone" placeholder="Contact Number" type="tel"/>
+<div>
+<div class="acs-phone-field" id="acs-phone-field">
+<span class="acs-phone-prefix">+91</span>
+<input id="acs-phone-input" name="phone" placeholder="10-digit mobile number" type="tel" inputmode="numeric" maxlength="10" pattern="[0-9]{10}"/>
+</div>
+<span class="acs-phone-error" id="acs-phone-error" role="alert"></span>
+</div>
 </div>
 <div class="form-row">
 <input name="email" placeholder="Email" required="" type="email"/>
@@ -841,7 +896,34 @@ gtag("config", "G-53G17N64TE");
   var positionSelect = document.getElementById('acs-position-select');
   var messageEl = document.getElementById('acs-form-message');
   var nameInput = document.getElementById('acs-name-input');
+  var phoneInput = document.getElementById('acs-phone-input');
+  var phoneField = document.getElementById('acs-phone-field');
+  var phoneError = document.getElementById('acs-phone-error');
   if (!form || !btn) return;
+
+  function validatePhone() {
+    var digits = phoneInput.value;
+    var valid = digits === '' || /^[6-9]\d{9}$/.test(digits);
+    if (phoneField) phoneField.classList.toggle('is-invalid', !valid);
+    if (phoneError) {
+      phoneError.classList.toggle('is-visible', !valid);
+      phoneError.textContent = valid ? '' : 'Enter a valid 10-digit Indian mobile number.';
+    }
+    return valid;
+  }
+
+  if (phoneInput) {
+    phoneInput.addEventListener('input', function () {
+      var digits = phoneInput.value.replace(/\D/g, '').slice(0, 10);
+      if (digits !== phoneInput.value) phoneInput.value = digits;
+      validatePhone();
+    });
+    phoneInput.addEventListener('keydown', function (event) {
+      var allowed = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'];
+      if (allowed.indexOf(event.key) !== -1 || event.ctrlKey || event.metaKey) return;
+      if (!/^[0-9]$/.test(event.key) || phoneInput.value.length >= 10) event.preventDefault();
+    });
+  }
 
   window.acsSelectPosition = function (positionId) {
     if (positionSelect && positionId) positionSelect.value = positionId;
@@ -872,9 +954,15 @@ gtag("config", "G-53G17N64TE");
 
   form.addEventListener('submit', function (event) {
     event.preventDefault();
+    if (phoneInput && !validatePhone()) {
+      showMessage('Enter a valid 10-digit Indian mobile number.', true);
+      phoneInput.focus();
+      return;
+    }
     var selectedOption = positionSelect ? positionSelect.options[positionSelect.selectedIndex] : null;
     var formData = new FormData(form);
     if (selectedOption && selectedOption.value) formData.set('position_title', selectedOption.textContent);
+    if (phoneInput) formData.set('phone', phoneInput.value ? '+91' + phoneInput.value : '');
     btn.disabled = true;
     btn.textContent = 'Sending…';
     messageEl.style.display = 'none';
@@ -884,6 +972,7 @@ gtag("config", "G-53G17N64TE");
         if (!result.ok) throw new Error(result.data.error || 'Could not submit application.');
         showMessage('Thank you! Your application has been received.', false);
         form.reset();
+        if (phoneInput) validatePhone();
         document.getElementById('acs-file-name').textContent = 'PDF, DOC, DOCX — Max 5MB';
       })
       .catch(function (error) {

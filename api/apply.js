@@ -1,6 +1,7 @@
 const store = require('./_store');
 const { parseMultipart, storeFile } = require('../lib/uploads');
 const { checkRateLimit, clientIp } = require('../lib/rate-limit');
+const { isValidPhone } = require('../lib/phone');
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ALLOWED_RESUME_EXT = /\.(pdf|doc|docx)$/i;
@@ -32,6 +33,7 @@ module.exports = async function handler(req, res) {
 
     if (!name || !email) return send(res, 400, { error: 'Name and email are required.' });
     if (!EMAIL_RE.test(email)) return send(res, 400, { error: 'Enter a valid email address.' });
+    if (!isValidPhone(phone)) return send(res, 400, { error: 'Enter a valid 10-digit Indian mobile number.' });
 
     let resumeUrl = null;
     let resumeFilename = null;
