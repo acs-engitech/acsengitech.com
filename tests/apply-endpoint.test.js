@@ -17,7 +17,7 @@ test('POST /api/apply creates an application row', async () => {
   const inserted = mockStore();
   const handler = require('../api/apply');
   const req = buildMultipartRequest({
-    fields: { name: 'Asha Patel', email: 'asha@example.com', phone: '9998887777', position_id: 'p1', position_title: 'Automation Engineer', years_experience: '2 years' },
+    fields: { name: 'Asha Patel', email: 'asha@example.com', phone: '+919998887777', position_id: 'p1', position_title: 'Automation Engineer', years_experience: '2 years' },
     socket: { remoteAddress: '10.0.0.1' },
   });
   const res = fakeResponse();

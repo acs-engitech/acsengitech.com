@@ -35,6 +35,7 @@ Set these on the Vercel project (Project Settings -> Environment Variables):
 - `DATABASE_URL` - Neon Postgres connection string. All admin content, applications, and partner registrations are stored here.
 - `BLOB_READ_WRITE_TOKEN` - enables resume/profile file uploads (`/api/apply`, `/api/partner`) via `@vercel/blob`. Enable **Vercel Blob** on the project (Storage tab) and Vercel injects this automatically; no manual value needed. Without it, uploads fall back to a local stub path (`/uploads/...`) and log a warning - fine for local dev, not for production.
 - `ACS_ADMIN_EMAIL` / `ACS_ADMIN_PASSWORD_HASH` - admin login credentials (`ACS_ADMIN_PASSWORD_HASH` is a sha256 hex digest of the password). Falls back to a built-in default if unset - set both in production.
+- `ACS_ADMIN_SESSION_SECRET` - HMAC secret used to sign the admin session token that keeps you logged in across page refreshes (12h expiry). Recommended to set explicitly in production; if unset it falls back to `ACS_ADMIN_PASSWORD_HASH` (or the built-in default hash) so sessions work with zero extra config.
 
 ## Pre-merge deploy-preview checklist (manual, required)
 

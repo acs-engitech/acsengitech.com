@@ -254,7 +254,10 @@ test('admin sign in shows loading after submit', async ({ page }) => {
   await expect(page.locator('#loginForm button[type="submit"]')).toHaveText('Signing in...');
 });
 
-test('admin save shows spinner while creating a blog post', async ({ page }) => {
+test('admin post save feels instant (optimistic UI, no blocking spinner)', async ({ page }) => {
+  // CRUD saves used to block behind a full-screen spinner until the network round-trip
+  // finished. They're optimistic now: the UI updates synchronously and the request runs
+  // in the background, so a delayed response should not show a blocking overlay.
   await mockAdminApi(page, { delayPost: true });
   await page.setViewportSize({ width: 1365, height: 768 });
   await page.goto('/admin', { waitUntil: 'domcontentloaded' });
@@ -262,8 +265,9 @@ test('admin save shows spinner while creating a blog post', async ({ page }) => 
   await page.locator('.admin-nav button[data-tab="blogs"]').click();
   await page.locator('#newPostBtn').click();
   await page.locator('#postForm button[type="submit"]').click();
-  await expect(page.locator('#adminLoading')).toBeVisible();
-  await expect(page.locator('#adminLoading strong')).toHaveText('Saving changes...');
+  // The new post shows up in the list immediately, well before the 400ms delayed response.
+  await expect(page.locator('#postList')).toContainText('New ACS Engitech blog post', { timeout: 200 });
+  await expect(page.locator('#adminLoading')).not.toBeVisible();
 });
 
 test('admin SEO list displays clean paths without html extensions', async ({ page }) => {
