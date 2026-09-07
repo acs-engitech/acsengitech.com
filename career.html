@@ -849,7 +849,7 @@ footer#colophon, footer.site-footer {
 			<div class="elementor-widget-wrap elementor-element-populated">
 						<div class="elementor-element elementor-element-19728cfd elementor-widget elementor-widget-html" data-id="19728cfd" data-element_type="widget" data-e-type="widget" data-widget_type="html.default">
 				<div class="elementor-widget-container">
-					<style>
+<style>
   .acs-apply-form * { box-sizing: border-box; }
   .acs-apply-form {
     font-family: 'Heebo', sans-serif;
@@ -978,6 +978,55 @@ footer#colophon, footer.site-footer {
     font-size: 13px;
     color: #64748b;
   }
+  /* Phone field: fixed +91 prefix + 10-digit-only input */
+  .acs-phone-field {
+    display: flex;
+    align-items: stretch;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    background: #ffffff;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .acs-phone-field:focus-within {
+    border-color: #1C3A62;
+    box-shadow: 0 0 0 3px rgba(28,58,98,0.08);
+  }
+  .acs-phone-field.is-invalid {
+    border-color: #dc2626;
+  }
+  .acs-phone-prefix {
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #475569;
+    background: #f1f5f9;
+    border-right: 1.5px solid #cbd5e1;
+    flex-shrink: 0;
+  }
+  .acs-phone-field input[type="tel"] {
+    border: none;
+    border-radius: 0;
+    flex: 1;
+    min-width: 0;
+  }
+  .acs-phone-field input[type="tel"]:focus {
+    box-shadow: none;
+  }
+  .acs-phone-error {
+    display: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #dc2626;
+    margin: 6px 0 0;
+  }
+  .acs-phone-error.is-visible {
+    display: block;
+  }
   /* Submit */
   .acs-apply-form button[type="submit"] {
     width: 100%;
@@ -1006,109 +1055,158 @@ footer#colophon, footer.site-footer {
     .acs-apply-form .form-row { grid-template-columns: 1fr; }
   }
 </style>
-
 <div class="acs-apply-form">
-
-  <form id="acs-job-form" action="https://formsubmit.co/hr@acsengitech.com" method="POST" enctype="multipart/form-data">
-
-    <!-- FormSubmit configuration -->
-    <input type="hidden" name="_subject" value="New Job Application – ACS Engitech">
-    <input type="hidden" name="_template" value="table">
-    <input type="hidden" name="_captcha" value="false">
-    <input type="hidden" name="_autoresponse" value="Thank you for applying to ACS Engitech. We have received your application and our HR team will review it shortly.">
-    <input type="hidden" name="_next" value="index.htmlcareer/">
-
-    <!-- Personal Details -->
-    <p class="acs-section-label">Personal Details</p>
-
-    <div class="form-row">
-      <input type="text" name="first_name" placeholder="First Name" required="">
-      <input type="text" name="last_name" placeholder="Last Name" required="">
-    </div>
-
-    <div class="form-row">
-      <input type="email" name="email" placeholder="Email" required="">
-      <input type="tel" name="contact_number" placeholder="Contact Number" required="">
-    </div>
-
-    <div class="form-row full">
-      <input type="text" name="current_location" placeholder="Current Location (e.g. Ahmedabad, Gujarat)" required="">
-    </div>
-
-    <hr class="acs-divider">
-
-    <!-- Job Details -->
-    <p class="acs-section-label">Job Details</p>
-
-    <div class="form-row">
-      <input type="text" name="position_applied" placeholder="Position Applied For" required="">
-      <input type="text" name="work_experience" placeholder="Work Experience (e.g. 2 years – PLC Programming)" required="">
-    </div>
-
-    <div class="form-row">
-      <input type="text" name="current_salary" placeholder="Current Salary (e.g. ₹4.5 LPA)" required="">
-      <input type="text" name="expected_salary" placeholder="Expected Salary (e.g. ₹6 LPA)" required="">
-    </div>
-
-    <div class="form-row full">
-      <select name="notice_period" required="">
-        <option value="" disabled="" selected="">Notice Period</option>
-        <option value="Immediately Available">Immediately Available</option>
-        <option value="15 Days">15 Days</option>
-        <option value="30 Days">30 Days</option>
-        <option value="45 Days">45 Days</option>
-        <option value="60 Days">60 Days</option>
-        <option value="90 Days">90 Days</option>
-      </select>
-    </div>
-
-    <hr class="acs-divider">
-
-    <!-- Resume -->
-    <p class="acs-section-label">Resume</p>
-
-    <div class="acs-file-wrap">
-      <input type="file" name="resume" id="acs-resume-input" accept=".pdf,.doc,.docx" onchange="document.getElementById('acs-file-name').textContent = this.files[0] ? this.files[0].name : 'No file chosen'">
-      <div class="acs-file-icon">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"></path>
-          <polyline points="14 2 14 8 20 8" fill="none" stroke="#fff" stroke-width="2"></polyline>
-        </svg>
-      </div>
-      <div class="acs-file-label">
-        <strong>Upload Resume / CV</strong>
-        <span id="acs-file-name">PDF, DOC, DOCX — Max 5MB</span>
-      </div>
-    </div>
-
-    <hr class="acs-divider">
-
-    <!-- Message -->
-    <p class="acs-section-label">Message</p>
-
-    <div class="form-row full">
-      <textarea name="message" placeholder="Message (optional – tell us why you want to join ACS Engitech)"></textarea>
-    </div>
-
-    <!-- Submit -->
-    <button type="submit" id="acs-submit-btn">Send Application</button>
-
-  </form>
-
+<form id="acs-job-form">
+<!-- Position -->
+<p class="acs-section-label">Position</p>
+<div class="form-row full">
+<select id="acs-position-select" name="position_id" required="">
+<option value="">Select a position...</option>
+</select>
 </div>
-
+<hr class="acs-divider"/>
+<!-- Personal Details -->
+<p class="acs-section-label">Personal Details</p>
+<div class="form-row">
+<input id="acs-name-input" name="name" placeholder="Full Name" required="" type="text"/>
+<div>
+<div class="acs-phone-field" id="acs-phone-field">
+<span class="acs-phone-prefix">+91</span>
+<input id="acs-phone-input" name="phone" placeholder="10-digit mobile number" type="tel" inputmode="numeric" maxlength="10" pattern="[0-9]{10}"/>
+</div>
+<span class="acs-phone-error" id="acs-phone-error" role="alert"></span>
+</div>
+</div>
+<div class="form-row">
+<input name="email" placeholder="Email" required="" type="email"/>
+<input name="years_experience" placeholder="Experience (e.g. 2 years - PLC Programming)" type="text"/>
+</div>
+<hr class="acs-divider"/>
+<!-- Resume -->
+<p class="acs-section-label">Resume</p>
+<div class="acs-file-wrap">
+<input accept=".pdf,.doc,.docx" id="acs-resume-input" name="resume" onchange="document.getElementById('acs-file-name').textContent = this.files[0] ? this.files[0].name : 'No file chosen'" type="file"/>
+<div class="acs-file-icon">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"></path>
+<polyline fill="none" points="14 2 14 8 20 8" stroke="#fff" stroke-width="2"></polyline>
+</svg>
+</div>
+<div class="acs-file-label">
+<strong>Upload Resume / CV</strong>
+<span id="acs-file-name">PDF, DOC, DOCX — Max 5MB</span>
+</div>
+</div>
+<hr class="acs-divider"/>
+<!-- Message -->
+<p class="acs-section-label">Message</p>
+<div class="form-row full">
+<textarea name="message" placeholder="Message (optional – tell us why you want to join ACS Engitech)"></textarea>
+</div>
+<!-- Feedback -->
+<p id="acs-form-message" role="status" style="display:none;margin:0 0 8px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;"></p>
+<!-- Submit -->
+<button id="acs-submit-btn" type="submit">Send Application</button>
+</form>
+</div>
 <script>
 (function () {
   var form = document.getElementById('acs-job-form');
-  var btn  = document.getElementById('acs-submit-btn');
-  if (form && btn) {
-    form.addEventListener('submit', function () {
-      btn.disabled    = true;
-      btn.textContent = 'Sending…';
+  var btn = document.getElementById('acs-submit-btn');
+  var positionSelect = document.getElementById('acs-position-select');
+  var messageEl = document.getElementById('acs-form-message');
+  var nameInput = document.getElementById('acs-name-input');
+  var phoneInput = document.getElementById('acs-phone-input');
+  var phoneField = document.getElementById('acs-phone-field');
+  var phoneError = document.getElementById('acs-phone-error');
+  if (!form || !btn) return;
+
+  function validatePhone() {
+    var digits = phoneInput.value;
+    var valid = digits === '' || /^[6-9]\d{9}$/.test(digits);
+    if (phoneField) phoneField.classList.toggle('is-invalid', !valid);
+    if (phoneError) {
+      phoneError.classList.toggle('is-visible', !valid);
+      phoneError.textContent = valid ? '' : 'Enter a valid 10-digit Indian mobile number.';
+    }
+    return valid;
+  }
+
+  if (phoneInput) {
+    phoneInput.addEventListener('input', function () {
+      var digits = phoneInput.value.replace(/\D/g, '').slice(0, 10);
+      if (digits !== phoneInput.value) phoneInput.value = digits;
+      validatePhone();
+    });
+    phoneInput.addEventListener('keydown', function (event) {
+      var allowed = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'];
+      if (allowed.indexOf(event.key) !== -1 || event.ctrlKey || event.metaKey) return;
+      if (!/^[0-9]$/.test(event.key) || phoneInput.value.length >= 10) event.preventDefault();
     });
   }
+
+  window.acsSelectPosition = function (positionId) {
+    if (positionSelect && positionId) positionSelect.value = positionId;
+    var target = document.getElementById('acs-job-form');
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (nameInput) setTimeout(function () { nameInput.focus(); }, 400);
+  };
+
+  function loadPositions() {
+    fetch('/api/public').then(function (res) { return res.json(); }).then(function (data) {
+      var positions = data.positions || (data.jobs || []).filter(function (j) { return j.status !== 'closed'; });
+      if (!positionSelect || !positions.length) return;
+      positions.forEach(function (position) {
+        var option = document.createElement('option');
+        option.value = position.id;
+        option.textContent = position.title;
+        positionSelect.appendChild(option);
+      });
+    }).catch(function () {});
+  }
+
+  function showMessage(text, isError) {
+    if (!messageEl) return;
+    messageEl.textContent = text;
+    messageEl.style.color = isError ? '#dc2626' : '#16a34a';
+    messageEl.style.display = 'block';
+  }
+
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    if (phoneInput && !validatePhone()) {
+      showMessage('Enter a valid 10-digit Indian mobile number.', true);
+      phoneInput.focus();
+      return;
+    }
+    var selectedOption = positionSelect ? positionSelect.options[positionSelect.selectedIndex] : null;
+    var formData = new FormData(form);
+    if (selectedOption && selectedOption.value) formData.set('position_title', selectedOption.textContent);
+    if (phoneInput) formData.set('phone', phoneInput.value ? '+91' + phoneInput.value : '');
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    messageEl.style.display = 'none';
+    fetch('/api/apply', { method: 'POST', body: formData })
+      .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+      .then(function (result) {
+        if (!result.ok) throw new Error(result.data.error || 'Could not submit application.');
+        showMessage('Thank you! Your application has been received.', false);
+        form.reset();
+        if (phoneInput) validatePhone();
+        document.getElementById('acs-file-name').textContent = 'PDF, DOC, DOCX — Max 5MB';
+      })
+      .catch(function (error) {
+        showMessage(error.message || 'Something went wrong. Please try again.', true);
+      })
+      .finally(function () {
+        btn.disabled = false;
+        btn.textContent = 'Send Application';
+      });
+  });
+
+  loadPositions();
 })();
-</script>				</div>
+</script> </div>
 				</div>
 					</div>
 		</div>
