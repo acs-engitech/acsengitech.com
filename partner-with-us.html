@@ -83,12 +83,7 @@
   <a class="acs-pw-home" href="/index.html">&larr; Back to acsengitech.com</a>
 </header>
 
-<div class="acs-pw-hero">
-  <p class="acs-kicker">Partner With Us</p>
-  <h1>Grow with <span>ACS Engitech</span></h1>
-  <p class="acs-lead">We work with independent vendors and agencies across marketing, design, development, and content. Register below and our team will reach out.</p>
-</div>
-
+<main id="main"><div class="entry-content">
 <div class="acs-pw-wrap">
 <div class="acs-apply-form">
 <form id="acs-partner-form">
@@ -154,13 +149,16 @@
 </form>
 </div>
 </div>
+</div></main>
 
 <footer class="acs-pw-footer">&copy; <span id="acs-pw-year"></span> ACS Engitech Private Limited. All rights reserved.</footer>
 
 <script src="/acs-runtime.js"></script>
 <script>
 (function () {
-  document.getElementById('acs-pw-year').textContent = new Date().getFullYear();
+  // Note: the footer markup above (including #acs-pw-year) is replaced by
+  // acs-runtime.js's shared lab-theme footer at load time, so there is
+  // nothing to set here — the shared footer's copyright line is static.
 
   var form = document.getElementById('acs-partner-form');
   var btn = document.getElementById('acs-partner-submit-btn');
