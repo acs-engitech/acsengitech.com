@@ -4664,6 +4664,12 @@
 
     <link rel="stylesheet" href="acs-responsive-fixes.css">
     <link rel="stylesheet" href="assets/lab/homepage.css">
+    <link rel="stylesheet" href="assets/lab/blueprint.css">
+    <!-- Motion libs (vendored locally, no CDN). Loaded before the runtime so
+         window.gsap exists when the homepage builds; runtime degrades safely if not. -->
+    <script src="assets/lab/vendor/gsap.min.js"></script>
+    <script src="assets/lab/vendor/ScrollTrigger.min.js"></script>
+    <script src="assets/lab/vendor/lenis.min.js"></script>
     <script src="acs-runtime.js" async></script>
 </head>
 

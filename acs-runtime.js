@@ -507,6 +507,108 @@
   // built from the real `/` blueprint via renderPageHero) and replaces
   // everything below it, unlike preserveExistingPage() elsewhere which
   // keeps the original WordPress/Elementor body untouched under a new hero.
+  // "Engineering blueprint" hero — a hand-authored control-system schematic
+  // (self-drawing SVG line-art) replaces the old stock hero photo. All copy is
+  // ACS's real homepage content; only the visual treatment changes. Motion is
+  // wired in initBlueprintMotion() via GSAP; with JS/GSAP off it still renders
+  // as a complete, readable static hero.
+  function blueprintHeroMarkup() {
+    const b = pageBlueprints['/'];
+    return `
+    <section class="acs-bp-hero" aria-label="${escapeHtml(b.kicker)}">
+      <div class="acs-bp-hero-inner">
+        <div class="acs-bp-copy">
+          <p class="acs-bp-eyebrow">ACS Engitech <span>// Innovative Automation</span></p>
+          <h1 class="acs-bp-title">
+            <span class="ln"><span>Electrical</span></span>
+            <span class="ln"><span>automation</span></span>
+            <span class="ln"><span>that <em style="font-style:normal;color:var(--bp-blue)">delivers.</em></span></span>
+          </h1>
+          <p class="acs-bp-lead">${escapeHtml(b.lead)}</p>
+          <div class="acs-bp-actions">
+            <a class="acs-bp-btn" href="contact.html">Discuss your project <span class="arw" aria-hidden="true">&rarr;</span></a>
+            <a class="acs-bp-link" href="about.html">/ 16 years in industrial automation</a>
+          </div>
+          <div class="acs-bp-chips">
+            <span class="acs-bp-chip">Siemens Channel Partner</span>
+            <span class="acs-bp-chip">ISO 9001:2015</span>
+            <span class="acs-bp-chip">CPRI-approved PMCC</span>
+            <span class="acs-bp-chip">36,000 sq. ft. facility</span>
+          </div>
+        </div>
+
+        <div class="acs-bp-figure" aria-hidden="true">
+          <svg viewBox="0 0 540 500" role="img">
+            <!-- dimension line (blueprint detail) -->
+            <path class="acs-bp-draw" d="M34 118 V372"/>
+            <path class="acs-bp-draw" d="M29 118 H39 M29 372 H39"/>
+            <text class="acs-bp-label dim" x="20" y="250" transform="rotate(-90 20 250)">2100 mm</text>
+
+            <!-- SCADA / HMI unit (top) -->
+            <rect class="acs-bp-draw accent" x="196" y="28" width="150" height="52" rx="4"/>
+            <path class="acs-bp-draw" d="M210 44 H332 M210 56 H300 M210 68 H320"/>
+            <text class="acs-bp-label" x="360" y="46">SCADA / HMI</text>
+            <text class="acs-bp-label" x="360" y="62">real-time telemetry</text>
+
+            <!-- main panel (MCC / PLC) -->
+            <rect class="acs-bp-draw accent" x="188" y="118" width="164" height="254" rx="6"/>
+            <path class="acs-bp-draw" d="M188 150 H352"/>
+            <circle class="acs-bp-fill" cx="203" cy="134" r="3"/>
+            <circle class="acs-bp-node accent" cx="218" cy="134" r="3.2"/>
+            <circle class="acs-bp-node" cx="233" cy="134" r="3.2"/>
+            <!-- breaker modules -->
+            <path class="acs-bp-draw" d="M206 176 H334 M206 204 H334 M206 232 H334 M206 260 H334"/>
+            <rect class="acs-bp-node" x="206" y="169" width="16" height="14" rx="2"/>
+            <rect class="acs-bp-node" x="206" y="197" width="16" height="14" rx="2"/>
+            <rect class="acs-bp-node" x="206" y="225" width="16" height="14" rx="2"/>
+            <rect class="acs-bp-node" x="206" y="253" width="16" height="14" rx="2"/>
+            <!-- HMI screen inside panel -->
+            <rect class="acs-bp-draw accent" x="288" y="286" width="52" height="40" rx="3"/>
+            <path class="acs-bp-draw accent" d="M296 316 L306 304 L314 312 L324 298 L332 308"/>
+            <text class="acs-bp-label" x="196" y="392">MCC &middot; PLC PANEL</text>
+            <text class="acs-bp-label dim" x="196" y="408">IEC 61439 &middot; Siemens S7</text>
+
+            <!-- flow transmitter (left) + conduit -->
+            <circle class="acs-bp-draw" cx="72" cy="212" r="26"/>
+            <text class="acs-bp-label" x="60" y="216">FT</text>
+            <path class="acs-bp-draw accent conduit" id="acsFlowL" d="M98 212 H188"/>
+            <circle class="acs-bp-node accent" cx="98" cy="212" r="3.4"/>
+            <text class="acs-bp-label" x="46" y="262">FLOW 101</text>
+
+            <!-- motor (bottom) + conduit -->
+            <path class="acs-bp-draw accent conduit" id="acsFlowM" d="M270 372 V430"/>
+            <circle class="acs-bp-draw" cx="270" cy="458" r="30"/>
+            <text class="acs-bp-label" x="262" y="463">M</text>
+            <text class="acs-bp-label" x="306" y="463">DRIVE 55 kW</text>
+            <circle class="acs-bp-node accent" cx="270" cy="372" r="3.4"/>
+
+            <!-- control valve (right) + conduit -->
+            <path class="acs-bp-draw conduit" d="M352 250 H452"/>
+            <path class="acs-bp-draw accent" d="M452 236 L480 264 M452 264 L480 236"/>
+            <path class="acs-bp-draw" d="M466 250 V228"/>
+            <rect class="acs-bp-node accent" x="456" y="214" width="20" height="14" rx="2"/>
+            <text class="acs-bp-label" x="430" y="292">CV-204</text>
+            <circle class="acs-bp-node accent" cx="352" cy="250" r="3.4"/>
+
+            <!-- top conduit SCADA -> panel -->
+            <path class="acs-bp-draw accent conduit" id="acsFlowT" d="M270 80 V118"/>
+
+            <!-- animated data pulses (dash offset animated in JS) -->
+            <path class="acs-bp-flow" d="M270 80 V118"/>
+            <path class="acs-bp-flow" d="M98 212 H188"/>
+            <path class="acs-bp-flow" d="M270 372 V430"/>
+          </svg>
+          <div class="acs-bp-readout">
+            <span class="k">Work orders</span><span class="k">Uptime</span>
+            <span class="v" data-count-to="7000">0<small>+</small></span>
+            <span class="v">99.2<small>%</small></span>
+          </div>
+        </div>
+      </div>
+      <div class="acs-bp-scroll">Scroll<i></i></div>
+    </section>`;
+  }
+
   function rebuildHomePage() {
     if (normalizePath(location.pathname) !== '/') return;
     const root = findContentRoot();
@@ -528,11 +630,14 @@
     root.dataset.acsRebuilt = 'true';
     document.body.classList.add('acs-home-active'); // unlocks full-bleed layout (see homepage.css)
     root.innerHTML = '';
-    root.appendChild(renderPageHero(pageBlueprints['/']));
 
     const wrap = document.createElement('div');
-    wrap.className = 'acs-home';
+    // `gsap-ready` here (not added later in JS) hides the hero intro elements at
+    // first paint so there is no flash-then-hide; runBlueprintMotion animates
+    // them in, or revealFallback() strips the class if GSAP never loads.
+    wrap.className = 'acs-home gsap-ready';
     wrap.innerHTML = `
+      ${blueprintHeroMarkup()}
       <section class="acs-features">
         <div class="acs-container">
           <span class="acs-eyebrow">Why ACS Engitech</span>
@@ -715,6 +820,86 @@
       }, { threshold: 0.4 });
       statEls.forEach((el) => statIo.observe(el));
     }
+
+    initBlueprintMotion(scope);
+  }
+
+  // Heavy scroll-driven motion for the homepage, powered by the locally
+  // vendored GSAP + ScrollTrigger + Lenis (assets/lab/vendor/*). The hero is
+  // rendered with `.gsap-ready` already set so its intro elements are hidden
+  // at first paint (no flash); this animates them in and wires scroll effects.
+  // If the libraries fail to load, revealFallback() drops `.gsap-ready` so the
+  // page shows normally — motion is an enhancement, never a requirement.
+  function initBlueprintMotion(scope) {
+    const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const revealFallback = () => scope.classList.remove('gsap-ready');
+    if (prefersReduced) { revealFallback(); return; }
+
+    let waited = 0;
+    (function waitForGsap() {
+      if (window.gsap && window.ScrollTrigger) return runBlueprintMotion(scope);
+      waited += 60;
+      if (waited > 1800) return revealFallback(); // libs never arrived
+      setTimeout(waitForGsap, 60);
+    })();
+  }
+
+  function runBlueprintMotion(scope) {
+    const gsap = window.gsap;
+    gsap.registerPlugin(window.ScrollTrigger);
+
+    // Lenis smooth scroll, synced to GSAP's ticker + ScrollTrigger.
+    try {
+      if (window.Lenis) {
+        const lenis = new window.Lenis({ duration: 1.05, smoothWheel: true });
+        lenis.on('scroll', window.ScrollTrigger.update);
+        gsap.ticker.add((t) => lenis.raf(t * 1000));
+        gsap.ticker.lagSmoothing(0);
+      }
+    } catch (_) { /* smooth-scroll is optional */ }
+
+    const hero = scope.querySelector('.acs-bp-hero');
+    if (!hero) { scope.classList.remove('gsap-ready'); return; }
+
+    // 1) Self-drawing schematic: stroke every <path> that reports a length.
+    const drawEls = Array.from(hero.querySelectorAll('.acs-bp-draw')).filter((el) => {
+      return typeof el.getTotalLength === 'function' && (() => { try { return el.getTotalLength() > 0; } catch { return false; } })();
+    });
+    gsap.set(drawEls, { strokeDasharray: (i, t) => t.getTotalLength(), strokeDashoffset: (i, t) => t.getTotalLength() });
+    const nodes = hero.querySelectorAll('.acs-bp-node, .acs-bp-fill, .acs-bp-label, .acs-bp-flow');
+    gsap.set(nodes, { opacity: 0 });
+
+    // 2) Intro timeline: draw, then reveal copy + nodes together.
+    gsap.set(hero.querySelector('.acs-bp-title'), { visibility: 'visible' }); // GSAP now owns the split transform
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    tl.to(drawEls, { strokeDashoffset: 0, duration: 1.1, stagger: 0.05 }, 0)
+      .to(nodes, { opacity: 1, duration: 0.5, stagger: 0.015 }, 0.5)
+      .fromTo(hero.querySelectorAll('.acs-bp-title .ln > span'), { yPercent: 110 }, { yPercent: 0, duration: 0.9, stagger: 0.1 }, 0.25)
+      .fromTo(hero.querySelector('.acs-bp-lead'), { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.7 }, 0.55)
+      .fromTo(hero.querySelector('.acs-bp-actions'), { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.7 }, 0.68)
+      .fromTo(hero.querySelectorAll('.acs-bp-chip'), { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.06 }, 0.8)
+      .fromTo(hero.querySelector('.acs-bp-readout'), { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.6 }, 0.95);
+
+    // 3) Continuous data pulses along the accent conduits.
+    hero.querySelectorAll('.acs-bp-flow').forEach((el) => {
+      try {
+        const len = el.getTotalLength();
+        gsap.set(el, { strokeDasharray: '2 18', strokeDashoffset: len });
+        gsap.to(el, { strokeDashoffset: 0, duration: 1.6, ease: 'none', repeat: -1 });
+      } catch (_) {}
+    });
+
+    // 4) Scroll: parallax the schematic + a slow drift on the whole figure.
+    gsap.to(hero.querySelector('.acs-bp-figure'), {
+      yPercent: -14, ease: 'none',
+      scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true },
+    });
+    gsap.to(hero.querySelector('.acs-bp-copy'), {
+      yPercent: 8, ease: 'none',
+      scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true },
+    });
+
+    window.ScrollTrigger.refresh();
   }
 
   function findContentRoot() {
