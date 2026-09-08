@@ -51,10 +51,13 @@ body.acs-home-active .entry-content {
 .acs-home section.acs-tight { padding: 64px 0; }
 
 /* ---------- reveal-on-scroll (native IntersectionObserver, no dep) ---------- */
-.acs-reveal { opacity: 0; transform: translateY(28px); transition: opacity .7s cubic-bezier(.22,.8,.3,1), transform .7s cubic-bezier(.22,.8,.3,1); }
-.acs-reveal.is-visible { opacity: 1; transform: translateY(0); }
-.acs-reveal-left { transform: translateX(-40px); }
-.acs-reveal-left.is-visible { transform: translateX(0); }
+.acs-reveal { transition: opacity .7s cubic-bezier(.22,.8,.3,1), transform .7s cubic-bezier(.22,.8,.3,1); }
+/* The hidden pre-reveal state applies ONLY once JS adds `.reveal-armed`. If the
+   runtime fails to run, errors, or is slow, content stays fully visible instead
+   of being stuck at opacity:0 (the "stripped off" failure). */
+.acs-home.reveal-armed .acs-reveal { opacity: 0; transform: translateY(28px); }
+.acs-home.reveal-armed .acs-reveal-left { transform: translateX(-40px); }
+.acs-home.reveal-armed .acs-reveal.is-visible { opacity: 1; transform: translateY(0); }
 
 /* ---------- feature strip (3 icon-circle cards) ---------- */
 .acs-features { background: var(--acs-tint); }
