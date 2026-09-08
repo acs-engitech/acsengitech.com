@@ -526,6 +526,7 @@
     root.classList.add('acs-preserved-page');
     root.dataset.acsPreserved = 'true';
     root.dataset.acsRebuilt = 'true';
+    document.body.classList.add('acs-home-active'); // unlocks full-bleed layout (see homepage.css)
     root.innerHTML = '';
     root.appendChild(renderPageHero(pageBlueprints['/']));
 

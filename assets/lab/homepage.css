@@ -2,6 +2,27 @@
    Reference: Projects/ACS/ref/industrie.rstheme.com/html/laboratory.html
    Brand: navy #1c3a62, accent #0067ff (matches admin panel + acs-lab-* system) */
 
+/* The homepage lives inside the old WordPress export's wrapper chain
+   (#content > .ast-container > #primary > main > article > .entry-content).
+   Those wrappers cap width at ~1300px, offset the box, and — critically —
+   .entry-content sets `overflow-x: clip`, which sliced the left edge off any
+   full-bleed content. rebuildHomePage() tags <body> with .acs-home-active;
+   here we flatten that whole chain to full width so the hero and section
+   bands can go edge-to-edge and the centered content column never gets
+   clipped. Scoped to the homepage only — other pages keep their layout. */
+body.acs-home-active #content,
+body.acs-home-active .ast-container,
+body.acs-home-active .content-area,
+body.acs-home-active .site-main,
+body.acs-home-active article,
+body.acs-home-active .entry-content {
+  max-width: none;
+  width: auto;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+}
+
 .acs-home {
   --acs-navy: #1c3a62;
   --acs-navy-dark: #0f2440;
@@ -12,10 +33,12 @@
   --acs-tint: #f2f7ff;
   font-family: inherit;
   color: var(--acs-ink);
-  overflow: hidden;
+  overflow-x: clip;
 }
 .acs-home * { box-sizing: border-box; }
-.acs-home .acs-container { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+/* Content column matches the hero's container (.acs-template-container) exactly
+   so text lines up from hero through footer; section backgrounds stay full-bleed. */
+.acs-home .acs-container { width: min(1320px, calc(100% - 64px)); margin: 0 auto; }
 .acs-home .acs-eyebrow {
   display: inline-flex; align-items: center; gap: 8px;
   font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
@@ -79,21 +102,24 @@
 
 /* ---------- services (image-forward, hover overlay) ---------- */
 .acs-services { background: #fff; }
-.acs-services-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 44px; }
+.acs-services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; margin-top: 44px; }
 .acs-service-card {
-  position: relative; border-radius: 18px; overflow: hidden; aspect-ratio: 3/4;
+  position: relative; border-radius: 18px; overflow: hidden; aspect-ratio: 4/3;
   display: flex; align-items: flex-end;
 }
-.acs-service-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .7s ease; }
+.acs-service-card img { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .7s ease; }
 .acs-service-card::before {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(15,36,64,0) 30%, rgba(15,36,64,.92) 100%);
+  content: ''; position: absolute; inset: 0; z-index: 1;
+  background: linear-gradient(180deg, rgba(15,36,64,.05) 0%, rgba(15,36,64,.45) 45%, rgba(15,36,64,.95) 100%);
   transition: background .4s ease;
 }
+.acs-service-card:hover::before { background: linear-gradient(180deg, rgba(15,36,64,.25) 0%, rgba(15,36,64,.65) 45%, rgba(15,36,64,.97) 100%); }
 .acs-service-card:hover img { transform: scale(1.12); }
-.acs-service-body { position: relative; padding: 26px 22px; color: #fff; }
-.acs-service-num { font-size: 13px; font-weight: 700; color: rgba(255,255,255,.6); margin-bottom: 8px; }
-.acs-service-body h4 { font-size: 18px; font-weight: 700; margin: 0 0 8px; }
+.acs-service-body { position: relative; z-index: 2; padding: 26px 22px; color: #fff; }
+.acs-service-num { font-size: 13px; font-weight: 700; color: rgba(255,255,255,.7); margin-bottom: 8px; }
+/* explicit colors beat the WordPress .entry-content :where(hN) rules, which set
+   heading/text color directly and would otherwise override the inherited white */
+.acs-home .acs-service-body h4 { font-size: 18px; font-weight: 700; margin: 0 0 8px; color: #fff; }
 .acs-service-body p {
   font-size: 13px; color: rgba(255,255,255,.8); line-height: 1.5; margin: 0;
   max-height: 0; opacity: 0; overflow: hidden; transition: max-height .4s ease, opacity .4s ease;
@@ -124,7 +150,7 @@
   display: flex; align-items: flex-end; padding: 22px; color: #fff;
 }
 .acs-case-tag { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.7); display: block; margin-bottom: 6px; }
-.acs-case-overlay h5 { font-size: 16px; font-weight: 700; margin: 0; }
+.acs-home .acs-case-overlay h5 { font-size: 16px; font-weight: 700; margin: 0; color: #fff; }
 
 /* ---------- clients strip ---------- */
 .acs-clients { background: var(--acs-tint); }
@@ -138,7 +164,7 @@
   border-radius: 24px; padding: 56px 60px; display: flex; align-items: center; justify-content: space-between; gap: 32px; flex-wrap: wrap;
   color: #fff;
 }
-.acs-cta-band h3 { font-size: clamp(22px, 2.4vw, 30px); font-weight: 800; margin: 0 0 8px; }
+.acs-home .acs-cta-band h3 { font-size: clamp(22px, 2.4vw, 30px); font-weight: 800; margin: 0 0 8px; color: #fff; }
 .acs-cta-band p { color: rgba(255,255,255,.75); margin: 0; max-width: 480px; }
 .acs-cta-btn {
   background: var(--acs-blue); color: #fff; border: none; border-radius: 12px; padding: 15px 30px;
