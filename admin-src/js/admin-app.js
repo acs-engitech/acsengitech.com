@@ -199,6 +199,10 @@
       showSignIn();
       return;
     }
+    // A valid session is enough to proceed — hide the sign-in screen up front so
+    // it never flashes while the (cold-start-slow) initial API call is pending.
+    // If the request comes back 401, the catch block re-shows sign-in.
+    if (hasValidSession()) hideSignIn();
     setBusy(true, 'Loading admin data...');
     setStatus('Loading admin data...');
     try {
@@ -1124,8 +1128,13 @@
 
   // Restore email from a still-valid session so a page refresh doesn't force re-login. The
   // password itself is never persisted, so state.password stays empty until the next login.
+  // Unlock the shell immediately (before the slow initial fetch) so the sign-in screen never
+  // flashes on refresh; load() re-locks only if the API actually returns 401.
   const restoredSession = getStoredSession();
-  if (restoredSession) state.email = restoredSession.email;
+  if (restoredSession) {
+    state.email = restoredSession.email;
+    document.body.classList.remove('admin-locked');
+  }
 
   bindEvents();
   load();
