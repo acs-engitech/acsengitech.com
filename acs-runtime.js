@@ -635,7 +635,9 @@
     // `gsap-ready` here (not added later in JS) hides the hero intro elements at
     // first paint so there is no flash-then-hide; runBlueprintMotion animates
     // them in, or revealFallback() strips the class if GSAP never loads.
-    wrap.className = 'acs-home gsap-ready';
+    // `reveal-armed` gates the hidden pre-reveal state (see homepage.css): set here
+    // so if init ever fails before wiring the observer, content isn't left invisible.
+    wrap.className = 'acs-home gsap-ready reveal-armed';
     wrap.innerHTML = `
       ${blueprintHeroMarkup()}
       <section class="acs-features">
@@ -784,19 +786,28 @@
 
     // Scroll-reveal via IntersectionObserver (native, no dependency)
     const revealTargets = scope.querySelectorAll('.acs-reveal');
-    if ('IntersectionObserver' in window) {
-      const io = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-visible');
-            io.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
-      revealTargets.forEach((el) => io.observe(el));
-    } else {
-      revealTargets.forEach((el) => el.classList.add('is-visible'));
+    const revealAll = () => revealTargets.forEach((el) => el.classList.add('is-visible'));
+    try {
+      if ('IntersectionObserver' in window) {
+        const io = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-visible');
+              io.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+        revealTargets.forEach((el) => io.observe(el));
+      } else {
+        revealAll();
+      }
+    } catch (_) {
+      revealAll();
     }
+    // Last-resort safety net: whatever the observer missed, reveal it so a section
+    // can never stay invisible ("stripped off"). Long enough not to fight the
+    // scroll animation for a normally-browsing visitor.
+    setTimeout(revealAll, 6000);
 
     // Count-up stats, triggered when the stats bar scrolls into view
     const statEls = scope.querySelectorAll('[data-count-to]');
