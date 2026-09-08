@@ -500,6 +500,223 @@
     });
   }
 
+  // Homepage-only, hand-built section set matching the laboratory reference
+  // theme's structure (feature/about-tabs/services/process/case-studies/
+  // clients/CTA), in ACS brand tone, using ACS's real content only — no
+  // stock thumbnails, no invented copy. Keeps the existing hero (already
+  // built from the real `/` blueprint via renderPageHero) and replaces
+  // everything below it, unlike preserveExistingPage() elsewhere which
+  // keeps the original WordPress/Elementor body untouched under a new hero.
+  function rebuildHomePage() {
+    if (normalizePath(location.pathname) !== '/') return;
+    const root = findContentRoot();
+    if (!root || root.dataset.acsPreserved === 'true') return;
+
+    // The original homepage markup includes an inline slider script (its own
+    // `<script>` block, not part of this runtime) that starts a
+    // setInterval-driven hero rotation targeting elements like `.hero`/`.hc`.
+    // Timers survive their triggering markup being replaced below, so left
+    // alone it keeps firing every 2.5s against DOM that no longer exists and
+    // throws repeatedly. Nothing in this runtime uses setInterval, so it is
+    // safe to clear every pending interval before taking over the content.
+    const highestIntervalId = setInterval(() => {}, 1e9);
+    for (let id = 1; id <= highestIntervalId; id += 1) clearInterval(id);
+    clearInterval(highestIntervalId);
+
+    root.classList.add('acs-preserved-page');
+    root.dataset.acsPreserved = 'true';
+    root.dataset.acsRebuilt = 'true';
+    document.body.classList.add('acs-home-active'); // unlocks full-bleed layout (see homepage.css)
+    root.innerHTML = '';
+    root.appendChild(renderPageHero(pageBlueprints['/']));
+
+    const wrap = document.createElement('div');
+    wrap.className = 'acs-home';
+    wrap.innerHTML = `
+      <section class="acs-features">
+        <div class="acs-container">
+          <span class="acs-eyebrow">Why ACS Engitech</span>
+          <h2 class="acs-h2">Trusted for precision, backed by scale</h2>
+          <div class="acs-features-grid">
+            <div class="acs-feature-card acs-reveal">
+              <div class="acs-feature-icon"><svg viewBox="0 0 24 24" stroke-width="1.6"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 11h.01M15 11h.01M9 15h.01M15 15h.01" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <h5>36,000 Sq. Ft. Facility</h5>
+              <p>In-house manufacturing in Ahmedabad, built for panel fabrication at scale.</p>
+            </div>
+            <div class="acs-feature-card acs-reveal" style="transition-delay:.12s">
+              <div class="acs-feature-icon"><svg viewBox="0 0 24 24" stroke-width="1.6"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <h5>Siemens Channel Partner</h5>
+              <p>Authorized Siemens Channel Partner since 2014, Siemens System House since 2018.</p>
+            </div>
+            <div class="acs-feature-card acs-reveal" style="transition-delay:.24s">
+              <div class="acs-feature-icon"><svg viewBox="0 0 24 24" stroke-width="1.6"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <h5>ISO 9001:2015 Certified</h5>
+              <p>CPRI-approved PMCC panels, ERDA IP55 cubicle panels, safe industrial solutions.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="acs-about">
+        <div class="acs-container">
+          <div class="acs-about-grid">
+            <div class="acs-about-media acs-reveal acs-reveal-left">
+              <img src="${acsImages.team}" alt="ACS Engitech team">
+              <div class="acs-stats-bar">
+                <div class="acs-stat"><div class="acs-stat-n" data-count-to="16">0</div><div class="acs-stat-l">Years of<br>Experience</div></div>
+                <div class="acs-stat"><div class="acs-stat-n" data-count-to="7000">0</div><div class="acs-stat-l">Work<br>Orders</div></div>
+                <div class="acs-stat"><div class="acs-stat-n" data-count-to="200">0</div><div class="acs-stat-l">Clients<br>Served</div></div>
+                <div class="acs-stat"><div class="acs-stat-n" data-count-to="80">0</div><div class="acs-stat-l">WWT<br>Plants</div></div>
+              </div>
+            </div>
+            <div class="acs-reveal" style="transition-delay:.1s">
+              <span class="acs-eyebrow">About ACS Engitech</span>
+              <h2 class="acs-h2">Reliable automation solutions since 2009</h2>
+              <p class="acs-lead">ACS Engitech provides automation and electrical automation solutions — from Machine Automation, Plant Automation and Process Automation to comprehensive Electrical Panel Manufacturing. Established in Ahmedabad with a 36,000 sq. ft. in-house manufacturing facility.</p>
+              <div class="acs-tabs">
+                <button class="acs-tab-btn is-active" data-tab="approach">Our Approach</button>
+                <button class="acs-tab-btn" data-tab="standards">Our Standards</button>
+                <button class="acs-tab-btn" data-tab="capability">Our Capability</button>
+              </div>
+              <div class="acs-tab-panel is-active" data-panel="approach"><p class="acs-lead">Every panel and control system is engineered around the client's actual process — from control philosophy through commissioning and support, not off-the-shelf templates.</p></div>
+              <div class="acs-tab-panel" data-panel="standards"><p class="acs-lead">Authorized Siemens Channel Partner since 2014 and Siemens System House since 2018. ISO 9001:2015 certified. CPRI-approved PMCC panels. ERDA IP55 cubicle panels.</p></div>
+              <div class="acs-tab-panel" data-panel="capability"><p class="acs-lead">Panel supply and commissioning, PLC/HMI/SCADA integration, IEC 61439 and IEC 60204 compliant builds, all delivered from our own 36,000 sq. ft. facility.</p></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="acs-services">
+        <div class="acs-container">
+          <span class="acs-eyebrow">What we do</span>
+          <h2 class="acs-h2">End-to-end automation, every industry</h2>
+          <div class="acs-services-grid">
+            ${serviceCards.map((card, i) => `
+              <a class="acs-service-card acs-reveal" style="transition-delay:${(i * 0.08).toFixed(2)}s" href="${card[2]}">
+                <img src="${card[3]}" alt="${escapeHtml(card[0])}">
+                <div class="acs-service-body">
+                  <div class="acs-service-num">0${i + 1}</div>
+                  <h4>${escapeHtml(card[0])}</h4>
+                  <p>${escapeHtml(card[1])}</p>
+                </div>
+              </a>`).join('')}
+          </div>
+        </div>
+      </section>
+
+      <section class="acs-process acs-tight">
+        <div class="acs-container">
+          <span class="acs-eyebrow">How we work</span>
+          <h2 class="acs-h2">Precision in automation steps</h2>
+          <div class="acs-process-grid">
+            <div class="acs-step acs-reveal"><h5>Consultation &amp; Assessment</h5><p>Understand your process, plant, and automation requirements before proposing a solution.</p></div>
+            <div class="acs-step acs-reveal" style="transition-delay:.1s"><h5>Customized Strategy Development</h5><p>Control philosophy, panel design, and IEC-compliant engineering for the specific application.</p></div>
+            <div class="acs-step acs-reveal" style="transition-delay:.2s"><h5>Manufacturing &amp; Commissioning</h5><p>In-house fabrication at our 36,000 sq. ft. facility, followed by on-site commissioning.</p></div>
+            <div class="acs-step acs-reveal" style="transition-delay:.3s"><h5>Implementation &amp; Ongoing Support</h5><p>Annual maintenance contracts and support keep systems running reliably long-term.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="acs-cases">
+        <div class="acs-container">
+          <span class="acs-eyebrow">Case studies</span>
+          <h2 class="acs-h2">Case studies of excellence</h2>
+          <div class="acs-cases-grid">
+            <div class="acs-case-card acs-reveal">
+              <img src="${acsImages.panels}" alt="PLC Panel - Water Treatment Plant">
+              <div class="acs-case-overlay"><span class="acs-case-tag">Water Treatment</span><h5>PLC Panel — Water Treatment Plant</h5></div>
+            </div>
+            <div class="acs-case-card acs-reveal" style="transition-delay:.1s">
+              <img src="${acsImages.automation}" alt="MCC Panel - Waste Water Industry">
+              <div class="acs-case-overlay"><span class="acs-case-tag">Waste Water</span><h5>MCC Panel — Waste Water Industry</h5></div>
+            </div>
+            <div class="acs-case-card acs-reveal" style="transition-delay:.2s">
+              <img src="${acsImages.engineers}" alt="VFD Panel - Industrial Plant">
+              <div class="acs-case-overlay"><span class="acs-case-tag">Industrial Plant</span><h5>VFD Panel — Industrial Plant</h5></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="acs-clients acs-tight">
+        <div class="acs-container" style="text-align:center">
+          <span class="acs-eyebrow" style="justify-content:center">Trusted by</span>
+          <h2 class="acs-h2">Some of the companies we work with</h2>
+          <div class="acs-clients-row">
+            <img src="https://acsengitech.com/wp-content/uploads/2026/03/hikal-straight-logo.png" alt="Hikal">
+            <img src="https://matthey.com/o/jm-platinum-theme/images/new__jm__images/Johnson_Matthey%20_Logo_blue.svg" alt="Johnson Matthey">
+            <img src="https://acsengitech.com/wp-content/uploads/2026/03/Untitled-design.png" alt="Rexroth">
+          </div>
+        </div>
+      </section>
+
+      <section class="acs-tight">
+        <div class="acs-container">
+          <div class="acs-cta-band acs-reveal">
+            <div>
+              <h3>Need dependable automation execution?</h3>
+              <p>Talk to ACS Engitech about PLC panels, SCADA systems, process automation, machine automation, data logging, or Siemens automation support.</p>
+            </div>
+            <a class="acs-cta-btn" href="contact-us.html">Contact Us →</a>
+          </div>
+        </div>
+      </section>
+    `;
+    root.appendChild(wrap);
+
+    initAcsHomeInteractions(wrap);
+  }
+
+  function initAcsHomeInteractions(scope) {
+    // Tabs
+    scope.querySelectorAll('.acs-tab-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const group = btn.closest('.acs-about-grid') ? scope.querySelector('.acs-about-grid') : scope;
+        group.querySelectorAll('.acs-tab-btn').forEach((b) => b.classList.toggle('is-active', b === btn));
+        group.querySelectorAll('.acs-tab-panel').forEach((p) => p.classList.toggle('is-active', p.dataset.panel === btn.dataset.tab));
+      });
+    });
+
+    // Scroll-reveal via IntersectionObserver (native, no dependency)
+    const revealTargets = scope.querySelectorAll('.acs-reveal');
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            io.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+      revealTargets.forEach((el) => io.observe(el));
+    } else {
+      revealTargets.forEach((el) => el.classList.add('is-visible'));
+    }
+
+    // Count-up stats, triggered when the stats bar scrolls into view
+    const statEls = scope.querySelectorAll('[data-count-to]');
+    if (statEls.length && 'IntersectionObserver' in window) {
+      const statIo = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          statIo.unobserve(entry.target);
+          const el = entry.target;
+          const target = parseInt(el.dataset.countTo, 10) || 0;
+          const duration = 1400;
+          const start = performance.now();
+          function tick(now) {
+            const progress = Math.min(1, (now - start) / duration);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.round(eased * target) + '+';
+            if (progress < 1) requestAnimationFrame(tick);
+          }
+          requestAnimationFrame(tick);
+        });
+      }, { threshold: 0.4 });
+      statEls.forEach((el) => statIo.observe(el));
+    }
+  }
+
   function findContentRoot() {
     return document.querySelector('main#main .entry-content') ||
       document.querySelector('.entry-content') ||
@@ -634,7 +851,7 @@
 
   function rebuildStandardPage() {
     const path = normalizePath(location.pathname);
-    if (['/about', '/blog', '/career', '/admin'].includes(path)) return;
+    if (['/', '/about', '/blog', '/career', '/admin'].includes(path)) return;
     const blueprint = pageBlueprints[path] || pageBlueprints[aliases[path]];
     if (!blueprint) return;
     preserveExistingPage(blueprint);
@@ -825,6 +1042,7 @@
     installSharedShell();
     bindSharedShell();
     rebuildAboutPage();
+    rebuildHomePage();
     rebuildStandardPage();
     injectBlogNav();
     try {
