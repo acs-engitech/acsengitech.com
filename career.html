@@ -875,6 +875,7 @@ footer#colophon, footer.site-footer {
   .acs-apply-form select,
   .acs-apply-form textarea {
     width: 100%;
+    box-sizing: border-box;
     padding: 14px 18px;
     border: 1.5px solid #cbd5e1;
     border-radius: 8px;
@@ -886,6 +887,17 @@ footer#colophon, footer.site-footer {
     transition: border-color 0.2s;
     appearance: none;
     -webkit-appearance: none;
+  }
+  /* Every single-line field (prefixed phone included) is exactly this tall and
+     border-box, so the two columns line up perfectly. The phone wrapper is a
+     flex container, so it gets height but NOT the input padding (its child
+     input carries that). */
+  .acs-apply-form input[type="text"],
+  .acs-apply-form input[type="email"],
+  .acs-apply-form input[type="tel"],
+  .acs-apply-form select,
+  .acs-phone-field {
+    height: 54px;
   }
   .acs-apply-form select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
@@ -982,6 +994,7 @@ footer#colophon, footer.site-footer {
   .acs-phone-field {
     display: flex;
     align-items: stretch;
+    box-sizing: border-box;
     border: 1.5px solid #cbd5e1;
     border-radius: 8px;
     background: #ffffff;
@@ -1010,6 +1023,7 @@ footer#colophon, footer.site-footer {
   .acs-phone-field input[type="tel"] {
     border: none;
     border-radius: 0;
+    height: auto;      /* fill the wrapper via flex-stretch, not a fixed 54px */
     flex: 1;
     min-width: 0;
   }
