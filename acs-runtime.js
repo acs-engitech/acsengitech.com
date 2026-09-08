@@ -837,26 +837,20 @@
 
     let waited = 0;
     (function waitForGsap() {
-      if (window.gsap && window.ScrollTrigger) return runBlueprintMotion(scope);
+      if (window.gsap) return runBlueprintMotion(scope);
       waited += 60;
-      if (waited > 1800) return revealFallback(); // libs never arrived
+      if (waited > 1800) return revealFallback(); // lib never arrived
       setTimeout(waitForGsap, 60);
     })();
   }
 
   function runBlueprintMotion(scope) {
     const gsap = window.gsap;
-    gsap.registerPlugin(window.ScrollTrigger);
 
-    // Lenis smooth scroll, synced to GSAP's ticker + ScrollTrigger.
-    try {
-      if (window.Lenis) {
-        const lenis = new window.Lenis({ duration: 1.05, smoothWheel: true });
-        lenis.on('scroll', window.ScrollTrigger.update);
-        gsap.ticker.add((t) => lenis.raf(t * 1000));
-        gsap.ticker.lagSmoothing(0);
-      }
-    } catch (_) { /* smooth-scroll is optional */ }
+    // NOTE: Lenis smooth-scroll was removed — it hijacked the native scrollbar
+    // (heavy/laggy to drag) and its scrub-linked parallax broke section styles
+    // on overscroll. Motion here is now a one-shot intro on load plus continuous
+    // schematic pulses; it never touches the scroll position or scrollbar.
 
     const hero = scope.querySelector('.acs-bp-hero');
     if (!hero) { scope.classList.remove('gsap-ready'); return; }
@@ -880,7 +874,7 @@
       .fromTo(hero.querySelectorAll('.acs-bp-chip'), { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.06 }, 0.8)
       .fromTo(hero.querySelector('.acs-bp-readout'), { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.6 }, 0.95);
 
-    // 3) Continuous data pulses along the accent conduits.
+    // 3) Continuous data pulses along the accent conduits (not scroll-linked).
     hero.querySelectorAll('.acs-bp-flow').forEach((el) => {
       try {
         const len = el.getTotalLength();
@@ -888,18 +882,6 @@
         gsap.to(el, { strokeDashoffset: 0, duration: 1.6, ease: 'none', repeat: -1 });
       } catch (_) {}
     });
-
-    // 4) Scroll: parallax the schematic + a slow drift on the whole figure.
-    gsap.to(hero.querySelector('.acs-bp-figure'), {
-      yPercent: -14, ease: 'none',
-      scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true },
-    });
-    gsap.to(hero.querySelector('.acs-bp-copy'), {
-      yPercent: 8, ease: 'none',
-      scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true },
-    });
-
-    window.ScrollTrigger.refresh();
   }
 
   function findContentRoot() {
