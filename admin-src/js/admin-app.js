@@ -116,8 +116,7 @@
 
   function resolveApiUrl(path) {
     if (/^https?:\/\//i.test(path)) return path;
-    const localHost = ['localhost', '127.0.0.1'].includes(location.hostname);
-    if (location.protocol === 'file:' || (localHost && location.port && location.port !== '3000')) {
+    if (location.protocol === 'file:') {
       return `http://localhost:3000${path}`;
     }
     return path;

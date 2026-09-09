@@ -2,6 +2,7 @@ const { neon } = require('@neondatabase/serverless');
 const { PAGE_DEFAULTS, DEFAULT_SETTINGS, DEFAULT_JOBS, DEFAULT_POSITION_TYPES, DEFAULT_PARTNER_CATEGORIES } = require('../lib/acs-defaults');
 
 let sql;
+let initialization;
 
 function db() {
   if (!process.env.DATABASE_URL) {
@@ -11,7 +12,16 @@ function db() {
   return sql;
 }
 
-async function init() {
+function init() {
+  // Share setup across concurrent reads and warm invocations; allow outage recovery.
+  initialization ||= createTables().catch(error => {
+    initialization = undefined;
+    throw error;
+  });
+  return initialization;
+}
+
+async function createTables() {
   await db()`CREATE TABLE IF NOT EXISTS acs_admin_data (
     key text PRIMARY KEY,
     value jsonb NOT NULL,

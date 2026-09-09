@@ -14,8 +14,7 @@
 
   function resolveApiUrl(path) {
     if (/^https?:\/\//i.test(path)) return path;
-    const localHost = ['localhost', '127.0.0.1'].includes(location.hostname);
-    if (location.protocol === 'file:' || (localHost && location.port && location.port !== '3000')) {
+    if (location.protocol === 'file:') {
       return `http://localhost:3000${path}`;
     }
     return path;
@@ -377,6 +376,14 @@
   }
 
   function installSharedShell() {
+    document.body.classList.add('acs-secondary');
+    if (!document.getElementById('acs-pages-theme')) {
+      const theme = document.createElement('link');
+      theme.id = 'acs-pages-theme';
+      theme.rel = 'stylesheet';
+      theme.href = 'assets/lab-theme/css/acs-pages.css';
+      document.head.appendChild(theme);
+    }
     const header = document.querySelector('header#masthead') || document.querySelector('header');
     if (header && !header.classList.contains('acs-lab-header')) {
       header.className = 'acs-lab-header';
@@ -487,8 +494,18 @@
       const submenuButton = event.target.closest('.acs-mobile-row button');
       if (submenuButton) {
         event.preventDefault();
-        submenuButton.closest('li')?.classList.toggle('is-open');
+        const open = submenuButton.closest('li')?.classList.toggle('is-open');
+        submenuButton.setAttribute('aria-expanded', String(!!open));
       }
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key !== 'Escape') return;
+      const toggle = document.querySelector('.acs-lab-toggle[aria-expanded="true"]');
+      if (toggle) { toggle.click(); toggle.focus(); }
+    });
+    const current = normalizePath(location.pathname);
+    document.querySelectorAll('.acs-lab-menu a,.acs-mobile-panel a').forEach(link => {
+      if (normalizePath(new URL(link.href).pathname) === current) link.setAttribute('aria-current', 'page');
     });
   }
 
@@ -855,6 +872,16 @@
         ${focus.map((item, index) => `<article><span>0${index + 1}</span><strong>${escapeHtml(item)}</strong><small>Engineered and supported by ACS Engitech</small></article>`).join('')}
       </section>` : ''}
     `;
+    const heading = hero.querySelector('h1');
+    const title = heading.textContent;
+    const lastSpace = title.lastIndexOf(' ');
+    if (lastSpace > 0) {
+      heading.textContent = title.slice(0, lastSpace + 1);
+      const outline = document.createElement('span');
+      outline.className = 'acs-page-outline';
+      outline.textContent = title.slice(lastSpace + 1);
+      heading.appendChild(outline);
+    }
     return hero;
   }
 
@@ -965,6 +992,29 @@
     const blueprint = pageBlueprints[path] || pageBlueprints[aliases[path]];
     if (!blueprint) return;
     preserveExistingPage(blueprint);
+  }
+
+  function rebuildServicesPage() {
+    if (normalizePath(location.pathname) !== '/services') return;
+    const root = findContentRoot();
+    if (!root || root.dataset.acsPreserved === 'true') return;
+    root.replaceChildren(renderPageHero(pageBlueprints['/services']));
+    root.classList.add('acs-preserved-page');
+    root.dataset.acsPreserved = 'true';
+    root.dataset.acsRebuilt = 'true';
+    const section = document.createElement('section');
+    section.className = 'acs-service-directory acs-content-band';
+    section.innerHTML = `<div class="acs-template-container">
+      <p class="acs-template-kicker">What we do</p>
+      <h2>End-to-end automation, every industry</h2>
+      <div class="acs-directory-grid">${serviceCards.map(([title, description, href, image]) => `
+        <a class="acs-directory-card" href="${href}">
+          <img src="${image}" alt="${escapeHtml(title)}" loading="lazy" width="600" height="400">
+          <div><h3>${escapeHtml(title)}</h3><p>${escapeHtml(description)}</p><span aria-hidden="true">→</span></div>
+        </a>`).join('')}
+      </div></div>`;
+    root.appendChild(section);
+    appendProjectCta(root);
   }
 
   function asList(value) {
@@ -1141,20 +1191,35 @@
     });
   }
 
+  function installChatbot() {
+    const src = 'https://cleuzaibot.srv1512185.hstgr.cloud/widget/v1/bundle.js';
+    if (document.querySelector(`script[src="${src}"]`)) return;
+    const script = document.createElement('script');
+    script.src = src;
+    script.dataset.clientId = 'client_862605';
+    script.dataset.publicKey = 'pk_live_vk50wW0PYdOiHyPR4krYoozrATDgSQZNmn3N';
+    script.async = true;
+    document.body.appendChild(script);
+  }
+
   async function init() {
+    const standalone = document.body?.hasAttribute('data-acs-standalone');
     if (acsShared.runtimeStarted) {
-      installSharedShell();
-      bindSharedShell();
+      if (!standalone) { installSharedShell(); bindSharedShell(); }
       return;
     }
-    if (!hasEnoughDomToStart()) return;
+    if (!standalone && !hasEnoughDomToStart()) return;
     acsShared.runtimeStarted = true;
-    installSharedShell();
-    bindSharedShell();
-    rebuildAboutPage();
-    rebuildHomePage();
-    rebuildStandardPage();
-    injectBlogNav();
+    installChatbot();
+    if (!standalone) {
+      installSharedShell();
+      bindSharedShell();
+      rebuildAboutPage();
+      rebuildHomePage();
+      rebuildServicesPage();
+      rebuildStandardPage();
+      injectBlogNav();
+    }
     try {
       const path = encodeURIComponent(normalizePath(location.pathname));
       const response = await fetch(resolveApiUrl(`/api/public?path=${path}`));
