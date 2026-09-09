@@ -96,3 +96,39 @@ test('no credentials at all returns 401', async () => {
   await handler(req, res);
   assert.equal(res.statusCode, 401);
 });
+
+test('admin GET loads dashboard data and analytics concurrently', async () => {
+  setEnv();
+  const originalGetAll = store.getAll;
+  const originalGetAnalytics = store.getAnalytics;
+  let analyticsStartedBeforeGetAllResolved = false;
+  let getAllResolved = false;
+  try {
+    store.getAll = async () => new Promise((resolve) => {
+      setTimeout(() => {
+        getAllResolved = true;
+        resolve({
+          pages: [], posts: [], jobs: [], positions: [], positionTypes: [],
+          applications: [], partners: [], partnerCategories: [], settings: {},
+        });
+      }, 25);
+    });
+    store.getAnalytics = async () => {
+      analyticsStartedBeforeGetAllResolved = !getAllResolved;
+      return [];
+    };
+    delete require.cache[require.resolve('../api/admin')];
+    const handler = require('../api/admin');
+
+    const req = fakeRequest({ 'x-admin-email': EMAIL, 'x-admin-password': RAW_PASSWORD });
+    const res = fakeResponse();
+    await handler(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(analyticsStartedBeforeGetAllResolved, true);
+  } finally {
+    store.getAll = originalGetAll;
+    store.getAnalytics = originalGetAnalytics;
+    delete require.cache[require.resolve('../api/admin')];
+  }
+});

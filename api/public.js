@@ -25,7 +25,7 @@ module.exports = async function handler(req, res) {
       return send(res, 200, { ok: true }, 'no-store');
     }
 
-    const data = await store.getAll();
+    const data = await store.getPublicData();
     const pageSeo = {};
     for (const page of data.pages) {
       pageSeo[page.path] = mergeSeo(page.defaults, page.seo);

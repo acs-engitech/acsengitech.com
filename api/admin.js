@@ -99,9 +99,12 @@ module.exports = async function handler(req, res) {
     const sessionFields = { sessionToken: signSession(auth.email, sessionExpiresAt), sessionExpiresAt };
 
     if (req.method === 'GET') {
-      const data = await store.getAll();
       const days = Number(req.query?.days || 30);
-      const analytics = summarizeAnalytics(await store.getAnalytics(days), new Date(), days);
+      const [data, analyticsRows] = await Promise.all([
+        store.getAll(),
+        store.getAnalytics(days),
+      ]);
+      const analytics = summarizeAnalytics(analyticsRows, new Date(), days);
       return send(res, 200, { ...data, analytics, ...sessionFields });
     }
 

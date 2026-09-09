@@ -507,27 +507,25 @@
   // built from the real `/` blueprint via renderPageHero) and replaces
   // everything below it, unlike preserveExistingPage() elsewhere which
   // keeps the original WordPress/Elementor body untouched under a new hero.
-  // "Engineering blueprint" hero — a hand-authored control-system schematic
-  // (self-drawing SVG line-art) replaces the old stock hero photo. All copy is
-  // ACS's real homepage content; only the visual treatment changes. Motion is
-  // wired in initBlueprintMotion() via GSAP; with JS/GSAP off it still renders
-  // as a complete, readable static hero.
+  // ACS-first hero: image-led industrial proof with blueprint detailing. The
+  // animation is restrained so the company, facility, panels, and credentials
+  // are the story; motion is an enhancement, never the subject.
   function blueprintHeroMarkup() {
     const b = pageBlueprints['/'];
     return `
     <section class="acs-bp-hero" aria-label="${escapeHtml(b.kicker)}">
       <div class="acs-bp-hero-inner">
         <div class="acs-bp-copy">
-          <p class="acs-bp-eyebrow">ACS Engitech <span>// Innovative Automation</span></p>
+          <p class="acs-bp-eyebrow">ACS Engitech <span>// Industrial Electrical Automation</span></p>
           <h1 class="acs-bp-title">
-            <span class="ln"><span>Electrical</span></span>
-            <span class="ln"><span>automation</span></span>
-            <span class="ln"><span>that <em style="font-style:normal;color:var(--bp-blue)">delivers.</em></span></span>
+            <span class="ln"><span>Electrical automation</span></span>
+            <span class="ln"><span>built for real</span></span>
+            <span class="ln"><span><em>industrial plants.</em></span></span>
           </h1>
           <p class="acs-bp-lead">${escapeHtml(b.lead)}</p>
           <div class="acs-bp-actions">
             <a class="acs-bp-btn" href="contact.html">Discuss your project <span class="arw" aria-hidden="true">&rarr;</span></a>
-            <a class="acs-bp-link" href="about.html">/ 16 years in industrial automation</a>
+            <a class="acs-bp-link" href="about.html">16+ years. 7000+ work orders.</a>
           </div>
           <div class="acs-bp-chips">
             <span class="acs-bp-chip">Siemens Channel Partner</span>
@@ -537,71 +535,25 @@
           </div>
         </div>
 
-        <div class="acs-bp-figure" aria-hidden="true">
-          <svg viewBox="0 0 540 500" role="img">
-            <!-- dimension line (blueprint detail) -->
-            <path class="acs-bp-draw" d="M34 118 V372"/>
-            <path class="acs-bp-draw" d="M29 118 H39 M29 372 H39"/>
-            <text class="acs-bp-label dim" x="20" y="250" transform="rotate(-90 20 250)">2100 mm</text>
-
-            <!-- SCADA / HMI unit (top) -->
-            <rect class="acs-bp-draw accent" x="196" y="28" width="150" height="52" rx="4"/>
-            <path class="acs-bp-draw" d="M210 44 H332 M210 56 H300 M210 68 H320"/>
-            <text class="acs-bp-label" x="360" y="46">SCADA / HMI</text>
-            <text class="acs-bp-label" x="360" y="62">real-time telemetry</text>
-
-            <!-- main panel (MCC / PLC) -->
-            <rect class="acs-bp-draw accent" x="188" y="118" width="164" height="254" rx="6"/>
-            <path class="acs-bp-draw" d="M188 150 H352"/>
-            <circle class="acs-bp-fill" cx="203" cy="134" r="3"/>
-            <circle class="acs-bp-node accent" cx="218" cy="134" r="3.2"/>
-            <circle class="acs-bp-node" cx="233" cy="134" r="3.2"/>
-            <!-- breaker modules -->
-            <path class="acs-bp-draw" d="M206 176 H334 M206 204 H334 M206 232 H334 M206 260 H334"/>
-            <rect class="acs-bp-node" x="206" y="169" width="16" height="14" rx="2"/>
-            <rect class="acs-bp-node" x="206" y="197" width="16" height="14" rx="2"/>
-            <rect class="acs-bp-node" x="206" y="225" width="16" height="14" rx="2"/>
-            <rect class="acs-bp-node" x="206" y="253" width="16" height="14" rx="2"/>
-            <!-- HMI screen inside panel -->
-            <rect class="acs-bp-draw accent" x="288" y="286" width="52" height="40" rx="3"/>
-            <path class="acs-bp-draw accent" d="M296 316 L306 304 L314 312 L324 298 L332 308"/>
-            <text class="acs-bp-label" x="196" y="392">MCC &middot; PLC PANEL</text>
-            <text class="acs-bp-label dim" x="196" y="408">IEC 61439 &middot; Siemens S7</text>
-
-            <!-- flow transmitter (left) + conduit -->
-            <circle class="acs-bp-draw" cx="72" cy="212" r="26"/>
-            <text class="acs-bp-label" x="60" y="216">FT</text>
-            <path class="acs-bp-draw accent conduit" id="acsFlowL" d="M98 212 H188"/>
-            <circle class="acs-bp-node accent" cx="98" cy="212" r="3.4"/>
-            <text class="acs-bp-label" x="46" y="262">FLOW 101</text>
-
-            <!-- motor (bottom) + conduit -->
-            <path class="acs-bp-draw accent conduit" id="acsFlowM" d="M270 372 V430"/>
-            <circle class="acs-bp-draw" cx="270" cy="458" r="30"/>
-            <text class="acs-bp-label" x="262" y="463">M</text>
-            <text class="acs-bp-label" x="306" y="463">DRIVE 55 kW</text>
-            <circle class="acs-bp-node accent" cx="270" cy="372" r="3.4"/>
-
-            <!-- control valve (right) + conduit -->
-            <path class="acs-bp-draw conduit" d="M352 250 H452"/>
-            <path class="acs-bp-draw accent" d="M452 236 L480 264 M452 264 L480 236"/>
-            <path class="acs-bp-draw" d="M466 250 V228"/>
-            <rect class="acs-bp-node accent" x="456" y="214" width="20" height="14" rx="2"/>
-            <text class="acs-bp-label" x="430" y="292">CV-204</text>
-            <circle class="acs-bp-node accent" cx="352" cy="250" r="3.4"/>
-
-            <!-- top conduit SCADA -> panel -->
-            <path class="acs-bp-draw accent conduit" id="acsFlowT" d="M270 80 V118"/>
-
-            <!-- animated data pulses (dash offset animated in JS) -->
-            <path class="acs-bp-flow" d="M270 80 V118"/>
-            <path class="acs-bp-flow" d="M98 212 H188"/>
-            <path class="acs-bp-flow" d="M270 372 V430"/>
-          </svg>
+        <div class="acs-bp-figure">
+          <div class="acs-bp-photo-stack" aria-label="ACS Engitech industrial automation work">
+            <figure class="acs-bp-main-photo">
+              <img src="${acsImages.panels}" alt="ACS Engitech control panel manufacturing">
+              <figcaption>MCC / PLC / VFD Panels</figcaption>
+            </figure>
+            <figure class="acs-bp-secondary-photo">
+              <img src="${acsImages.automation}" alt="ACS Engitech machine and plant automation">
+              <figcaption>Machine &amp; Plant Automation</figcaption>
+            </figure>
+          </div>
           <div class="acs-bp-readout">
-            <span class="k">Work orders</span><span class="k">Uptime</span>
-            <span class="v" data-count-to="7000">0<small>+</small></span>
-            <span class="v">99.2<small>%</small></span>
+            <span class="k">Work orders</span><span class="k">Clients</span>
+            <span class="v" data-count-to="7000">7000<small>+</small></span>
+            <span class="v" data-count-to="200">200<small>+</small></span>
+          </div>
+          <div class="acs-bp-proof-card">
+            <strong>36,000 sq. ft.</strong>
+            <span>Ahmedabad manufacturing facility for automation panels and commissioning support.</span>
           </div>
         </div>
       </div>
@@ -835,12 +787,10 @@
     initBlueprintMotion(scope);
   }
 
-  // Heavy scroll-driven motion for the homepage, powered by the locally
-  // vendored GSAP + ScrollTrigger + Lenis (assets/lab/vendor/*). The hero is
-  // rendered with `.gsap-ready` already set so its intro elements are hidden
-  // at first paint (no flash); this animates them in and wires scroll effects.
-  // If the libraries fail to load, revealFallback() drops `.gsap-ready` so the
-  // page shows normally — motion is an enhancement, never a requirement.
+  // Lightweight homepage motion, powered by the locally vendored GSAP. The
+  // hero is rendered with `.gsap-ready` already set so intro elements are
+  // hidden at first paint (no flash); if GSAP fails to load, revealFallback()
+  // drops `.gsap-ready` and the page shows normally.
   function initBlueprintMotion(scope) {
     const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const revealFallback = () => scope.classList.remove('gsap-ready');
@@ -858,41 +808,21 @@
   function runBlueprintMotion(scope) {
     const gsap = window.gsap;
 
-    // NOTE: Lenis smooth-scroll was removed — it hijacked the native scrollbar
-    // (heavy/laggy to drag) and its scrub-linked parallax broke section styles
-    // on overscroll. Motion here is now a one-shot intro on load plus continuous
-    // schematic pulses; it never touches the scroll position or scrollbar.
+    // NOTE: this never touches scroll position or the native scrollbar.
 
     const hero = scope.querySelector('.acs-bp-hero');
     if (!hero) { scope.classList.remove('gsap-ready'); return; }
 
-    // 1) Self-drawing schematic: stroke every <path> that reports a length.
-    const drawEls = Array.from(hero.querySelectorAll('.acs-bp-draw')).filter((el) => {
-      return typeof el.getTotalLength === 'function' && (() => { try { return el.getTotalLength() > 0; } catch { return false; } })();
-    });
-    gsap.set(drawEls, { strokeDasharray: (i, t) => t.getTotalLength(), strokeDashoffset: (i, t) => t.getTotalLength() });
-    const nodes = hero.querySelectorAll('.acs-bp-node, .acs-bp-fill, .acs-bp-label, .acs-bp-flow');
-    gsap.set(nodes, { opacity: 0 });
-
-    // 2) Intro timeline: draw, then reveal copy + nodes together.
     gsap.set(hero.querySelector('.acs-bp-title'), { visibility: 'visible' }); // GSAP now owns the split transform
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-    tl.to(drawEls, { strokeDashoffset: 0, duration: 1.1, stagger: 0.05 }, 0)
-      .to(nodes, { opacity: 1, duration: 0.5, stagger: 0.015 }, 0.5)
-      .fromTo(hero.querySelectorAll('.acs-bp-title .ln > span'), { yPercent: 110 }, { yPercent: 0, duration: 0.9, stagger: 0.1 }, 0.25)
-      .fromTo(hero.querySelector('.acs-bp-lead'), { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.7 }, 0.55)
-      .fromTo(hero.querySelector('.acs-bp-actions'), { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.7 }, 0.68)
-      .fromTo(hero.querySelectorAll('.acs-bp-chip'), { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.06 }, 0.8)
-      .fromTo(hero.querySelector('.acs-bp-readout'), { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.6 }, 0.95);
-
-    // 3) Continuous data pulses along the accent conduits (not scroll-linked).
-    hero.querySelectorAll('.acs-bp-flow').forEach((el) => {
-      try {
-        const len = el.getTotalLength();
-        gsap.set(el, { strokeDasharray: '2 18', strokeDashoffset: len });
-        gsap.to(el, { strokeDashoffset: 0, duration: 1.6, ease: 'none', repeat: -1 });
-      } catch (_) {}
-    });
+    tl.fromTo(hero.querySelectorAll('.acs-bp-title .ln > span'), { yPercent: 110 }, { yPercent: 0, duration: 0.9, stagger: 0.1 }, 0.05)
+      .fromTo(hero.querySelector('.acs-bp-lead'), { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.7 }, 0.35)
+      .fromTo(hero.querySelector('.acs-bp-actions'), { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.7 }, 0.48)
+      .fromTo(hero.querySelectorAll('.acs-bp-chip'), { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.05 }, 0.6)
+      .fromTo(hero.querySelector('.acs-bp-main-photo'), { opacity: 0, x: 34 }, { opacity: 1, x: 0, duration: 0.85 }, 0.18)
+      .fromTo(hero.querySelector('.acs-bp-secondary-photo'), { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.72 }, 0.46)
+      .fromTo(hero.querySelector('.acs-bp-readout'), { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.6 }, 0.72)
+      .fromTo(hero.querySelector('.acs-bp-proof-card'), { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.6 }, 0.82);
   }
 
   function findContentRoot() {
