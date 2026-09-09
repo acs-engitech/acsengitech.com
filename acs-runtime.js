@@ -63,14 +63,17 @@
     panels: 'assets/acs/control-panels.jpg',
     software: 'assets/acs/industrial-software.png',
     server: 'assets/acs/data-systems.jpg',
+    mccPanel: 'assets/acs/mcc-panel.jpg',
+    plcPanel: 'assets/acs/plc-panel.jpg',
+    vfdPanel: 'assets/acs/vfd-panel.jpg',
   };
   const serviceCards = [
     ['Process Automation', 'PLC, SCADA, instrumentation, commissioning, and control architecture for industrial process plants.', 'process-automation.html', acsImages.engineers],
     ['Machine / Plant Automation', 'Automation systems for OEMs, production machines, and plant-wide control requirements.', 'machine-plant-automation.html', acsImages.automation],
-    ['Software & Technologies', 'Industrial software, data logging, SCADA reporting, IoT, and plant data visibility.', 'software-and-cutting-edge-technologies.html', acsImages.software],
-    ['Energy Monitoring', 'Energy and operational data systems that improve visibility, reporting, and plant performance.', 'energy-monitoring-and-date-management.html', acsImages.server],
-    ['Smart Data Logger', 'Production, process, and energy logging systems for traceability and performance monitoring.', 'smart-data-logger.html', acsImages.server],
-    ['Boiler Automation', 'PLC and SCADA based boiler control for safer, reliable, and efficient operation.', 'boiler-automation.html', acsImages.automation],
+    ['Software & Technologies', 'Industrial software, data logging, SCADA reporting, IoT, and plant data visibility.', 'software-and-cutting-edge-technologies.html', acsImages.panels],
+    ['Energy Monitoring', 'Energy and operational data systems that improve visibility, reporting, and plant performance.', 'energy-monitoring-and-date-management.html', acsImages.plcPanel],
+    ['Smart Data Logger', 'Production, process, and energy logging systems for traceability and performance monitoring.', 'smart-data-logger.html', acsImages.vfdPanel],
+    ['Boiler Automation', 'PLC and SCADA based boiler control for safer, reliable, and efficient operation.', 'boiler-automation.html', acsImages.mccPanel],
   ];
   const pageBlueprints = {
     '/': {
@@ -557,7 +560,6 @@
           </div>
         </div>
       </div>
-      <div class="acs-bp-scroll">Scroll<i></i></div>
     </section>`;
   }
 
