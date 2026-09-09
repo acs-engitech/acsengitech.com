@@ -250,6 +250,33 @@ async function getAll() {
   };
 }
 
+async function getPublicData() {
+  const pageSeo = await getValue('pageSeo', {});
+  const settings = await getValue('settings', {});
+  const [positions, positionTypes, partnerCategories, posts, jobs] = await Promise.all([
+    getPositions(),
+    getPositionTypes(),
+    getPartnerCategories(),
+    getValue('posts', []),
+    getValue('jobs', DEFAULT_JOBS),
+  ]);
+  return {
+    pages: PAGE_DEFAULTS.map((page) => ({
+      path: page.path,
+      label: page.label,
+      file: page.file,
+      defaults: page.defaults,
+      seo: pageSeo[page.path] || {},
+    })),
+    posts,
+    jobs,
+    positions,
+    positionTypes,
+    partnerCategories,
+    settings: { ...DEFAULT_SETTINGS, ...settings },
+  };
+}
+
 async function saveAll(payload) {
   const writes = [];
   if (payload.pageSeo) writes.push(setValue('pageSeo', payload.pageSeo));
@@ -281,6 +308,7 @@ async function getAnalytics(days = 30) {
 
 module.exports = {
   getAll,
+  getPublicData,
   saveAll,
   recordAnalytics,
   getAnalytics,
