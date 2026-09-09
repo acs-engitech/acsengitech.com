@@ -358,7 +358,7 @@
   function navItems(items) {
     return items.map((item) => `
       <li class="${item.children ? 'has-dropdown' : ''}">
-        <a href="${item.href}">${item.label}${item.children ? '<span aria-hidden="true">⌄</span>' : ''}</a>
+        <a href="${item.href}">${item.label}${item.children ? '<span class="acs-caret" aria-hidden="true"><svg viewBox="0 0 10 6" width="10" height="6"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>' : ''}</a>
         ${item.children ? `<ul>${item.children.map(([label, href]) => `<li><a href="${href}">${label}</a></li>`).join('')}</ul>` : ''}
       </li>
     `).join('');
