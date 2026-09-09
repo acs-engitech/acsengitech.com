@@ -6,6 +6,15 @@
   <title>ACS Engitech Admin</title>
 </head>
 <body class="admin-locked font-outfit bg-gray-100 text-gray-800">
+  <!-- Full-screen boot cover shown at first paint so neither the sign-in form nor an
+       empty app flashes on refresh. admin-app.js adds body.admin-booted to reveal the
+       real UI only once it knows what to show (login, or the loaded workspace). -->
+  <div id="adminBoot" role="status" aria-live="polite">
+    <div class="admin-boot-inner">
+      <span class="admin-boot-spinner" aria-hidden="true"></span>
+      <p>Loading ACS Admin…</p>
+    </div>
+  </div>
   <div class="admin-loading-overlay fixed right-6 bottom-6 z-[99999] items-center gap-2.5 rounded-xl border border-white/10 bg-brand-950 px-4 py-3.5 text-white shadow-lg" id="adminLoading" role="status" aria-live="polite" aria-hidden="true">
     <span class="admin-spinner h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" aria-hidden="true"></span>
     <strong class="text-sm font-medium">Loading...</strong>

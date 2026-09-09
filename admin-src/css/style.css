@@ -122,6 +122,23 @@
   --color-brand-950: #031323;  /* ACS dark */
 }
 
+/* Boot cover: shown at first paint, hidden once admin-app.js knows what to render.
+   Prevents the sign-in form or an empty app from flashing on refresh. */
+#adminBoot {
+  position: fixed; inset: 0; z-index: 100000;
+  display: flex; align-items: center; justify-content: center;
+  background: #f8fafc;
+}
+body.admin-booted #adminBoot { display: none; }
+.admin-boot-inner { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.admin-boot-spinner {
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 3px solid #e2e8f0; border-top-color: #1c3a62;
+  animation: adminBootSpin .8s linear infinite;
+}
+.admin-boot-inner p { font-family: 'Outfit', system-ui, sans-serif; font-size: 14px; font-weight: 600; color: #64748b; letter-spacing: .02em; margin: 0; }
+@keyframes adminBootSpin { to { transform: rotate(360deg); } }
+
 /* App state-classes the frozen logic toggles (parity contract). Matches acs-admin.css. */
 body.admin-locked .admin-app { display: none !important; }
 body:not(.admin-locked) #adminLogin { display: none; }

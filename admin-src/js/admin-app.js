@@ -82,6 +82,7 @@
   }
 
   function showSignIn(message) {
+    document.body.classList.add('admin-booted'); // reveal (drop the boot cover) — login is the answer
     document.body.classList.add('admin-locked');
     state.authenticated = false;
     state.email = '';
@@ -224,6 +225,7 @@
         setStatus('Admin data could not be loaded. Start the local dev server or check the Neon/Vercel connection.', 'error');
       }
     } finally {
+      document.body.classList.add('admin-booted'); // data resolved (ok or error) — reveal the workspace
       setBusy(false);
     }
   }
