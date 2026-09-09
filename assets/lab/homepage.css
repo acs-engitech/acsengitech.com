@@ -94,13 +94,16 @@ body.acs-home-active .entry-content {
 .acs-stat-n { font-size: clamp(20px, 2.4vw, 28px); font-weight: 800; line-height: 1; }
 .acs-stat-l { font-size: 11px; margin-top: 6px; color: rgba(255,255,255,.75); line-height: 1.3; }
 .acs-tabs { display: flex; gap: 6px; margin: 26px 0 18px; border-bottom: 1px solid var(--acs-line); }
-.acs-tab-btn {
-  background: none; border: none; padding: 10px 4px 14px; font-size: 15px; font-weight: 700;
+/* .acs-home scope + explicit resets beat the WordPress button styles that were
+   turning the active tab into a dark navy pill. Tabs are underline-only. */
+.acs-home .acs-tab-btn {
+  background: none !important; border: none !important; box-shadow: none !important;
+  border-radius: 0 !important; padding: 10px 4px 14px; font-size: 15px; font-weight: 700;
   color: var(--acs-muted); cursor: pointer; position: relative; margin-right: 22px;
 }
-.acs-tab-btn::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: transparent; transition: background .25s ease; }
-.acs-tab-btn.is-active { color: var(--acs-navy); }
-.acs-tab-btn.is-active::after { background: var(--acs-blue); }
+.acs-home .acs-tab-btn::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: transparent; transition: background .25s ease; }
+.acs-home .acs-tab-btn.is-active { color: var(--acs-navy); }
+.acs-home .acs-tab-btn.is-active::after { background: var(--acs-blue); }
 .acs-tab-panel { display: none; }
 .acs-tab-panel.is-active { display: block; animation: acsFade .4s ease; }
 @keyframes acsFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }

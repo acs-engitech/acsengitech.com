@@ -15,8 +15,8 @@
 .acs-bp-hero {
   position: relative;
   display: flex;
-  min-height: clamp(680px, 86vh, 860px);
-  align-items: flex-start;
+  min-height: clamp(620px, 78vh, 780px);
+  align-items: center;
   overflow: hidden;
   isolation: isolate;
   background:
@@ -53,7 +53,7 @@
   gap: clamp(44px, 6vw, 96px);
   width: min(1420px, calc(100% - 72px));
   margin: 0 auto;
-  padding: clamp(78px, 7vw, 112px) 0 72px;
+  padding: clamp(40px, 4vw, 64px) 0 clamp(40px, 4vw, 64px);
 }
 
 .acs-bp-copy {
