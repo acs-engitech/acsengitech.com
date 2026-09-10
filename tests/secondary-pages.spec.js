@@ -35,6 +35,6 @@ test('secondary mobile menu and chatbot install once even with repeated runtime'
   await page.addScriptTag({url:'/acs-runtime.js'});
   const chatbot=page.locator('script[src="https://cleuzaibot.srv1512185.hstgr.cloud/widget/v1/bundle.js"]');
   await expect(chatbot).toHaveCount(1);
-  await expect(chatbot).toHaveAttribute('data-client-id','client_862605');
+  await expect(chatbot).toHaveAttribute('data-client-id','lduj137379');
   await expect(chatbot).toHaveAttribute('data-public-key','pk_live_vk50wW0PYdOiHyPR4krYoozrATDgSQZNmn3N');
 });
