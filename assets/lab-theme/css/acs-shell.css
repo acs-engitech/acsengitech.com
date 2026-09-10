@@ -1,0 +1,36 @@
+/* One navigation layout for the home and standalone pages. */
+.acs-laboratory header { position: relative; z-index: 40; }
+.acs-laboratory header .rs-header-inner { display: flex !important; align-items: center; flex-wrap: nowrap; width: 100%; gap: 20px; min-height: 88px; }
+.acs-laboratory header .rs-header-left { flex: 0 0 auto; }
+.acs-laboratory header .rs-header-menu { flex: 1 1 auto; min-width: 0; padding: 0 16px; display: block; overflow: visible; }
+.acs-laboratory header .rs-header-right { flex: 0 0 auto; display: flex; margin-left: 0; padding: 0; }
+.acs-laboratory header .rs-header-logo-wrapper { width: 190px; padding: 12px 0; }
+.acs-laboratory header .main-menu > ul { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.acs-laboratory header .main-menu > ul > li { flex: 0 0 auto; display: flex; align-items: center; position: relative; }
+.acs-laboratory header .main-menu > ul > li > a { padding: 28px 0; font-size: 14px; font-weight: 500; white-space: nowrap; }
+.acs-laboratory header .main-menu .submenu { max-width: calc(100vw - 40px); }
+.acs-laboratory header .rs-header-btn { display: none !important; }
+.acs-laboratory header .acs-menu-toggle { display: none; }
+.acs-laboratory header .rs-header-hamburger { display: none; }
+.acs-laboratory header .main-menu li:focus-within > .submenu { visibility: visible; opacity: 1; transform: none; }
+.acs-laboratory header .main-menu a[aria-current='page'] { color: #0068d7; }
+@media (min-width:1800px) { .acs-laboratory header .rs-header-btn { display: block !important; } }
+@media (max-width:1599px) {
+  .acs-laboratory header .rs-header-menu { display: none; position: absolute; top: 100%; left: 0; right: 0; padding: 16px 24px; background: #fff; max-height: calc(100dvh - 130px); overflow-y: auto; border-bottom: 1px solid #dde3ea; }
+  .acs-laboratory header .rs-header-menu.is-open { display: block; }
+  .acs-laboratory header .rs-header-inner { position: static; justify-content: space-between; }
+  .acs-laboratory header .rs-header-right { margin-left: auto; }
+  .acs-laboratory header .rs-header-hamburger,.acs-laboratory header .acs-menu-toggle { display: block; }
+  .acs-laboratory header .main-menu > ul { display: block; margin: 0; }
+  .acs-laboratory header .main-menu > ul > li { display: flex; flex-wrap: wrap; justify-content: space-between; border-bottom: 1px solid #edf0f4; }
+  .acs-laboratory header .main-menu > ul > li > a { padding: 13px 0; font-size: 16px; }
+  .acs-laboratory header .main-menu .submenu { position: static; width: 100%; max-width: none; padding: 0 0 12px; margin: 0; box-shadow: none; border: 0; display: none; visibility: visible; opacity: 1; transform: none; }
+  .acs-laboratory header .main-menu .is-open > .submenu { display: block; }
+  .acs-laboratory header .acs-submenu-toggle { width: 44px; height: 44px; }
+  .acs-laboratory header .main-menu .submenu a { padding: 10px 16px; }
+}
+@media (max-width:575px) {
+  .acs-laboratory header .rs-header-inner { min-height: 74px; }
+  .acs-laboratory header .rs-header-logo-wrapper { width: 150px; }
+  .acs-laboratory header .rs-header-top { min-height: 34px; }
+}

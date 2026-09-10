@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+test.beforeEach(async({page})=>page.route('**/widget/v1/bundle.js',r=>r.fulfill({body:''})));
 
 for (const width of [390, 1440, 1920]) {
   test(`homepage content and both slides fit at ${width}px`, async ({ page }) => {

@@ -11,3 +11,10 @@ Obsidian/
 
 # SDD workspace scratch
 .superpowers/
+*-lab.html
+*-legacy.html
+
+# scratch reports (agent workspace)
+.admin-*-report.md
+.frontend-*-report.md
+.scratch/

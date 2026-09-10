@@ -1,6 +1,7 @@
 (() => {
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const toggle = document.querySelector('.acs-menu-toggle');
+  if (!toggle.dataset.bound) {
   const menu = document.querySelector('.rs-header-menu');
   const closeMenu = () => {
     menu.classList.remove('is-open');
@@ -28,6 +29,7 @@
     });
   });
   document.addEventListener('click', event => { if (!event.target.closest('header')) closeMenu(); });
+  }
 
   document.querySelectorAll('.acs-circle-text').forEach(el => {
     const chars = [...el.textContent.trim() + ' - '];
