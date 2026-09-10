@@ -20,7 +20,7 @@
 .acs-laboratory .rs-header-logo img { width: 175px; height: 58px; object-fit: contain; }
 .acs-laboratory .rs-header-menu { flex: 1; min-width: 0; padding: 0 12px; border-radius: 0; }
 .acs-laboratory .main-menu { margin: 0; padding: 0; border: 0; }
-.acs-laboratory .main-menu > ul { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 0; padding: 0; }
+.acs-laboratory .main-menu > ul { display: flex; align-items: center; justify-content: center; gap: clamp(11px, 0.95vw, 20px); margin: 0; padding: 0; flex-wrap: nowrap; }
 .acs-laboratory .main-menu li { margin: 0; list-style: none; }
 .acs-laboratory .main-menu > ul > li { display: flex; align-items: center; position: relative; }
 .acs-laboratory .main-menu > ul > li > a { padding: 30px 0; font-size: 13px; white-space: nowrap; }
@@ -113,10 +113,10 @@
 .acs-laboratory .rs-footer-stroke-text { font-size: 42px; -webkit-text-stroke: 1px #ffffff85; }
 .acs-laboratory .rs-footer-copyright-area { background: #0b182b; padding: 22px 0; }
 .acs-laboratory .rs-footer-copyright-area p { margin: 0; color: #cbd4df; }
-/* Show Get In Touch whenever the desktop nav is active (>=1400px, the point the
-   nav collapses to a hamburger below). Was 1800px, which left 1400-1799 laptops
-   with the nav imbalanced and no CTA. */
-@media (min-width: 1400px) { .acs-laboratory .rs-header-btn { display: inline-flex; } }
+/* 11 nav items + the CTA don't fit together below ~1800px, so Get In Touch shows
+   only there (Astra's deliberate spacing choice). Below 1800 the centered,
+   evenly-gapped nav uses the full width and every item, incl. Contact Us, fits. */
+@media (min-width: 1800px) { .acs-laboratory .rs-header-btn { display: inline-flex; } }
 @media (max-width: 1399px) {
   .acs-menu-toggle { display: block; }
   .acs-laboratory .rs-header-menu { display: none; position: absolute; left: 0; right: 0; top: 100%; z-index: 20; padding: 20px 30px; background: #fff; border-bottom: 1px solid #d7dce1; max-height: 75vh; overflow-y: auto; }
