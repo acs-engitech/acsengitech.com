@@ -20,7 +20,7 @@
 .acs-laboratory .rs-header-logo img { width: 175px; height: 58px; object-fit: contain; }
 .acs-laboratory .rs-header-menu { flex: 1; min-width: 0; padding: 0 12px; border-radius: 0; }
 .acs-laboratory .main-menu { margin: 0; padding: 0; border: 0; }
-.acs-laboratory .main-menu > ul { display: flex; align-items: center; justify-content: center; gap: clamp(11px, 0.95vw, 20px); margin: 0; padding: 0; flex-wrap: nowrap; }
+.acs-laboratory .main-menu > ul { display: flex; align-items: center; justify-content: center; gap: clamp(8px, 0.7vw, 16px); margin: 0; padding: 0; flex-wrap: nowrap; }
 .acs-laboratory .main-menu li { margin: 0; list-style: none; }
 .acs-laboratory .main-menu > ul > li { display: flex; align-items: center; position: relative; }
 .acs-laboratory .main-menu > ul > li > a { padding: 30px 0; font-size: 13px; white-space: nowrap; }
@@ -33,6 +33,10 @@
 .acs-menu-toggle { width: 48px; height: 48px; background: #f2f4f6; border: 0; font-size: 26px; display: none; }
 .acs-laboratory .rs-header-right { padding: 0; border: 0; border-radius: 0; }
 .acs-laboratory .rs-header-btn { display: none; }
+/* Hamburger container is only for mobile; on desktop the button inside is hidden
+   but the theme's 48x48 container was still rendered, leaving empty space on the
+   right. Hide the container itself; the max-width:1399px block below re-shows it. */
+.acs-laboratory .rs-header-hamburger { display: none; }
 .acs-laboratory .rs-banner-six .rs-banner-item-wrapper { padding: 65px 0; min-height: 700px; display: flex; align-items: center; position: relative; }
 .acs-laboratory .rs-banner-six .rs-banner-content { width: 860px; max-width: calc(100% - 80px); }
 .acs-hero-photo { position: absolute; inset: 0; height: 100%; width: 100%; object-fit: cover; object-position: center; }
