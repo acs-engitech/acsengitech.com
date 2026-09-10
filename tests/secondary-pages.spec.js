@@ -1,8 +1,10 @@
 const {test,expect}=require('@playwright/test');
+const route=name=>`/${name}${process.env.ACS_LAB_STAGED?'-lab':''}.html`;
+test.beforeEach(async({page})=>page.route('**/widget/v1/bundle.js',r=>r.fulfill({body:''})));
 
 test('Services contains only the approved ACS service content',async({page})=>{
-  await page.goto('/services.html');
-  await expect(page.locator('.acs-directory-card')).toHaveCount(6);
+  await page.goto(route('services'));
+  await expect(page.locator('.acs-detail-card')).toHaveCount(6);
   await expect(page.locator('main')).toContainText('PLC, SCADA, instrumentation, commissioning');
   await expect(page.locator('main')).not.toContainText(/Lorem ipsum|Bookkeeping|Tax Consulting|59,00/i);
   await page.setViewportSize({width:390,height:844});
@@ -10,26 +12,26 @@ test('Services contains only the approved ACS service content',async({page})=>{
 });
 
 test('product filters, image preview and enquiry links survive the theme',async({page})=>{
-  await page.goto('/siemens-s7-1200.html');
-  await page.locator('.cat-tab').filter({hasText:/^CPU$/}).click();
-  await expect(page.locator('.prod-card:visible')).toHaveCount(4);
-  const card=page.locator('.prod-card:visible').first();
-  await expect(card.locator('.wa-btn')).toHaveAttribute('href',/^https:\/\/wa.me\/917048520058/);
+  await page.goto(route('siemens-s7-1200'));
+  await page.getByRole('button',{name:'CPU',exact:true}).click();
+  await expect(page.locator('.acs-product-card:visible')).toHaveCount(4);
+  const card=page.locator('.acs-product-card:visible').first();
+  await expect(card.locator('a')).toHaveAttribute('href',/^https:\/\/wa.me\/917048520058/);
   await card.locator('img').click();
-  await expect(page.locator('#lb')).toHaveClass(/on/);
+  await expect(page.locator('#acs-image-dialog')).toBeVisible();
   await page.keyboard.press('Escape');
-  await expect(page.locator('#lb')).not.toHaveClass(/on/);
-  await page.locator('.cat-tab').filter({hasText:/^ALL$/i}).click();
-  expect(await page.locator('.prod-card:visible').count()).toBeGreaterThan(4);
+  await expect(page.locator('#acs-image-dialog')).toBeHidden();
+  await page.getByRole('button',{name:'All',exact:true}).click();
+  expect(await page.locator('.acs-product-card:visible').count()).toBeGreaterThan(4);
 });
 
 test('secondary mobile menu and chatbot install once even with repeated runtime',async({page})=>{
   await page.setViewportSize({width:390,height:844});
-  await page.goto('/about.html');
-  await page.locator('.acs-lab-toggle').click();
-  await expect(page.locator('#acsMobileMenu')).toBeVisible();
+  await page.goto(route('about'));
+  await page.locator('.acs-menu-toggle').click();
+  await expect(page.locator('.rs-header-menu')).toBeVisible();
   await page.keyboard.press('Escape');
-  await expect(page.locator('#acsMobileMenu')).toBeHidden();
+  await expect(page.locator('.rs-header-menu')).toBeHidden();
   await page.addScriptTag({url:'/acs-runtime.js'});
   const chatbot=page.locator('script[src="https://cleuzaibot.srv1512185.hstgr.cloud/widget/v1/bundle.js"]');
   await expect(chatbot).toHaveCount(1);

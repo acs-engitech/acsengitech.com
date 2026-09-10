@@ -13,6 +13,7 @@ const apiRoutes = {
   '/api/public': './api/public',
   '/api/apply': './api/apply',
   '/api/partner': './api/partner',
+  '/api/contact': './api/contact',
   '/api/robots': './api/robots',
   '/api/llms': './api/llms',
   '/robots.txt': './api/robots',

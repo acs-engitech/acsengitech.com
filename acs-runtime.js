@@ -218,6 +218,7 @@
   };
 
   function normalizePath(pathname) {
+    if (pathname === location.pathname && document.body?.hasAttribute('data-acs-page-path')) return document.body.dataset.acsPagePath;
     const path = (pathname || '/').replace(/\/+/g, '/').replace(/\.html$/i, '').replace(/\/index$/i, '').replace(/\/$/, '');
     return path || '/';
   }
