@@ -42,7 +42,7 @@
     });
     el.classList.add('is-circular');
   });
-  if (window.Swiper) {
+  if (window.Swiper && document.querySelector('.acs-hero-slider')) {
     const slider = new Swiper('.acs-hero-slider', {
       slidesPerView: 1, effect: 'fade', fadeEffect: { crossFade: true }, rewind: true,
       speed: reduced ? 0 : 650,
