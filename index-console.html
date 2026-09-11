@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>ACS Engitech — Electrical Automation &amp; Control Panels · Ahmedabad</title>
+  <meta name="description" content="ACS Engitech designs, builds, and commissions PLC, SCADA, MCC, PLC and VFD control panels for industrial process automation. Siemens Authorized System House since 2018. Ahmedabad, India.">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="logo-1.svg">
+  <link rel="stylesheet" href="assets/lab-theme/css/main.css">
+  <link rel="stylesheet" href="assets/lab-theme/css/vendor/remixicon.css">
+  <link rel="stylesheet" href="assets/acs-console.css">
+  <script src="assets/lab-theme/js/plugins/gsap.min.js" defer></script>
+  <script src="assets/lab-theme/js/plugins/rs-scroll-trigger.min.js" defer></script>
+  <script src="assets/acs-console.js" defer></script>
+</head>
+<body class="cn" data-acs-standalone data-acs-page-path="/">
+  <a class="cn-only-sr" href="#main">Skip to content</a>
+
+  <!-- ============ 1. UTILITY BAR (feels live) ============ -->
+  <div class="cn-topbar">
+    <div class="cn-topbar-left">
+      <span class="cn-live"><i></i> Ahmedabad · Operational</span>
+      <span>EST 2009 · System 001</span>
+    </div>
+    <div class="cn-topbar-right">
+      <span><a href="tel:+917048520058">+91 70485 20058</a></span>
+      <span><a href="mailto:sales@acsengitech.com">sales@acsengitech.com</a></span>
+    </div>
+  </div>
+
+  <!-- ============ 2. HEADER ============ -->
+  <header class="cn-header">
+    <a href="index.html" class="cn-brand" aria-label="ACS Engitech">
+      <img src="logo-1.svg" alt="">
+      <span class="cn-brand-name">
+        <b>ACS Engitech</b>
+        <small>Innovative Automation</small>
+      </span>
+    </a>
+    <nav aria-label="Primary">
+      <ul class="cn-nav">
+        <li><a href="about.html">About</a></li>
+        <li><a href="panel-manufacturer.html">Panels</a></li>
+        <li><a href="process-automation.html">Process</a></li>
+        <li><a href="machine-plant-automation.html">Machine</a></li>
+        <li><a href="software-and-cutting-edge-technologies.html">Software</a></li>
+        <li><a href="trading.html">Siemens Trading</a></li>
+        <li><a href="career.html">Careers</a></li>
+        <li><a href="blog.html">Journal</a></li>
+      </ul>
+    </nav>
+    <a class="cn-cta" href="contact.html">Discuss a project
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M8 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    <button class="cn-hamburger" aria-label="Open menu" aria-expanded="false">≡</button>
+  </header>
+
+  <main id="main">
+
+  <!-- ============ 3. HERO: PINNED CONTROL PANEL ============
+       3× viewport wrapper; inner sticks 100vh. Three annotation SETS swap
+       via opacity as the wrapper scrolls past. No transform jitter. -->
+  <section class="cn-panel" aria-label="ACS-built control panel">
+    <div class="cn-panel-stick">
+      <div class="cn-panel-media">
+        <img src="assets/acs/hero.png" alt="ACS Engitech control panel in a client facility, doors open, wiring and PLC modules visible">
+      </div>
+
+      <div class="cn-panel-top">
+        <span class="cn-panel-loc"><i></i>SYSTEM · 001 / PANEL · ACTIVE</span>
+        <span>16&nbsp;YEARS · 7,000+ WORK ORDERS · SIEMENS 2014</span>
+      </div>
+
+      <!-- Annotation set 01 — panel anatomy.
+           Coordinates target the panel photo (hero.png, object-position:60% 50%):
+           - CPU cluster sits center-panel around x≈55% y≈40%
+           - Cabinet fan is the round unit on the LEFT door around x≈40% y≈30%
+           - I/O row is the horizontal terminal band around x≈68% y≈62% -->
+      <div class="cn-anno-set is-in" data-set="1">
+        <div class="cn-anno-item" style="top:30%;left:36%">
+          <span class="cn-anno-pt"></span>
+          <span class="cn-anno-label"><b>01</b>Cabinet-cooling fan</span>
+        </div>
+        <div class="cn-anno-item" style="top:38%;left:56%">
+          <span class="cn-anno-pt"></span>
+          <span class="cn-anno-label"><b>02</b>Siemens S7-1500 CPU</span>
+        </div>
+        <div class="cn-anno-item" style="top:62%;left:68%">
+          <span class="cn-anno-pt"></span>
+          <span class="cn-anno-label"><b>03</b>Distributed I/O row</span>
+        </div>
+      </div>
+
+      <!-- Annotation set 02 — what ACS did -->
+      <div class="cn-anno-set" data-set="2">
+        <div class="cn-anno-item" style="top:26%;left:44%">
+          <span class="cn-anno-pt"></span>
+          <span class="cn-anno-label"><b>ENG</b>EPLAN · IEC 61439 · CPRI PMCC</span>
+        </div>
+        <div class="cn-anno-item" style="top:44%;left:58%">
+          <span class="cn-anno-pt"></span>
+          <span class="cn-anno-label"><b>MFG</b>Fabricated · 36,000 sq.ft. facility</span>
+        </div>
+        <div class="cn-anno-item" style="top:64%;left:70%">
+          <span class="cn-anno-pt"></span>
+          <span class="cn-anno-label"><b>SW</b>PLC + SCADA · TIA Portal · WinCC</span>
+        </div>
+      </div>
+
+      <!-- Annotation set 03 — the project this panel runs -->
+      <div class="cn-anno-set" data-set="3">
+        <div class="cn-anno-item" style="top:30%;left:44%">
+          <span class="cn-anno-pt"></span>
+          <span class="cn-anno-label"><b>SITE</b>Water treatment · Gujarat</span>
+        </div>
+        <div class="cn-anno-item" style="top:46%;left:60%">
+          <span class="cn-anno-pt"></span>
+          <span class="cn-anno-label"><b>SCOPE</b>Design → fabricate → commission</span>
+        </div>
+        <div class="cn-anno-item" style="top:64%;left:66%">
+          <span class="cn-anno-pt"></span>
+          <span class="cn-anno-label"><b>SLA</b>Annual maintenance contract</span>
+        </div>
+      </div>
+
+      <div class="cn-panel-title">
+        <p class="cn-panel-eyebrow">This is one ACS-built panel</p>
+        <h1>Automation you can <em>walk inside.</em></h1>
+      </div>
+
+      <div class="cn-panel-progress">
+        <span class="cn-panel-progress-label">01 / 03</span>
+        <span class="cn-panel-progress-track"><span class="cn-panel-progress-fill"></span></span>
+        <span>SCROLL TO INSPECT</span>
+      </div>
+
+      <div class="cn-panel-scroll">
+        <span>ACS · SYSTEM.001</span>
+        <span>SCROLL &darr;</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4. GRID: MORE PANELS (the "dolly out" reveal) ============ -->
+  <section class="cn-grid" aria-label="ACS panel portfolio">
+    <div class="cn-container">
+      <div class="cn-grid-head">
+        <h2>Every panel in this room was designed, built and commissioned by ACS. <em>This is a sample.</em></h2>
+        <div class="cn-grid-head-meta">
+          Panel Library · Ahmedabad<br>
+          Live inventory · <b style="color:var(--ink)">7,000+ orders</b>
+        </div>
+      </div>
+      <div class="cn-grid-wrap">
+        <a class="cn-tile is-lead" href="process-automation.html">
+          <img src="assets/acs/machine-automation.jpg" alt="Live plant control-panel front, dust-collector process">
+          <div class="cn-tile-meta">
+            <b>Dust-Collector Process Panel — live</b>
+            <span>SYSTEM.001 · Exhaust · Classifier · Blower</span>
+          </div>
+        </a>
+        <a class="cn-tile is-tall is-light" href="mcc-panel-manufacturer.html">
+          <img src="assets/acs/mcc-panel.jpg" alt="ACS MCC panel array">
+          <div class="cn-tile-meta">
+            <b>MCC Panel — 24 breaker array</b>
+            <span>SYSTEM.002 · IEC 61439</span>
+          </div>
+        </a>
+        <a class="cn-tile is-tall is-light" href="variable-frequency-drive-vfd-electrical-panel-manufacturers.html">
+          <img src="assets/acs/vfd-panel.jpg" alt="ACS VFD drive panel bank">
+          <div class="cn-tile-meta">
+            <b>VFD Panel — 7 drives</b>
+            <span>SYSTEM.003 · Siemens G120</span>
+          </div>
+        </a>
+        <a class="cn-tile is-wide is-light" href="panel-manufacturer.html">
+          <img src="assets/acs/control-panels.jpg" alt="ACS PLC control panel">
+          <div class="cn-tile-meta">
+            <b>PLC Control Panel — Water Treatment</b>
+            <span>SYSTEM.004 · Siemens S7-1500 · CPRI PMCC</span>
+          </div>
+        </a>
+        <a class="cn-tile is-half is-light" href="imcc-panel-manufacturer.html">
+          <img src="assets/acs/control-panels.jpg" alt="ACS IMCC control panel">
+          <div class="cn-tile-meta">
+            <b>IMCC Panel</b>
+            <span>SYSTEM.005</span>
+          </div>
+        </a>
+        <a class="cn-tile is-half is-light" href="centralized-automation.html">
+          <img src="assets/acs/mcc-panel.jpg" alt="Centralized automation panel">
+          <div class="cn-tile-meta">
+            <b>Centralized Automation</b>
+            <span>SYSTEM.006</span>
+          </div>
+        </a>
+        <div class="cn-tile is-mini"><div class="cn-tile-meta"><b>+ 6,994 more</b><span>Commissioned since 2009</span></div></div>
+        <div class="cn-tile is-mini"><div class="cn-tile-meta"><b>36,000 sq.ft.</b><span>In-house fabrication · Ahmedabad</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 5. TICKER — running plant data ============ -->
+  <section class="cn-ticker" aria-label="Operational scale">
+    <div class="cn-ticker-track" aria-hidden="true">
+      <span class="cn-ticker-item"><b>7,000+</b> work orders</span>
+      <span class="cn-ticker-item"><b>80+</b> WWT plants commissioned</span>
+      <span class="cn-ticker-item"><b>150+</b> MEE / ATFD installations</span>
+      <span class="cn-ticker-item"><b>2,300</b> I/O · single FMCG line</span>
+      <span class="cn-ticker-item"><b>200+</b> clients served</span>
+      <span class="cn-ticker-item"><b>16+</b> years in operation</span>
+      <span class="cn-ticker-item"><b>36,000 sq.ft.</b> fabrication facility</span>
+      <span class="cn-ticker-item">Siemens <b>System House 2018</b></span>
+      <span class="cn-ticker-item"><b>ISO 9001:2015</b> certified</span>
+      <span class="cn-ticker-item"><b>CPRI-approved</b> PMCC panels</span>
+      <!-- duplicate for seamless loop -->
+      <span class="cn-ticker-item"><b>7,000+</b> work orders</span>
+      <span class="cn-ticker-item"><b>80+</b> WWT plants commissioned</span>
+      <span class="cn-ticker-item"><b>150+</b> MEE / ATFD installations</span>
+      <span class="cn-ticker-item"><b>2,300</b> I/O · single FMCG line</span>
+      <span class="cn-ticker-item"><b>200+</b> clients served</span>
+      <span class="cn-ticker-item"><b>16+</b> years in operation</span>
+      <span class="cn-ticker-item"><b>36,000 sq.ft.</b> fabrication facility</span>
+      <span class="cn-ticker-item">Siemens <b>System House 2018</b></span>
+      <span class="cn-ticker-item"><b>ISO 9001:2015</b> certified</span>
+      <span class="cn-ticker-item"><b>CPRI-approved</b> PMCC panels</span>
+    </div>
+  </section>
+
+  <!-- ============ 6. CAPABILITY CONSOLE ============ -->
+  <section class="cn-console">
+    <div class="cn-container">
+      <div class="cn-console-head">
+        <h2>ACS runs the whole loop. <em>Design, panel, PLC, SCADA, and support &mdash; from one house.</em></h2>
+        <p>Every capability below is delivered end-to-end from our Ahmedabad facility &mdash; not stitched from vendors.</p>
+      </div>
+      <div class="cn-console-body" data-cn-console>
+        <div class="cn-console-list" role="tablist">
+          <div class="cn-console-row is-active" role="tab" tabindex="0"
+               data-media="assets/acs/hero.png"
+               data-title="Process Automation"
+               data-meta="Siemens TIA Portal · S7-1200 / 1500<br><b>80+</b> WWT plants · <b>150+</b> MEE / ATFD">
+            <span class="idx">01</span><h3>Process Automation</h3><span class="arrow">→</span>
+          </div>
+          <div class="cn-console-row" role="tab" tabindex="0"
+               data-media="assets/acs/machine-automation.jpg"
+               data-title="Machine &amp; Plant Automation"
+               data-meta="OEM / plant lines · motion &amp; drives<br>Siemens G120 · SIMATIC controllers">
+            <span class="idx">02</span><h3>Machine &amp; Plant Automation</h3><span class="arrow">→</span>
+          </div>
+          <div class="cn-console-row" role="tab" tabindex="0"
+               data-media="assets/acs/mcc-panel.jpg"
+               data-title="Panel Manufacturing"
+               data-meta="MCC · IMCC · PCC · PLC · VFD · SCADA<br><b>IEC 61439</b> · CPRI-approved PMCC">
+            <span class="idx">03</span><h3>Panel Manufacturing</h3><span class="arrow">→</span>
+          </div>
+          <div class="cn-console-row" role="tab" tabindex="0"
+               data-media="assets/acs/vfd-panel.jpg"
+               data-title="Energy &amp; Data Systems"
+               data-meta="LogView · SCADA reporting · IIoT<br>SQL Server logs · Excel exports">
+            <span class="idx">04</span><h3>Energy Monitoring &amp; Data</h3><span class="arrow">→</span>
+          </div>
+          <div class="cn-console-row" role="tab" tabindex="0"
+               data-media="assets/acs/control-panels.jpg"
+               data-title="Centralized Automation"
+               data-meta="Multi-station SCADA · Modbus TCP · Profinet<br>Single-pane HMI for full plant">
+            <span class="idx">05</span><h3>Centralized Automation</h3><span class="arrow">→</span>
+          </div>
+          <div class="cn-console-row" role="tab" tabindex="0"
+               data-media="assets/acs/acs-team.jpg"
+               data-title="Annual Maintenance Contract"
+               data-meta="Preventive · SLA-backed<br>On-call engineering team">
+            <span class="idx">06</span><h3>Annual Maintenance</h3><span class="arrow">→</span>
+          </div>
+        </div>
+        <figure class="cn-console-media" role="tabpanel">
+          <div class="cn-console-frame-corner tl"></div>
+          <div class="cn-console-frame-corner tr"></div>
+          <div class="cn-console-frame-corner bl"></div>
+          <div class="cn-console-frame-corner br"></div>
+          <div class="cn-console-media-inner">
+            <img data-src="assets/acs/hero.png" src="assets/acs/hero.png" class="is-shown" alt="ACS control panel">
+            <img data-src="assets/acs/machine-automation.jpg" src="assets/acs/machine-automation.jpg" alt="Live plant control panel">
+            <img data-src="assets/acs/mcc-panel.jpg" src="assets/acs/mcc-panel.jpg" alt="ACS MCC panel">
+            <img data-src="assets/acs/vfd-panel.jpg" src="assets/acs/vfd-panel.jpg" alt="ACS VFD panel">
+            <img data-src="assets/acs/control-panels.jpg" src="assets/acs/control-panels.jpg" alt="ACS control panel">
+            <img data-src="assets/acs/acs-team.jpg" src="assets/acs/acs-team.jpg" alt="ACS engineering team">
+          </div>
+          <figcaption class="cn-console-hud">
+            <span class="cn-console-hud-title">Process Automation</span>
+            <span class="cn-console-hud-meta">Siemens TIA Portal · S7-1200 / 1500<br><b>80+</b> WWT plants · <b>150+</b> MEE / ATFD</span>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 7. FEATURE PROJECT ============ -->
+  <section class="cn-feature">
+    <div class="cn-container">
+      <div class="cn-feature-head">
+        <span class="cn-tag hi">Selected Project · SYSTEM.204</span>
+        <a href="process-automation.html">All projects →</a>
+      </div>
+      <figure class="cn-feature-frame">
+        <img src="assets/acs/machine-automation.jpg" alt="Live front-of-panel view of a dust-collector process control system">
+        <figcaption class="cn-feature-plaque">
+          <div>
+            <h3><span>2,300 I/O</span> · single FMCG production line, commissioned end-to-end by ACS on Siemens S7-1500.</h3>
+            <ul class="cn-feature-specs">
+              <li><b>2,300</b><span>I/O channels</span></li>
+              <li><b>S7-1500</b><span>Siemens controller</span></li>
+              <li><b>6</b><span>MCC panels</span></li>
+              <li><b>11 wk</b><span>design → commissioning</span></li>
+            </ul>
+          </div>
+          <a class="cn-feature-cta" href="contact.html">Discuss a similar build
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M8 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============ 8. TRUST STRIP ============ -->
+  <section class="cn-trust">
+    <div class="cn-container cn-trust-inner">
+      <h3>Trusted by process, chemical<br>and FMCG manufacturers</h3>
+      <div class="cn-trust-logos">
+        <img src="assets/acs/hikal-logo.png" alt="Hikal">
+        <img src="assets/acs/johnson-matthey-logo.svg" alt="Johnson Matthey">
+        <img src="assets/acs/rexroth-logo.png" alt="Bosch Rexroth">
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 9. CONTACT ============ -->
+  <section class="cn-contact">
+    <div class="cn-container cn-contact-inner">
+      <h2>Have a plant that needs dependable automation? <em>Let&rsquo;s look at your process.</em></h2>
+      <div class="cn-contact-actions">
+        <a href="contact.html" class="primary">Start a project
+          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M8 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <span class="meta">Ahmedabad, IN · Mon–Sat 10:00–18:00</span>
+        <span class="meta"><a href="tel:+917048520058">+91 70485 20058</a></span>
+        <span class="meta"><a href="mailto:sales@acsengitech.com">sales@acsengitech.com</a></span>
+      </div>
+    </div>
+  </section>
+
+  </main>
+
+  <!-- ============ 10. FOOTER ============ -->
+  <footer class="cn-footer">
+    <div class="cn-container cn-footer-grid">
+      <div class="cn-footer-brand">
+        <a href="index.html" class="cn-brand"><img src="logo-1.svg" alt=""><span class="cn-brand-name"><b>ACS Engitech</b><small>Innovative Automation</small></span></a>
+        <p>Industrial electrical automation from Ahmedabad. Panel manufacturing, PLC &amp; SCADA programming, process and machine automation.</p>
+      </div>
+      <div class="cn-footer-col">
+        <h5>Systems</h5>
+        <ul>
+          <li><a href="panel-manufacturer.html">Panel Manufacturing</a></li>
+          <li><a href="process-automation.html">Process Automation</a></li>
+          <li><a href="machine-plant-automation.html">Machine &amp; Plant Automation</a></li>
+          <li><a href="software-and-cutting-edge-technologies.html">Software &amp; Data</a></li>
+          <li><a href="annual-maintenance-contract.html">Annual Maintenance</a></li>
+        </ul>
+      </div>
+      <div class="cn-footer-col">
+        <h5>Company</h5>
+        <ul>
+          <li><a href="about.html">About</a></li>
+          <li><a href="certificates.html">Certificates</a></li>
+          <li><a href="career.html">Careers</a></li>
+          <li><a href="partner-with-us.html">Partner With Us</a></li>
+          <li><a href="blog.html">Journal</a></li>
+        </ul>
+      </div>
+      <div class="cn-footer-col cn-footer-office">
+        <h5>Ahmedabad · IN</h5>
+        <address>
+          <strong>ACS Engitech Private Limited</strong><br>
+          A-98, Swayam Industrial Park<br>
+          Opp. Gharda Ghar, Vill-Kuha<br>
+          Taluka-Daskroi, Ahmedabad-382433<br>
+          GST 24AAQCA6090D1ZO<br><br>
+          <a href="tel:+917048520058">+91 70485 20058</a><br>
+          <a href="mailto:sales@acsengitech.com">sales@acsengitech.com</a>
+        </address>
+      </div>
+    </div>
+    <div class="cn-container cn-footer-bottom">
+      <span>© 2026 ACS Engitech Private Limited</span>
+      <span>SYSTEM · 001 · Est. Ahmedabad, 2009</span>
+    </div>
+  </footer>
+
+  <script src="acs-runtime.js" defer></script>
+</body></html>
