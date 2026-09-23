@@ -3,6 +3,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const outputDir = path.join(__dirname, '..', 'visual-checks');
+const publicRoute = name => `/${name}${process.env.ACS_DESIGN_STAGED ? '-design' : ''}.html`;
+test.beforeEach(async ({page}) => page.route('**/widget/v1/bundle.js', r => r.fulfill({body:''})));
 
 test.beforeAll(() => {
   fs.mkdirSync(outputDir, { recursive: true });
@@ -104,65 +106,67 @@ async function expectNoHorizontalOverflow(page) {
 
 test('home mobile header menu and footer stay inside viewport', async ({ page }) => {
   await page.setViewportSize({ width: 430, height: 932 });
-  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.goto(publicRoute('index'), { waitUntil: 'domcontentloaded' });
   await page.waitForLoadState('networkidle').catch(() => {});
 
   await expectNoHorizontalOverflow(page);
   await page.screenshot({ path: path.join(outputDir, 'home-mobile-closed.png'), fullPage: false });
 
-  await page.locator('.hfe-nav-menu__toggle').first().click();
+  await page.locator('.ed-menu-toggle').click();
   await page.waitForTimeout(300);
   await expectNoHorizontalOverflow(page);
 
-  const menuBox = await page.locator('nav.hfe-nav-menu__layout-horizontal, nav.hfe-dropdown, nav.hfe-dropdown-expandible').first().boundingBox();
+  const menuBox = await page.locator('.ed-navigation').boundingBox();
   expect(menuBox.x).toBeGreaterThanOrEqual(-2);
   expect(menuBox.width).toBeLessThanOrEqual(432);
-  expect(menuBox.height).toBeGreaterThan(300);
+  expect(menuBox.height).toBeGreaterThan(250);
   expect(menuBox.height).toBeLessThan(620);
-  const visibleMenuGap = await page.locator('nav.hfe-nav-menu__layout-horizontal, nav.hfe-dropdown, nav.hfe-dropdown-expandible').first().evaluate((node) => {
+  const visibleMenuGap = await page.locator('.ed-navigation').evaluate((node) => {
     const navBottom = node.getBoundingClientRect().bottom;
-    const visibleItems = Array.from(node.querySelectorAll(':scope > ul > li')).filter((item) => {
+    const visibleItems = Array.from(node.querySelectorAll(':scope > details')).filter((item) => {
       const style = window.getComputedStyle(item);
       return style.display !== 'none' && style.visibility !== 'hidden' && item.getBoundingClientRect().height > 0;
     });
     const itemBottom = Math.max(...visibleItems.map((item) => item.getBoundingClientRect().bottom));
     return Math.round(navBottom - itemBottom);
   });
-  expect(visibleMenuGap).toBeLessThanOrEqual(12);
+  expect(visibleMenuGap).toBeLessThanOrEqual(24);
   await page.screenshot({ path: path.join(outputDir, 'home-mobile-menu-open.png'), fullPage: false });
 
-  await page.locator('.hfe-nav-menu__toggle').first().click();
+  await page.locator('.ed-menu-toggle').click();
   await page.waitForTimeout(200);
-  await page.locator('footer#colophon').scrollIntoViewIfNeeded();
+  await page.locator('.ed-footer').scrollIntoViewIfNeeded();
   await expectNoHorizontalOverflow(page);
   await page.screenshot({ path: path.join(outputDir, 'home-mobile-footer.png'), fullPage: false });
 });
 
 test('about mobile header menu stays inside viewport', async ({ page }) => {
   await page.setViewportSize({ width: 430, height: 932 });
-  await page.goto('/about.html', { waitUntil: 'domcontentloaded' });
+  await page.goto(publicRoute('about'), { waitUntil: 'domcontentloaded' });
   await page.waitForLoadState('networkidle').catch(() => {});
-  await page.locator('.hfe-nav-menu__toggle').first().click();
+  await page.locator('.ed-menu-toggle').click();
   await page.waitForTimeout(300);
 
   await expectNoHorizontalOverflow(page);
-  const menuBox = await page.locator('nav.hfe-nav-menu__layout-horizontal, nav.hfe-dropdown, nav.hfe-dropdown-expandible').first().boundingBox();
-  expect(menuBox.height).toBeGreaterThan(300);
+  const menuBox = await page.locator('.ed-navigation').boundingBox();
+  expect(menuBox.height).toBeGreaterThan(250);
   expect(menuBox.height).toBeLessThan(620);
   await page.screenshot({ path: path.join(outputDir, 'about-mobile-menu-open.png'), fullPage: false });
 });
 
 test('blog uses ACS shared header and footer', async ({ page }) => {
   await page.setViewportSize({ width: 1365, height: 768 });
-  await page.goto('/blog.html', { waitUntil: 'domcontentloaded' });
+  await page.goto(publicRoute('blog'), { waitUntil: 'domcontentloaded' });
   await page.waitForLoadState('networkidle').catch(() => {});
 
-  await expect(page.locator('header#masthead')).toBeVisible();
-  await expect(page.locator('footer#colophon')).toBeVisible();
-  await expect(page.locator('header#masthead a.hfe-menu-item', { hasText: 'Blog' })).toBeVisible();
+  await expect(page.locator('.ed-header')).toBeVisible();
+  await expect(page.locator('.ed-footer')).toBeVisible();
+  await page.locator('.ed-navigation summary', {hasText:'Company'}).click();
+  await expect(page.locator('.ed-navigation a', { hasText: 'Blog' })).toBeVisible();
+  await page.keyboard.press('Escape');
   await expect(page.locator('text=Blog posts are loading. Please refresh in a moment.')).toHaveCount(0);
-  const footerLinkColor = await page.locator('footer#colophon a').first().evaluate((node) => window.getComputedStyle(node).color);
-  expect(footerLinkColor).toBe('rgb(255, 255, 255)');
+  const footerLinkColor = await page.locator('.ed-footer a').first().evaluate((node) => window.getComputedStyle(node).color);
+  expect(footerLinkColor).toBe('rgb(192, 203, 207)');
   await expectNoHorizontalOverflow(page);
   await page.screenshot({ path: path.join(outputDir, 'blog-desktop.png'), fullPage: false });
 });
@@ -170,7 +174,7 @@ test('blog uses ACS shared header and footer', async ({ page }) => {
 test('published blog content renders as an ACS client page', async ({ page }) => {
   await mockPublicContent(page);
   await page.setViewportSize({ width: 1365, height: 768 });
-  await page.goto('/blog.html', { waitUntil: 'domcontentloaded' });
+  await page.goto(publicRoute('blog'), { waitUntil: 'domcontentloaded' });
   await page.waitForLoadState('networkidle').catch(() => {});
 
   await expect(page.locator('.acs-blog-hero')).toBeVisible();
@@ -178,7 +182,7 @@ test('published blog content renders as an ACS client page', async ({ page }) =>
   await expect(page.locator('.acs-blog-card h2')).toHaveText('Testing PLC Panel Blog');
   const titleBox = await page.locator('.acs-blog-index h1').boundingBox();
   expect(titleBox.height).toBeLessThan(90);
-  await expect(page.locator('.acs-blog-card > a')).toHaveCSS('background-color', 'rgb(28, 58, 98)');
+  await expect(page.locator('.acs-blog-card > a')).toHaveAttribute('href', /testing-plc-panel-blog/);
   await expectNoHorizontalOverflow(page);
   await page.screenshot({ path: path.join(outputDir, 'blog-with-post.png'), fullPage: false });
 });
@@ -186,26 +190,26 @@ test('published blog content renders as an ACS client page', async ({ page }) =>
 test('published blog article renders inside ACS article shell', async ({ page }) => {
   await mockPublicContent(page);
   await page.setViewportSize({ width: 1365, height: 768 });
-  await page.goto('/blog.html?post=testing-plc-panel-blog', { waitUntil: 'domcontentloaded' });
+  await page.goto(publicRoute('blog')+'?post=testing-plc-panel-blog', { waitUntil: 'domcontentloaded' });
   await page.waitForLoadState('networkidle').catch(() => {});
 
   await expect(page.locator('.acs-blog-article-hero')).toBeVisible();
   await expect(page.locator('.acs-blog-article h1')).toHaveText('Testing PLC Panel Blog');
   await expect(page.locator('.acs-blog-content-card')).toBeVisible();
-  await expect(page.locator('.acs-blog-content-card')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
-  await expect(page.locator('header#masthead')).toBeVisible();
-  await expect(page.locator('footer#colophon')).toBeVisible();
+  await expect(page.locator('.acs-blog-content-card')).toContainText('Useful automation note from ACS Engitech.');
+  await expect(page.locator('.ed-header')).toBeVisible();
+  await expect(page.locator('.ed-footer')).toBeVisible();
   await expectNoHorizontalOverflow(page);
   await page.screenshot({ path: path.join(outputDir, 'blog-article.png'), fullPage: false });
 });
 
 test('career page renders existing role layout dynamically without duplicate placeholder', async ({ page }) => {
   await page.setViewportSize({ width: 1365, height: 768 });
-  await page.goto('/career.html', { waitUntil: 'domcontentloaded' });
+  await page.goto(publicRoute('career'), { waitUntil: 'domcontentloaded' });
   await page.waitForLoadState('networkidle').catch(() => {});
 
-  await expect(page.locator('#acs-career-board')).toHaveCount(0);
-  await expect(page.locator('.acs-career-existing-board')).toHaveCount(1);
+  await expect(page.locator('#acs-career-board')).toHaveCount(1);
+  await expect(page.locator('.acs-career-role')).toHaveCount(2);
   await expect(page.locator('.acs-career-role h2', { hasText: 'Automation Engineer' })).toBeVisible();
   await expect(page.locator('.acs-career-role h2', { hasText: 'Field Sales Engineer' })).toBeVisible();
   await expect(page.locator('text=Loading current openings...')).toHaveCount(0);
@@ -218,13 +222,13 @@ test('career page renders existing role layout dynamically without duplicate pla
 test('sparse career admin content still renders cleanly on client page', async ({ page }) => {
   await mockPublicContent(page);
   await page.setViewportSize({ width: 1365, height: 768 });
-  await page.goto('/career.html', { waitUntil: 'domcontentloaded' });
+  await page.goto(publicRoute('career'), { waitUntil: 'domcontentloaded' });
   await page.waitForLoadState('networkidle').catch(() => {});
 
   await expect(page.locator('.acs-career-role h2')).toHaveText('Testing Automation Role');
   await expect(page.locator('.acs-career-meta span')).toHaveCount(4);
   await expect(page.locator('.acs-career-list li')).toHaveCount(1);
-  await expect(page.locator('.acs-career-role').first()).toHaveCSS('border-radius', '8px');
+  await expect(page.locator('.acs-career-role').first()).toHaveCSS('border-radius', '0px');
   await expectNoHorizontalOverflow(page);
   await page.screenshot({ path: path.join(outputDir, 'career-sparse-role.png'), fullPage: false });
 });

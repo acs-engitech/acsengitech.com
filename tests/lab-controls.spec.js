@@ -1,5 +1,5 @@
 const {test,expect}=require('@playwright/test');
-const route=name=>`/${name}${process.env.ACS_LAB_STAGED?'-lab':''}.html`;
+const route=name=>`/${name}${process.env.ACS_DESIGN_STAGED?'-design':''}.html`;
 test.beforeEach(async({page})=>page.route('**/widget/v1/bundle.js',r=>r.fulfill({body:''})));
 
 test('navigation fits and opens across screen sizes on home and About',async({page})=>{
@@ -7,10 +7,10 @@ test('navigation fits and opens across screen sizes on home and About',async({pa
   for(const name of ['index','about'])for(const width of [390,768,1024,1440,1600,1920]){
     await page.setViewportSize({width,height:1000});
     await page.goto(route(name));
-    const menu=page.locator('.rs-header-menu');
-    if(width<1600)await page.getByRole('button',{name:'Open menu',exact:true}).click();
+    const menu=page.locator('.ed-navigation');
+    if(width<992)await page.getByRole('button',{name:'Open menu',exact:true}).click();
     await expect(menu).toBeVisible();
-    await page.getByRole('button',{name:'Services submenu',exact:true}).click();
+    await menu.locator('summary').filter({hasText:'Engineering'}).click();
     const link=menu.getByRole('link',{name:'Smart Data Logger',exact:true});
     await expect(link).toBeVisible();
     await link.scrollIntoViewIfNeeded();
@@ -20,7 +20,7 @@ test('navigation fits and opens across screen sizes on home and About',async({pa
     expect(geometry,`${name} at ${width}`).toEqual([]);
     if(width===390||width===1920)await page.screenshot({path:`.scratch/nav-${name}-${width}.png`});
     await page.keyboard.press('Escape');
-    if(width<1600)await expect(menu).toBeHidden();
+    if(width<992)await expect(menu).toBeHidden();
   }
 });
 
