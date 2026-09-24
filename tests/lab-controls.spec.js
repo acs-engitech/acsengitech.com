@@ -7,11 +7,11 @@ test('navigation fits and opens across screen sizes on home and About',async({pa
   for(const name of ['index','about'])for(const width of [390,768,1024,1440,1600,1920]){
     await page.setViewportSize({width,height:1000});
     await page.goto(route(name));
-    const menu=page.locator('.ed-navigation');
-    if(width<992)await page.getByRole('button',{name:'Open menu',exact:true}).click();
+    const menu=page.locator('#main-navigation');
+    if(width<1024)await page.getByRole('button',{name:'Open menu',exact:true}).click();
     await expect(menu).toBeVisible();
-    await menu.locator('summary').filter({hasText:'Engineering'}).click();
-    const link=menu.getByRole('link',{name:'Smart Data Logger',exact:true});
+    await menu.locator('summary').filter({hasText:'Expertise'}).click();
+    const link=menu.getByRole('link',{name:'Smart data logger',exact:true});
     await expect(link).toBeVisible();
     await link.scrollIntoViewIfNeeded();
     const geometry=await page.evaluate(()=>[...document.querySelectorAll('header a,header button')].filter(n=>{
@@ -20,7 +20,7 @@ test('navigation fits and opens across screen sizes on home and About',async({pa
     expect(geometry,`${name} at ${width}`).toEqual([]);
     if(width===390||width===1920)await page.screenshot({path:`.scratch/nav-${name}-${width}.png`});
     await page.keyboard.press('Escape');
-    if(width<992)await expect(menu).toBeHidden();
+    if(width<1024){await page.keyboard.press('Escape');await expect(menu).toBeHidden();}
   }
 });
 
@@ -63,7 +63,7 @@ test('career and partner forms retain choices, validation and submission',async(
   await page.locator('#acs-position-select').selectOption('qa-job');
   await page.locator('#acs-job-form [name=name]').fill('Test Visitor');
   await page.locator('#acs-job-form [name=email]').fill('test@example.test');
-  await page.locator('#acs-job-form [name=phone]').fill('9876543210');
+  await page.locator('#acs-job-form [name=phone]').fill('+919876543210');
   await page.locator('#acs-submit-btn').click();
   await expect(page.locator('#acs-form-message')).toContainText('received');
   await page.goto(route('partner-with-us'));
