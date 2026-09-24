@@ -1,29 +1,16 @@
-// GLB replacements use Y-up, metre units and a centered origin. The loader fits them automatically.
-// Keep modelUrl null until an approved, uncompressed GLB/GLTF asset is available.
+// Positions, bounds and anchors remain stable when approved GLBs replace schematic actors.
+export const modelSlots = {
+  cabinet: { modelUrl: null, size: [2.9, 3.5, 1.1], position: [0, 0, 0], reference: 'assets/acs/control-panels.jpg', status: 'NEEDS CONFIRMATION: dimensions, exterior and internal layout.' },
+  field: { modelUrl: null, size: [.85, 1.4, .65], position: [3.2, 0, 2.1], reference: null, status: 'Schematic signal interface; not a specified ACS product.' },
+  power: { modelUrl: null, size: [3.7, 2.8, .9], position: [-4.1, 0, -1.5], reference: 'assets/acs/vfd-panel.jpg', status: 'NEEDS CONFIRMATION: approved lineup and bay dimensions.' },
+  data: { modelUrl: null, size: [2.9, 2.4, .3], position: [4.2, 0, -2.1], reference: 'assets/home-journey/media/ems.jpg', status: 'Schematic display plane with actual ACS interface; not live data.' },
+  installation: { modelUrl: null, size: [12, .15, 8], position: [0, 0, 0], reference: null, status: 'Conceptual installation base, not an ACS factory replica.' }
+};
 export const stages = [
-  { id: 'field', label: '01 / Field input', modelUrl: null, modelHeight: 2.7,
-    fallback: 'assets/home-journey/media/engineering.jpg', alt: 'ACS electrical engineering drawings',
-    caption: 'Power & control engineering / ACS drawings',
-    annotation: 'Signal termination', detail: 'Field signals are terminated and routed into the control system.',
-    modelLabel: 'Conceptual field junction box assembly', hotspot: [0.5, 0.25, 0.55] },
-  { id: 'control', label: '02 / Control logic', modelUrl: null, modelHeight: 3.2,
-    fallback: 'assets/home-journey/media/plc-mcc.jpg', alt: 'ACS PLC cum MCC panel with internal equipment visible',
-    caption: 'PLC cum MCC panel / ACS panel range',
-    annotation: 'PLC & I/O', detail: 'PLC logic processes inputs and coordinates outputs. HMI and SCADA provide operation and supervision.',
-    modelLabel: 'Conceptual control cabinet with PLC and I/O modules', hotspot: [0.25, 0.6, 0.55] },
-  { id: 'power', label: '03 / Power & drive', modelUrl: null, modelHeight: 2.8,
-    fallback: 'assets/acs/vfd-panel.jpg', alt: 'ACS variable frequency drive panel lineup',
-    caption: 'VFD panel lineup / ACS panel range',
-    annotation: 'Variable frequency drive', detail: 'A VFD controls motor speed to suit the process. Panel engineering connects protection, control and power.',
-    modelLabel: 'Conceptual variable frequency drive assembly', hotspot: [0.5, 0.5, 0.5] },
-  { id: 'process', label: '04 / Process automation', modelUrl: null, modelHeight: 2.7,
-    fallback: 'assets/home-journey/media/plc-mcc.jpg', alt: 'ACS PLC cum MCC panel for integrated control',
-    caption: 'Integrated control / ACS panel reference',
-    annotation: 'Coordinated equipment', detail: 'Sequencing and interlocks coordinate plant equipment. This schematic skid illustrates the system relationship, not a specific ACS installation.',
-    modelLabel: 'Conceptual process skid illustrating connected equipment', hotspot: [0.65, 0.6, 0.25] },
-  { id: 'data', label: '05 / Data & monitoring', modelUrl: null, modelHeight: 2.5,
-    fallback: 'assets/home-journey/media/ems.jpg', alt: 'ACS energy monitoring software interface',
-    caption: 'Energy monitoring / ACS software interface',
-    annotation: 'Plant data visibility', detail: 'ACS energy monitoring and LogView support data visibility, trends and reporting. The displayed interface is an existing screenshot, not live data.',
-    modelLabel: 'Conceptual industrial display showing the ACS energy monitoring interface', hotspot: [0.75, 0.5, 0.2] }
+  { id: 'arrival', label: 'The complete system', actor: 'cabinet', target: [0, 1.35, 0], offset: [7, 5, 10], height: 9.5, mobileWidth: 8.6, anchor: [0, 3.25, .65], annotation: 'CONTROL / ACS ENGINEERING', detail: 'One connected installation. Schematic volumes reserve the positions of approved future models.' },
+  { id: 'field', label: 'Field input', actor: 'field', target: [2.6, .9, 1.7], offset: [5, 3.8, 8], height: 4.6, mobileWidth: 3.2, anchor: [3.2, 1.25, 2.45], annotation: 'INPUT / SIGNAL INTERFACE', detail: 'Plant instrumentation supplies signals used by the control system. This enclosure is schematic, not a specified component.' },
+  { id: 'control', label: 'Control & inspection', actor: 'cabinet', target: [0, 1.55, .2], offset: [3, 2.2, 10], height: 7.2, mobileWidth: 6, anchor: [0, 2.4, .25], annotation: 'LOGIC / PANEL ENGINEERING', detail: 'Control, connection and routing zones represent roles within a cabinet. Exact component layouts await approved references.' },
+  { id: 'power', label: 'Power & drive', actor: 'power', target: [-4.1, 1.3, -1.5], offset: [5, 3.3, 10], height: 6, mobileWidth: 4.7, anchor: [-4.1, 2.65, -1], annotation: 'OUTPUT / MCC + VFD', detail: 'A modular lineup represents ACS motor-control and drive-panel engineering. No ratings or component models are implied.' },
+  { id: 'data', label: 'Data & monitoring', actor: 'data', target: [4.2, 1.35, -2.1], offset: [1.5, 1.4, 10], height: 4.8, mobileWidth: 3.8, anchor: [4.2, 2.55, -1.95], annotation: 'VISIBILITY / ACS SOFTWARE', detail: 'Actual ACS software imagery is displayed on a schematic spatial surface. It is an existing interface, not live operational data.' },
+  { id: 'installation', label: 'Complete execution', actor: 'installation', target: [0, 2, 0], offset: [9, 9, 12], height: 13, mobileWidth: 12.5, anchor: [0, .05, 3.9], annotation: 'DELIVERY / CONNECTED EXECUTION', detail: 'A conceptual installation unites the system roles. It is not a digital twin or the ACS facility layout.' }
 ];
