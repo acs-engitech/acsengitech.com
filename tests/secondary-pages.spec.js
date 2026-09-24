@@ -4,7 +4,7 @@ test.beforeEach(async({page})=>page.route('**/widget/v1/bundle.js',r=>r.fulfill(
 
 test('Services contains only the approved ACS service content',async({page})=>{
   await page.goto(route('services'));
-  await expect(page.locator('.ed-capability-row')).toHaveCount(6);
+  await expect(page.locator('.acs-directory-card')).toHaveCount(6);
   await expect(page.locator('main')).toContainText('PLC, SCADA, instrumentation, commissioning');
   await expect(page.locator('main')).not.toContainText(/Lorem ipsum|Bookkeeping|Tax Consulting|59,00/i);
   await page.setViewportSize({width:390,height:844});
@@ -28,10 +28,10 @@ test('product filters, image preview and enquiry links survive the theme',async(
 test('secondary mobile menu and chatbot install once even with repeated runtime',async({page})=>{
   await page.setViewportSize({width:390,height:844});
   await page.goto(route('about'));
-  await page.locator('.ed-menu-toggle').click();
-  await expect(page.locator('.ed-navigation')).toBeVisible();
+  await page.locator('.menu-toggle').click();
+  await expect(page.locator('#main-navigation')).toBeVisible();
   await page.keyboard.press('Escape');
-  await expect(page.locator('.ed-navigation')).toBeHidden();
+  await expect(page.locator('#main-navigation')).toBeHidden();
   await page.addScriptTag({url:'/acs-runtime.js'});
   const chatbot=page.locator('script[src="https://cleuzaibot.srv1512185.hstgr.cloud/widget/v1/bundle.js"]');
   await expect(chatbot).toHaveCount(1);

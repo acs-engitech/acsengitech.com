@@ -1,41 +1,6 @@
 (() => {
   'use strict';
   document.documentElement.classList.add('has-js');
-  const nav = document.getElementById('main-navigation');
-  const menu = document.querySelector('.menu-toggle');
-  const groups = [...document.querySelectorAll('.nav-group')];
-  const mobileNav = matchMedia('(max-width: 1023px)');
-  function setMenu(open, focus = false) {
-    nav.classList.toggle('is-open', open);
-    document.body.classList.toggle('menu-open', open);
-    menu.setAttribute('aria-expanded', String(open));
-    menu.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
-    menu.title = open ? 'Close menu' : 'Open menu';
-    menu.firstElementChild.className = open ? 'ri-close-line' : 'ri-menu-line';
-    if (!open) groups.forEach(group => { group.open = false; });
-    if (focus) menu.focus();
-  }
-  menu.addEventListener('click', () => setMenu(!nav.classList.contains('is-open')));
-  groups.forEach(group => group.addEventListener('toggle', () => {
-    group.querySelector('summary').setAttribute('aria-expanded', String(group.open));
-    if (group.open) groups.forEach(other => { if (other !== group) other.open = false; });
-  }));
-  document.addEventListener('click', event => { if (!event.target.closest('.site-header')) setMenu(false); });
-  nav.addEventListener('click', event => { if (event.target.closest('a')) setMenu(false); });
-  document.addEventListener('keydown', event => {
-    if (event.key === 'Escape') {
-      const open = groups.find(group => group.open);
-      if (open) { open.open = false; open.querySelector('summary').focus(); }
-      else if (nav.classList.contains('is-open')) setMenu(false, true);
-    }
-    if (event.key === 'Tab' && mobileNav.matches && nav.classList.contains('is-open')) {
-      const items = [...document.querySelectorAll('.site-header a,.site-header summary,.menu-toggle')].filter(el => el.getClientRects().length);
-      const first = items[0], last = items[items.length - 1];
-      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
-      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
-    }
-  });
-  mobileNav.addEventListener('change', () => setMenu(false));
 
 
   const journey = document.getElementById('acs-world');
@@ -47,6 +12,36 @@
   const note = document.getElementById('world-note');
   const info = document.getElementById('world-info');
   const poster = document.getElementById('world-poster');
+  const compact=matchMedia('(max-width:999px)');
+  const scope=document.createElement('dialog');scope.id='world-scope';scope.setAttribute('aria-labelledby','world-scope-title');
+  scope.innerHTML='<button class="scope-close icon-button" aria-label="Close engineering scope" title="Close engineering scope"><i class="ri-close-line" aria-hidden="true"></i></button><h2 id="world-scope-title"></h2><div class="scope-body"></div>';
+  document.body.append(scope);
+  scope.querySelector('button').addEventListener('click',()=>scope.close());
+  scope.addEventListener('click',e=>{if(e.target===scope)scope.close();});
+  const mobileLead={installation:'From engineering to on-site commissioning.',contact:'Start a conversation with ACS engineering.'};
+  chapters.forEach(chapter=>{
+    const copy=chapter.querySelector('.scene-description,.deployment-copy');if(!copy)return;
+    const paragraphs=[...copy.querySelectorAll(':scope > p')];
+    paragraphs.forEach(p=>p.classList.add('scope-copy'));
+    const lead=paragraphs[0]?.querySelector('strong')?.textContent||mobileLead[chapter.id];
+    if(lead){const p=document.createElement('p');p.className='mobile-story-lead';p.textContent=lead;copy.prepend(p);}
+    const button=document.createElement('button');button.className='mobile-scope';button.type='button';button.innerHTML='View scope <i class="ri-add-line" aria-hidden="true"></i>';
+    button.addEventListener('click',()=>{
+      scope.querySelector('h2').textContent=chapter.querySelector('h1,h2').innerText.replace(/\n/g,' ');
+      scope.querySelector('.scope-body').replaceChildren(...paragraphs.map(p=>p.cloneNode(true)));
+      scope.showModal();
+    });
+    copy.append(button);
+  });
+  const jump=document.createElement('select');jump.id='world-jump';jump.setAttribute('aria-label','Choose a journey chapter');
+  chapters.forEach((chapter,i)=>{const option=document.createElement('option');option.value=chapter.id;option.textContent=String(i+1).padStart(2,'0')+' / '+links[i].textContent.replace(/^\s*\d+\s*/,'');jump.append(option);});
+  document.querySelector('.world-bottom').prepend(jump);
+  jump.addEventListener('change',()=>document.getElementById(jump.value).scrollIntoView({behavior:motion.matches?'instant':'smooth',block:'start'}));
+  const record=document.querySelector('.trust-record');
+  const standards=document.createElement('details');standards.className='mobile-standards';
+  standards.innerHTML='<summary>Standards &amp; certifications <i class="ri-add-line" aria-hidden="true"></i></summary>';
+  for(const a of record.querySelectorAll(':scope > a'))standards.append(a.cloneNode(true));
+  record.append(standards);
   let engine, stages, active = -1, frame = 0, scrollPositions = [], visible = true, lost = false;
   const parts = {
     control: 'Control zone / schematic mounting positions for the control assembly. No component models or ratings are implied.',
@@ -92,13 +87,13 @@
   function select(index) {
     if(index===active)return;
     active=index;journey.dataset.stage=chapters[index].id;
-    chapters.forEach((chapter,i)=>chapter.classList.toggle('is-active',i===index));
-    if(!motion.matches)chapters[index].querySelector('.world-heading').animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'translateY(0)'}],{duration:240,easing:'ease-out'});
+    jump.value=chapters[index].id;
+    chapters.forEach((chapter,i)=>{chapter.classList.toggle('is-active',i===index);chapter.querySelector('.scene-content').inert=i!==index;});
     links.forEach((link,i)=>{if(i===index)link.setAttribute('aria-current','step');else link.removeAttribute('aria-current');});
     document.getElementById('world-coordinate').textContent=String(index).padStart(2,'0')+' / '+(stages?.[index].label||chapters[index].id).toUpperCase();
     document.querySelector('.world-inspection').hidden=index!==2;
     document.querySelector('.world-software').hidden=index!==4;
-    document.querySelector('.world-next').href=index<5?'#'+chapters[index+1].id:'#engineering-proof';
+    document.querySelector('.world-next').href=index<chapters.length-1?'#'+chapters[index+1].id:'#main';
     door.setAttribute('aria-pressed','true');door.querySelector('span').textContent='Doors open';door.title='Close cabinet doors';
     if(stages){document.getElementById('world-anchor-label').textContent=stages[index].annotation;document.getElementById('world-note-copy').textContent=stages[index].detail;}
     if(journey.dataset.renderer!=='ready')updatePoster(index);
@@ -114,29 +109,33 @@
     for(let i=0;i<scrollPositions.length;i++)if(scrollY>=scrollPositions[i]-2)index=i;
     const length=(scrollPositions[index+1]||scrollPositions[index]+chapters[index].offsetHeight)-scrollPositions[index];
     const fraction=Math.max(0,Math.min(1,(scrollY-scrollPositions[index])/length));
-    const transition=Math.max(0,Math.min(1,(fraction-.35)/.55));
-    const progress=Math.min(5,index+transition);
-    select(transition>.6?Math.min(5,index+1):index);
-    engine?.setProgress(motion.matches?active:progress,motion.matches);
+    const transition=Math.max(0,Math.min(1,(fraction-.55)/.45));
+    const eased=transition*transition*(3-2*transition);
+    const progress=Math.min(chapters.length-1,index+eased);
+    journey.style.setProperty('--journey-progress',String(progress/(chapters.length-1)));
+    if(!engine||lost||motion.matches)select(Math.round(progress));
+    engine?.setProgress(motion.matches?Math.round(progress):progress,motion.matches);
   }
   function schedule(){if(!frame)frame=requestAnimationFrame(update);}
   window.addEventListener('scroll',schedule,{passive:true});
   window.addEventListener('resize',measure,{passive:true});
   document.fonts.ready.then(measure);
   function project(point) {
+    if(point){select(point.index);journey.style.setProperty('--copy-opacity',String(motion.matches||compact.matches?1:point.copyOpacity));}
     if(!point||!point.stable||lost){anchor.hidden=true;return;}
     const h=mount.clientHeight,w=mount.clientWidth;
     const room=w<700?160:235;
-    const fits=point.x>10&&point.x<w-15&&point.y>Math.min(270,h*.38)&&point.y<h-170;
+    const fits=point.x>10&&point.x<w-15&&point.y>Math.min(290,h*.4)&&point.y<h-(w<700?290:180)&&active<5;
     anchor.hidden=!fits;
     if(fits){anchor.classList.toggle('is-left',point.x>w-room);anchor.style.left=point.x+'px';anchor.style.top=point.y+'px';}
   }
   function fallback() {
     lost=true;journey.dataset.renderer='fallback';updatePoster(Math.max(0,active));
-    document.querySelector('.world-status').textContent='SCHEMATIC / RENDERED VIEW';
+    journey.style.setProperty('--copy-opacity','1');
+    document.querySelector('.world-status').textContent='Schematic / rendered view';
     anchor.hidden=true;
   }
-  mount.addEventListener('world-restored',()=>{lost=false;journey.dataset.renderer='ready';document.querySelector('.world-status').textContent='SCHEMATIC 3D / FINAL ASSETS PENDING';schedule();});
+  mount.addEventListener('world-restored',()=>{lost=false;journey.dataset.renderer='ready';document.querySelector('.world-status').textContent='Schematic engineering study';schedule();});
   const observer=new IntersectionObserver(entries=>{
     visible=entries[0].isIntersecting;engine?.setVisible(visible&&!document.hidden&&!lost);
   },{threshold:0});

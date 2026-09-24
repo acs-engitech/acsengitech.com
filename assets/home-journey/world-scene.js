@@ -10,7 +10,7 @@ export async function createWorld(mount, { onProject, onLost, onPart, reduced = 
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
+  renderer.toneMappingExposure = .94;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.domElement.setAttribute('aria-label', 'Interactive schematic ACS control-system installation');
@@ -21,7 +21,7 @@ export async function createWorld(mount, { onProject, onLost, onPart, reduced = 
   scene.fog = new THREE.Fog(paper, 24, 65);
   const camera = new THREE.OrthographicCamera(-6, 6, 4, -4, .1, 100);
   const world = new THREE.Group(); scene.add(world);
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x9eaaa9, 1.5));
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x84979e, 1.15));
   const sun = new THREE.DirectionalLight(0xfffaf0, 3.2);
   sun.position.set(-6, 12, 7); sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
@@ -40,8 +40,8 @@ export async function createWorld(mount, { onProject, onLost, onPart, reduced = 
   const environment = pmrem.fromScene(studio, .08); scene.environment = environment.texture;
   pmrem.dispose(); studio.traverse(o => { o.geometry?.dispose(); o.material?.dispose(); });
   const materials = {
-    shell: new THREE.MeshStandardMaterial({ color: 0xcbd3d5, metalness: .52, roughness: .32 }),
-    face: new THREE.MeshStandardMaterial({ color: 0xe0e5e5, metalness: .38, roughness: .38 }),
+    shell: new THREE.MeshStandardMaterial({ color: 0x9eafb8, metalness: .62, roughness: .3 }),
+    face: new THREE.MeshStandardMaterial({ color: 0xc8d3d8, metalness: .48, roughness: .34 }),
     steel: new THREE.MeshStandardMaterial({ color: 0x889a9f, metalness: .78, roughness: .26 }),
     dark: new THREE.MeshStandardMaterial({ color: 0x263738, metalness: .42, roughness: .4 }),
     recess: new THREE.MeshStandardMaterial({ color: 0x7c8c90, metalness: .2, roughness: .65 }),
@@ -64,6 +64,7 @@ export async function createWorld(mount, { onProject, onLost, onPart, reduced = 
   function path(parent, points, material='blue', radius=.013) {
     const curve = new THREE.CatmullRomCurve3(points.map(v),false,'centripetal');
     const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve,48,radius,8,false),materials[material]);
+    mesh.userData.curve=curve;
     parent.add(mesh); return mesh;
   }
   function line(parent, points, color=0x9eafb3) {
@@ -72,7 +73,7 @@ export async function createWorld(mount, { onProject, onLost, onPart, reduced = 
   }
   function label(parent, text, width, at, floor=false) {
     const c = document.createElement('canvas'); c.width=768; c.height=96;
-    const ctx=c.getContext('2d'); ctx.fillStyle='#34535c'; ctx.font='32px monospace'; ctx.textAlign='center'; ctx.fillText(text,384,58);
+    const ctx=c.getContext('2d'); ctx.fillStyle='#34535c'; ctx.font='500 32px Arial'; ctx.textAlign='center'; ctx.fillText(text,384,58);
     const texture = new THREE.CanvasTexture(c); texture.colorSpace=THREE.SRGBColorSpace;
     const mesh=new THREE.Mesh(new THREE.PlaneGeometry(width,width/8),new THREE.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false}));
     mesh.position.copy(v(at)); if(floor)mesh.rotation.x=-Math.PI/2; parent.add(mesh); return mesh;
@@ -82,15 +83,32 @@ export async function createWorld(mount, { onProject, onLost, onPart, reduced = 
   const actors={};
   for(const [id,slot] of Object.entries(modelSlots)){const g=new THREE.Group();g.position.copy(v(slot.position));g.userData.slot=id;world.add(g);actors[id]=g;}
   const base=actors.installation;
-  block(base,[12,.12,8],[0,-.09,0],'base',.025);
-  // Installation boundaries and restrained datum marks belong to the physical floor.
-  for(let x=-6;x<=6;x+=1) line(base,[[x,-.023,-4],[x,-.023,4]],0xc4cfd0);
-  for(let z=-4;z<=4;z+=1) line(base,[[-6,-.023,z],[6,-.023,z]],0xc4cfd0);
+  // The floor is continuous beyond the actors, not a product display plinth.
+  for(let x=-24;x<=24;x+=2) line(base,[[x,-.14,-24],[x,-.14,24]],0xd7e0e2).material.opacity=.18;
+  for(let z=-24;z<=24;z+=2) line(base,[[-24,-.14,z],[24,-.14,z]],0xd7e0e2).material.opacity=.18;
+  for(const x of [-7,7]){
+    line(base,[[x,-.13,-18],[x,-.13,16]],0x9cb7c4);
+    for(let z=-14;z<=12;z+=1)line(base,[[x,-.13,z],[x+.15,-.13,z]],0x9cb7c4);
+  }
   for(const [id,slot] of Object.entries(modelSlots)) if(id!=='installation') {
     const [x,,z]=slot.position, [w,,d]=slot.size;
     line(base,[[x-w/2-.15,-.01,z-d/2-.15],[x+w/2+.15,-.01,z-d/2-.15],[x+w/2+.15,-.01,z+d/2+.15],[x-w/2-.15,-.01,z+d/2+.15],[x-w/2-.15,-.01,z-d/2-.15]],0x8ba6ae);
   }
-  label(base,'ACS / INTEGRATED AUTOMATION',3.8,[0,-.012,3.5],true);
+  // Incoming paths converge on a single control boundary, then continue to execution.
+  const incoming=new THREE.Group();world.add(incoming);
+  for(let i=0;i<7;i++){
+    const z=1.5+i*.32;
+    path(incoming,[[-14,.005,z+4],[-8,.005,z+4],[-5,.005,z],[-2.2,.005,z],[.35+i*.06,.005,1.2],[.35+i*.06,.28,.45]],i===3?'blue':'steel',i===3?.017:.006);
+  }
+  const boundary=new THREE.Group();world.add(boundary);
+  for(const z of [-3.5,3.5])line(boundary,[[-10,-.08,z],[10,-.08,z]],0xa4bdc8);
+  for(const x of [-10,10])line(boundary,[[x,-.08,-3.5],[x,-.08,3.5]],0xa4bdc8);
+  const drawing=new THREE.Group();world.add(drawing);
+  for(const x of [-1.7,1.7]){
+    line(drawing,[[x,.1,-.75],[x,3.6,-.75]],0x6795ab);
+    for(const y of [.1,3.6])line(drawing,[[x-.12,y,-.75],[x+.12,y,-.75]],0x6795ab);
+  }
+  line(drawing,[[-1.7,3.6,-.75],[1.7,3.6,-.75]],0x6795ab);
   const cabinet=actors.cabinet;
   block(cabinet,[2.94,.19,1.14],[0,.1,0],'dark');
   block(cabinet,[2.87,3.24,.075],[0,1.84,-.5],'shell');
@@ -161,11 +179,20 @@ export async function createWorld(mount, { onProject, onLost, onPart, reduced = 
     } catch { mount.dataset.texture='unavailable'; }
   }
   const routes=[
-    path(world,[[3.2,.24,2.35],[3.2,.035,2.6],[1.9,.035,2.6],[.7,.035,1.3],[.7,.3,.4]],'blue',.019),
-    path(world,[[-.7,.3,.4],[-.7,.035,1.3],[-3,.035,1.3],[-4.1,.035,.2],[-4.1,.24,-1]],'blue',.019),
-    path(world,[[.9,.35,-.4],[1.6,.035,-1],[2.8,.035,-2.1],[4.2,.035,-2.1],[4.2,1.15,-2.1]],'teal',.016)
+    path(world,[[3.2,.025,2.35],[3.2,.025,2.6],[1.9,.025,2.6],[.7,.025,1.3],[.7,.025,.4]],'blue',.014),
+    path(world,[[-.7,.025,.4],[-.7,.025,1.3],[-3,.025,1.3],[-4.1,.025,.2],[-4.1,.025,-1]],'blue',.014),
+    path(world,[[.9,.025,-.4],[1.6,.025,-1],[2.8,.025,-2.1],[4.2,.025,-2.1]],'teal',.014)
   ];
+  routes.push(path(world,[[-5,.1,-1.8],[-5,.02,-3],[-7,.02,-5],[-10,.02,-5]],'blue',.016));
+  path(data,[[0,.035,0],[0,.65,-.1],[0,1.15,0]],'teal',.015);
+  const terminals=[];
+  for(const [id,slot] of Object.entries(modelSlots))if(id!=='installation'){
+    const node=new THREE.Mesh(new THREE.CylinderGeometry(.065,.065,.026,16),materials.blue);
+    node.position.set(slot.position[0],.018,slot.position[2]);world.add(node);terminals.push(node);
+  }
   routes.forEach(route=>{route.material=route.material.clone();});
+  const trace=new THREE.Mesh(new THREE.BoxGeometry(.085,.085,.085),new THREE.MeshStandardMaterial({color:0x0076bf,emissive:0x005991,emissiveIntensity:.5,roughness:.3}));
+  world.add(trace);
   const surfaces={};
   function collectSurfaces(id){
     surfaces[id]=[];
@@ -180,7 +207,7 @@ export async function createWorld(mount, { onProject, onLost, onPart, reduced = 
   orbit.enablePan=false;orbit.enableZoom=false;orbit.enableDamping=false;orbit.rotateSpeed=.35;
   orbit.minPolarAngle=.3;orbit.maxPolarAngle=1.5;
   orbit.addEventListener('change',()=>invalidate());
-  let progress=0,desired=0,frame=0,visible=true,forceCamera=true,width=1,height=1,doorOverride=null,inspected=null;
+  let progress=0,desired=0,frame=0,visible=true,forceCamera=true,width=1,height=1,doorOverride=null,inspected=null,lastTime=0;
   const partAnchors={control:[0,2.78,.1],connections:[0,1.85,.1],routing:[.7,.95,.1]};
   const raycaster=new THREE.Raycaster();let pointerStart;
   renderer.domElement.addEventListener('pointerdown',e=>{pointerStart=[e.clientX,e.clientY];});
@@ -195,31 +222,34 @@ export async function createWorld(mount, { onProject, onLost, onPart, reduced = 
   function resize(){const r=mount.getBoundingClientRect();width=r.width;height=r.height;if(!width||!height)return;renderer.setSize(width,height);orbit.enabled=matchMedia('(pointer:fine)').matches;renderer.domElement.style.touchAction=orbit.enabled?'pan-y':'pan-y';forceCamera=true;invalidate();}
   const observer=new ResizeObserver(resize);observer.observe(mount);
   function configureCamera(){
-    const a=Math.floor(progress),b=Math.min(5,a+1),t=progress-a;
+    const a=Math.floor(progress),b=Math.min(stages.length-1,a+1),t=progress-a;
     const A=stages[a],B=stages[b];
     const target=v(A.target).lerp(v(B.target),t),offset=v(A.offset).lerp(v(B.offset),t);
-    const narrow=width<700,aspect=width/height;
+    const narrow=width<1000,aspect=width/height;
     let view=THREE.MathUtils.lerp(A.height,B.height,t);
-    if(narrow)view=Math.max(view,THREE.MathUtils.lerp(A.mobileWidth,B.mobileWidth,t)/aspect);
-    const shift=view*(narrow?.1:.07);
-    camera.left=-view*aspect/2;camera.right=view*aspect/2;camera.top=view/2+shift;camera.bottom=-view/2+shift;
+    if(narrow)view=Math.max(THREE.MathUtils.lerp(a===1?5:9,b===1?5:9,t),view,THREE.MathUtils.lerp(A.mobileWidth,B.mobileWidth,t)/aspect);
+    const horizontal=narrow?0:THREE.MathUtils.lerp(A.placement[0],B.placement[0],t);
+    const shift=view*(narrow?THREE.MathUtils.lerp(A.mobileY??-.015,B.mobileY??-.015,t):THREE.MathUtils.lerp(A.placement[1],B.placement[1],t));
+    camera.left=-view*aspect/2-horizontal*view*aspect;camera.right=view*aspect/2-horizontal*view*aspect;camera.top=view/2+shift;camera.bottom=-view/2+shift;
     camera.position.copy(target).add(offset);orbit.target.copy(target);camera.lookAt(target);camera.updateProjectionMatrix();orbit.update();
   }
   function invalidate(){if(alive&&visible&&!frame)frame=requestAnimationFrame(render);}
-  function render(){
+  function render(time=performance.now()){
     frame=0;if(!alive||!visible)return;
     const delta=desired-progress;
-    if(Math.abs(delta)>.001){progress=reduced?desired:progress+delta*.16;forceCamera=true;}
+    const elapsed=Math.min(64,lastTime?time-lastTime:16);lastTime=time;
+    if(Math.abs(delta)>.001){progress=reduced?desired:progress+delta*(1-Math.exp(-elapsed/85));forceCamera=true;}
     else if(progress!==desired){progress=desired;forceCamera=true;}
     if(forceCamera){configureCamera();forceCamera=false;}
-    const open=doorOverride??THREE.MathUtils.smoothstep(progress,1.45,2);
+    const open=doorOverride??(THREE.MathUtils.smoothstep(progress,1.35,2)*(1-THREE.MathUtils.smoothstep(progress,2.7,3.3)));
     doors.forEach(({door,side,baseRotation=0})=>door.rotation.y=baseRotation+side*(.14+open*1.95));
     routes.forEach((route,i)=>{route.material.emissive.setHex((Math.round(progress)===i+1||Math.round(progress)===4)?0x063a55:0x000000);route.material.emissiveIntensity=.16;});
-    // Context actors become translucent spatial references during close inspection.
-    const a=Math.floor(progress),b=Math.min(5,a+1),mix=progress-a;
+    // Reveal roles progressively. Hidden actors retain their world-space footprints.
+    const a=Math.floor(progress),b=Math.min(stages.length-1,a+1),mix=progress-a;
     for(const [id,items] of Object.entries(surfaces)){
-      const emphasis=index=>(index===0||index===5||stages[index].actor===id)?1:.04;
-      const opacity=THREE.MathUtils.lerp(emphasis(a),emphasis(b),mix);
+      const emphasis=index=>(stages[index].actor===id||index===6)?1:0;
+      const opacity=width<1000?emphasis(Math.round(progress)):THREE.MathUtils.lerp(emphasis(a),emphasis(b),mix);
+      actors[id].visible=opacity>.005;
       for(const item of items){
         item.material.opacity=opacity;
         const transparent=item.transparent||opacity<.99;
@@ -228,9 +258,17 @@ export async function createWorld(mount, { onProject, onLost, onPart, reduced = 
         item.object.castShadow=opacity>.9;
       }
     }
+    drawing.visible=progress>1.3&&progress<3;
+    incoming.visible=progress<3||progress>5;
+    routes.forEach((route,i)=>{route.visible=progress>i*.7+.6||progress>5;});
+    terminals.forEach(node=>node.scale.setScalar(1+THREE.MathUtils.smoothstep(progress,5,6)*.5));
+    const traceRoute=progress<1?incoming.children[3]:routes[Math.min(2,Math.max(0,Math.floor(progress)-1))];
+    trace.position.copy(traceRoute.userData.curve.getPointAt(progress-Math.floor(progress)));
+    trace.position.y+=.06;trace.visible=progress<4&&Math.abs(desired-progress)>.002&&!reduced;
     renderer.render(scene,camera);
     const index=Math.round(progress),point=v(index===2&&inspected?partAnchors[inspected]:stages[index].anchor).project(camera);
-    onProject?.({x:(point.x+1)*width/2,y:(1-point.y)*height/2,index,stable:Math.abs(progress-index)<.15});
+    const distance=Math.abs(progress-index);
+    onProject?.({x:(point.x+1)*width/2,y:(1-point.y)*height/2,index,stable:distance<.15,copyOpacity:1-THREE.MathUtils.smoothstep(distance,.08,.38)});
     if(Math.abs(desired-progress)>.001)invalidate();
   }
   function lost(e){e.preventDefault();visible=false;cancelAnimationFrame(frame);frame=0;onLost?.();}
@@ -264,7 +302,7 @@ export async function createWorld(mount, { onProject, onLost, onPart, reduced = 
   }
   resize();setSoftware('ems');invalidate();
   return {
-    setProgress(value,instant=false){desired=THREE.MathUtils.clamp(value,0,5);doorOverride=null;if(instant||reduced){progress=desired;forceCamera=true;}invalidate();},
+    setProgress(value,instant=false){const next=THREE.MathUtils.clamp(value,0,stages.length-1);if(next!==desired)doorOverride=null;desired=next;if(instant||reduced){progress=desired;forceCamera=true;}invalidate();},
     setReduced(value){reduced=value;if(value){progress=desired;forceCamera=true;}invalidate();},
     setDoor(open){doorOverride=open?1:0;invalidate();},
     inspect(name){

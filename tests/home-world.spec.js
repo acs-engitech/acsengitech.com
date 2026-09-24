@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const ids=['arrival','field','control','power','data','installation'];
+const ids=['arrival','field','control','power','data','installation','engineering-proof','experience','contact'];
 async function chapter(page,id){
  await page.evaluate(id=>{const el=document.getElementById(id);scrollTo({top:el.getBoundingClientRect().top+scrollY-parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header')),behavior:'instant'});},id);
  await expect(page.locator('#acs-world')).toHaveAttribute('data-stage',id);
@@ -64,8 +64,12 @@ test('native scroll advances the real camera without replacing the scene',async(
  expect(Buffer.compare(before,await page.locator('canvas').screenshot())).not.toBe(0);
  await expect(page.locator('canvas')).toHaveCount(1);
  await expect(page.locator('.world-chapters a[aria-current=step]')).toHaveAttribute('href','#power');
- await page.locator('#engineering-proof').scrollIntoViewIfNeeded();
- expect(await page.evaluate(()=>{const rect=document.querySelector('#engineering-proof h2').getBoundingClientRect();return Boolean(document.elementFromPoint(rect.x+5,Math.max(100,rect.y+5))?.closest('.world-stage'));})).toBe(false);
+ await chapter(page,'engineering-proof');
+ await expect(page.locator('#engineering-proof .scene-content')).toBeVisible();
+ await expect(page.locator('#world-canvas canvas')).toBeVisible();
+ await chapter(page,'contact');
+ await expect(page.locator('#contact .enquiry-action')).toBeVisible();
+ await expect(page.locator('#world-canvas canvas')).toBeVisible();
 });
 
 test('WebGL failure shows matching rendered scenes, not substitute photographs',async({page})=>{
@@ -135,7 +139,9 @@ test('CMS metadata and real ACS evidence remain intact',async({page})=>{
 test('no-JavaScript retains evidence and real scene renders',async({browser})=>{
  const context=await browser.newContext({javaScriptEnabled:false,viewport:{width:390,height:844}});const page=await context.newPage();
  await page.goto(process.env.ACS_TEST_URL||'http://localhost:3000');await expect(page.locator('#main-navigation')).toBeVisible();
- await expect(page.locator('.chapter-still')).toHaveCount(6);
+ await expect(page.locator('.chapter-still')).toHaveCount(9);
+ await expect(page.locator('#arrival h1')).toBeVisible();
+ await expect(page.locator('#experience .trust-record')).toBeVisible();
  for(const img of await page.locator('.chapter-still').all())expect(await img.evaluate(el=>el.complete&&el.naturalWidth>0)).toBe(true);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);await context.close();
 });
@@ -148,6 +154,58 @@ test('homepage has a real persistent 3D installation',async({page})=>{
   await page.goto('/');
   await expect(page.locator('#acs-world')).toHaveAttribute('data-renderer','ready');
   await expect(page.locator('#world-canvas canvas')).toBeVisible();
-  await expect(page.locator('[data-world-chapter]')).toHaveCount(6);
+  await expect(page.locator('[data-world-chapter]')).toHaveCount(9);
   await expect(page.locator('#acs-world .world-stage img:not(.world-poster)')).toHaveCount(0);
+});
+
+test('story typography, team evidence and proof remain separated across viewport heights',async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'});
+ for(const [width,height] of [[320,740],[390,844],[768,900],[1024,768],[1440,960],[1920,900]]){
+  await page.setViewportSize({width,height});await page.goto('/');
+  await expect(page.locator('#acs-world')).toHaveAttribute('data-renderer','ready');
+  for(const id of ids){
+   await chapter(page,id);
+   const collisions=await page.locator('#'+id+' .scene-content').evaluate(root=>{
+    const nodes=[...root.children].filter(el=>getComputedStyle(el).display!=='none');
+    const found=[];
+    for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){
+     const a=nodes[i].getBoundingClientRect(),b=nodes[j].getBoundingClientRect();
+     if(Math.min(a.right,b.right)-Math.max(a.left,b.left)>5&&Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>5)found.push(nodes[i].className+' / '+nodes[j].className);
+    }
+    return found;
+   });
+   expect(collisions,`${width}x${height}: ${id}`).toEqual([]);
+   if(id==='control'||id==='data'){
+    const controls=await page.locator(id==='control'?'.world-inspection':'.world-software').boundingBox();
+    const copy=await page.locator('#'+id+' .scene-description').boundingBox();
+    const overlapX=Math.min(controls.x+controls.width,copy.x+copy.width)-Math.max(controls.x,copy.x);
+    const overlapY=Math.min(controls.y+controls.height,copy.y+copy.height)-Math.max(controls.y,copy.y);
+    expect(overlapX>5&&overlapY>5,`${width}px ${id} controls overlap story`).toBe(false);
+   }
+  }
+  await chapter(page,'experience');
+  const title=await page.locator('#experience .scene-title').boundingBox();
+  const record=await page.locator('#experience .trust-record').boundingBox();
+  expect(title.y+title.height).toBeLessThanOrEqual(record.y+1);
+  if(width>=1000){
+   const photo=await page.locator('.team-evidence').boundingBox();
+   const numbers=await page.locator('.experience-numbers').boundingBox();
+   expect(photo.y+photo.height).toBeLessThanOrEqual(numbers.y+1);
+  }
+ }
+});
+
+test('footer directory is keyboard accessible without losing existing routes',async({page})=>{
+ for(const width of [320,390,768,1440,1920]){
+  await page.setViewportSize({width,height:900});await page.goto('/');
+  await page.locator('.site-footer').scrollIntoViewIfNeeded();
+  for(const label of ['Explore our engineering','People & company']){
+   const summary=page.locator('.footer-directory summary').filter({hasText:label});
+   await summary.focus();await page.keyboard.press('Enter');
+   await expect(summary.locator('..')).toHaveAttribute('open','');
+  }
+  await expect(page.locator('.footer-directory a[href="panel-manufacturer.html"]')).toBeVisible();
+  await expect(page.locator('.footer-directory a[href="career.html"]')).toBeVisible();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+ }
 });

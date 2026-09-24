@@ -24,6 +24,6 @@ Reference photographs must guide manual/CAD modeling. One image cannot establish
 
 world-*-desktop.png and world-*-mobile.png are direct captures of this same Three.js installation. Reduced-motion users retain real 3D with discrete static camera states. Only WebGL failure or no-JavaScript uses the corresponding render. No old product photograph replaces a model slot.
 
-After a model/staging change, regenerate these scene captures and verify all six chapters at 320, 390, 768, 1024, 1440 and 1920 widths. Test load failure, context loss, touch scrolling, keyboard controls and annotation alignment.
+After a model/staging change, regenerate the nine matched scene captures (arrival through enquiry) and verify them at 320, 390, 768, 1024, 1440 and 1920 widths. Test load failure, context loss, touch scrolling, keyboard controls and annotation alignment. The stage manifest owns camera targets, composition offsets, anchors and model slots; proof and enquiry remain inside the same scene timeline.
 
 Three.js 0.160.1 remains locally vendored with its MIT license. No new rendering dependency was added.
