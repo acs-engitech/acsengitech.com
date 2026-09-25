@@ -4,7 +4,7 @@ test.beforeEach(async({page})=>page.route('**/widget/v1/bundle.js',r=>r.fulfill(
 
 test('Services contains only the approved ACS service content',async({page})=>{
   await page.goto(route('services'));
-  await expect(page.locator('.acs-directory-card')).toHaveCount(6);
+  await expect(page.locator('.acs-service-link')).toHaveCount(6);
   await expect(page.locator('main')).toContainText('PLC, SCADA, instrumentation, commissioning');
   await expect(page.locator('main')).not.toContainText(/Lorem ipsum|Bookkeeping|Tax Consulting|59,00/i);
   await page.setViewportSize({width:390,height:844});
