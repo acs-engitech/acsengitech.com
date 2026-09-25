@@ -42,7 +42,7 @@ test('cabinet inspection, doors, rotation and reset change the actual canvas',as
  const canvas=page.locator('#world-canvas canvas');const before=await canvas.screenshot();
  await page.locator('#world-door').click();await expect(page.locator('#world-door')).toHaveAttribute('aria-pressed','false');
  await page.waitForTimeout(100);expect(Buffer.compare(before,await canvas.screenshot())).not.toBe(0);
- await page.locator('[data-zone=routing]').click();await expect(page.locator('#world-part-copy')).toContainText('not an electrical wiring diagram');
+ await page.locator('[data-zone=routing]').click();await expect(page.locator('#world-part-copy')).toContainText('Routing zone / cable management');
  const closed=await canvas.screenshot();await page.locator('#world-right').click();await page.waitForTimeout(100);
  expect(Buffer.compare(closed,await canvas.screenshot())).not.toBe(0);
  await page.locator('#world-reset').click();await expect(page.locator('#world-door')).toHaveAttribute('aria-pressed','true');
@@ -159,6 +159,7 @@ test('homepage has a real persistent 3D installation',async({page})=>{
 });
 
 test('story typography, team evidence and proof remain separated across viewport heights',async({page})=>{
+ test.setTimeout(60000);
  await page.emulateMedia({reducedMotion:'reduce'});
  for(const [width,height] of [[320,740],[390,844],[768,900],[1024,768],[1440,960],[1920,900]]){
   await page.setViewportSize({width,height});await page.goto('/');

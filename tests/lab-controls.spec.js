@@ -24,17 +24,17 @@ test('navigation fits and opens across screen sizes on home and About',async({pa
   }
 });
 
-test('About history and industry tabs work',async({page})=>{
+test('About history and industry chapters work',async({page})=>{
   await page.goto(route('about'));
   await page.getByRole('tab',{name:'2014',exact:true}).click();
   await expect(page.locator('.rs-history-area .tab-pane.active')).toContainText('Siemens');
   for(const name of ['process-automation','machine-plant-automation']){
     await page.goto(route(name));
-    const tabs=page.locator('.acs-industry-tabs [role=tab]');
-    expect(await tabs.count()).toBeGreaterThan(1);
-    await tabs.nth(1).click();
-    await expect(tabs.nth(1)).toHaveAttribute('aria-selected','true');
-    await expect(page.locator('.tab-pane.active')).toBeVisible();
+    const chapters=page.locator('.acs-industry-chapter');
+    expect(await chapters.count()).toBeGreaterThan(1);
+    await chapters.nth(1).locator('> summary').click();
+    await expect(chapters.nth(1)).toHaveAttribute('open','');
+    await expect(chapters.first()).not.toHaveAttribute('open','');
   }
 });
 
@@ -63,7 +63,7 @@ test('career and partner forms retain choices, validation and submission',async(
   await page.locator('#acs-position-select').selectOption('qa-job');
   await page.locator('#acs-job-form [name=name]').fill('Test Visitor');
   await page.locator('#acs-job-form [name=email]').fill('test@example.test');
-  await page.locator('#acs-job-form [name=phone]').fill('+919876543210');
+  await page.locator('#acs-job-form [name=phone]').fill('9876543210');
   await page.locator('#acs-submit-btn').click();
   await expect(page.locator('#acs-form-message')).toContainText('received');
   await page.goto(route('partner-with-us'));

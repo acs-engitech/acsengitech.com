@@ -44,9 +44,9 @@
   record.append(standards);
   let engine, stages, active = -1, frame = 0, scrollPositions = [], visible = true, lost = false;
   const parts = {
-    control: 'Control zone / schematic mounting positions for the control assembly. No component models or ratings are implied.',
-    connections: 'Connection zone / a schematic terminal and interface arrangement. Final geometry requires approved ACS references.',
-    routing: 'Routing zone / ducts and a representative signal route. This is not an electrical wiring diagram.'
+    control: 'Control zone / mounting & assembly',
+    connections: 'Connection zone / signal interfaces',
+    routing: 'Routing zone / cable management'
   };
   function part(name) {
     engine?.inspect(name);
@@ -62,13 +62,14 @@
   door.addEventListener('click',()=>{
     const open=door.getAttribute('aria-pressed')!=='true';
     engine?.setDoor(open);door.setAttribute('aria-pressed',String(open));
-    door.querySelector('span').textContent=open?'Doors open':'Doors closed';
-    door.title=open?'Close cabinet doors':'Open cabinet doors';
+    door.title=open?'View cabinet exterior':'Inspect cabinet interior';
+    door.setAttribute('aria-label',door.title);
     door.querySelector('i').className=open?'ri-door-open-line':'ri-door-closed-line';
   });
   for(const [id,direction] of [['world-left',-1],['world-right',1]])document.getElementById(id).addEventListener('click',()=>engine?.rotate(direction));
   document.getElementById('world-reset').addEventListener('click',()=>{
-    engine?.reset();door.setAttribute('aria-pressed','true');door.querySelector('span').textContent='Doors open';door.title='Close cabinet doors';
+    engine?.reset();door.setAttribute('aria-pressed','true');door.title='View cabinet exterior';door.setAttribute('aria-label',door.title);
+    door.querySelector('i').className='ri-door-open-line';
     document.querySelectorAll('[data-zone]').forEach(button=>button.setAttribute('aria-pressed','false'));
     document.getElementById('world-part-copy').textContent='Panel engineering / PLC / HMI / SCADA';
   });
@@ -94,7 +95,8 @@
     document.querySelector('.world-inspection').hidden=index!==2;
     document.querySelector('.world-software').hidden=index!==4;
     document.querySelector('.world-next').href=index<chapters.length-1?'#'+chapters[index+1].id:'#main';
-    door.setAttribute('aria-pressed','true');door.querySelector('span').textContent='Doors open';door.title='Close cabinet doors';
+    door.setAttribute('aria-pressed','true');door.title='View cabinet exterior';door.setAttribute('aria-label',door.title);
+    door.querySelector('i').className='ri-door-open-line';
     if(stages){document.getElementById('world-anchor-label').textContent=stages[index].annotation;document.getElementById('world-note-copy').textContent=stages[index].detail;}
     if(journey.dataset.renderer!=='ready')updatePoster(index);
     showInfo(false);
