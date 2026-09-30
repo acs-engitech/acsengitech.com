@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const ids=['arrival','field','control','power','data','installation','engineering-proof','experience','contact'];
+const ids=['arrival','field','control','installation','power','data','engineering-proof','experience','contact'];
 async function chapter(page,id){
  await page.evaluate(id=>{const el=document.getElementById(id);scrollTo({top:el.getBoundingClientRect().top+scrollY-parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header')),behavior:'instant'});},id);
  await expect(page.locator('#acs-world')).toHaveAttribute('data-stage',id);

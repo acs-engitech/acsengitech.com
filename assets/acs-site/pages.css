@@ -1,8 +1,13 @@
 /* Shared ACS document system. Content, catalogue and form ownership remain unchanged. */
-.acs-restored{--rs-theme-blue:#0069ab;--rs-theme-light-blue:#0069ab;background:var(--paper);font-family:Manrope,Arial,sans-serif;color:var(--ink)}
+.acs-restored{--rs-theme-blue:#0069ab;--rs-theme-light-blue:#0069ab;--document-width:1440px;background:var(--paper);font-family:Manrope,Arial,sans-serif;color:var(--ink)}
 .acs-restored main,.acs-restored main :is(h1,h2,h3,h4,h5,p,a,li,button,input,textarea,select,label){font-family:Manrope,Arial,sans-serif;letter-spacing:0}
 .acs-restored main{color:#3c515b;font-size:18px;line-height:1.75}
-.acs-restored .container{max-width:1440px;width:calc(100% - 2 * var(--gutter));padding:0}
+.acs-restored .container{max-width:var(--document-width);width:calc(100% - 2 * var(--gutter));padding:0}
+.acs-restored .site-footer .container{max-width:var(--document-width)}
+.acs-restored .site-footer::before{margin-left:max(var(--gutter),calc((100% - var(--document-width))/2))}
+.acs-restored .acs-panel-evidence{margin:0;align-self:start;background:#e7edef;padding:24px}
+.acs-restored .acs-panel-evidence img{width:100%;height:auto;max-height:460px;object-fit:contain;margin:0}
+.acs-restored .acs-panel-evidence figcaption{font-size:13px;color:var(--muted);margin-top:16px}
 .acs-restored main p,.acs-restored main li{font-size:18px;line-height:1.8;color:inherit}
 .acs-restored main p{margin-bottom:22px}
 .acs-restored main :is(h1,h2,h3,h4,h5){color:var(--ink);font-weight:600;text-transform:none}
@@ -80,6 +85,7 @@
 .acs-restored .acs-blog-card{border-radius:0!important;box-shadow:none!important}
 .acs-restored .acs-dynamic-inner{max-width:1200px}
 .acs-restored [hidden]{display:none!important}
+@media(min-width:1700px){.acs-restored{--document-width:1600px}}
 /* Give the recovered collections their own layout, without altering their records. */
 .acs-restored .acs-detail-grid:has(>.acs-service-link){display:block}
 .acs-restored .acs-service-link{display:grid;grid-template-columns:240px 1fr;gap:48px;align-items:center;padding:32px 0!important;position:relative}

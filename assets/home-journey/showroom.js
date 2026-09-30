@@ -18,23 +18,25 @@
   document.body.append(scope);
   scope.querySelector('button').addEventListener('click',()=>scope.close());
   scope.addEventListener('click',e=>{if(e.target===scope)scope.close();});
-  const mobileLead={installation:'From engineering to on-site commissioning.',contact:'Start a conversation with ACS engineering.'};
+  const mobileLead={installation:'Built and tested at ACS.',contact:'Start a conversation with ACS engineering.'};
   chapters.forEach(chapter=>{
     const copy=chapter.querySelector('.scene-description,.deployment-copy');if(!copy)return;
     const paragraphs=[...copy.querySelectorAll(':scope > p')];
     paragraphs.forEach(p=>p.classList.add('scope-copy'));
-    const lead=paragraphs[0]?.querySelector('strong')?.textContent||mobileLead[chapter.id];
+    const lead=mobileLead[chapter.id]||paragraphs[0]?.querySelector('strong')?.textContent;
     if(lead){const p=document.createElement('p');p.className='mobile-story-lead';p.textContent=lead;copy.prepend(p);}
     const button=document.createElement('button');button.className='mobile-scope';button.type='button';button.innerHTML='View scope <i class="ri-add-line" aria-hidden="true"></i>';
     button.addEventListener('click',()=>{
       scope.querySelector('h2').textContent=chapter.querySelector('h1,h2').innerText.replace(/\n/g,' ');
       scope.querySelector('.scope-body').replaceChildren(...paragraphs.map(p=>p.cloneNode(true)));
+      const evidence=chapter.querySelector('.drawing-evidence,.drawing-reference');
+      if(evidence){const copy=evidence.cloneNode(true);copy.className='scope-evidence';scope.querySelector('.scope-body').append(copy);}
       scope.showModal();
     });
     copy.append(button);
   });
   const jump=document.createElement('select');jump.id='world-jump';jump.setAttribute('aria-label','Choose a journey chapter');
-  chapters.forEach((chapter,i)=>{const option=document.createElement('option');option.value=chapter.id;option.textContent=String(i+1).padStart(2,'0')+' / '+links[i].textContent.replace(/^\s*\d+\s*/,'');jump.append(option);});
+  chapters.forEach((chapter,i)=>{const option=document.createElement('option');option.value=chapter.id;option.textContent=String(i).padStart(2,'0')+' / '+links[i].textContent.replace(/^\s*\d+\s*/,'');jump.append(option);});
   document.querySelector('.world-bottom').prepend(jump);
   jump.addEventListener('change',()=>document.getElementById(jump.value).scrollIntoView({behavior:motion.matches?'instant':'smooth',block:'start'}));
   const record=document.querySelector('.trust-record');
@@ -92,8 +94,8 @@
     chapters.forEach((chapter,i)=>{chapter.classList.toggle('is-active',i===index);chapter.querySelector('.scene-content').inert=i!==index;});
     links.forEach((link,i)=>{if(i===index)link.setAttribute('aria-current','step');else link.removeAttribute('aria-current');});
     document.getElementById('world-coordinate').textContent=String(index).padStart(2,'0')+' / '+(stages?.[index].label||chapters[index].id).toUpperCase();
-    document.querySelector('.world-inspection').hidden=index!==2;
-    document.querySelector('.world-software').hidden=index!==4;
+    document.querySelector('.world-inspection').hidden=chapters[index].id!=='control';
+    document.querySelector('.world-software').hidden=chapters[index].id!=='data';
     document.querySelector('.world-next').href=index<chapters.length-1?'#'+chapters[index+1].id:'#main';
     door.setAttribute('aria-pressed','true');door.title='View cabinet exterior';door.setAttribute('aria-label',door.title);
     door.querySelector('i').className='ri-door-open-line';
@@ -127,7 +129,7 @@
     if(!point||!point.stable||lost){anchor.hidden=true;return;}
     const h=mount.clientHeight,w=mount.clientWidth;
     const room=w<700?160:235;
-    const fits=point.x>10&&point.x<w-15&&point.y>Math.min(290,h*.4)&&point.y<h-(w<700?290:180)&&active<5;
+    const fits=point.x>10&&point.x<w-15&&point.y>Math.min(290,h*.4)&&point.y<h-(w<700?290:180)&&active<6;
     anchor.hidden=!fits;
     if(fits){anchor.classList.toggle('is-left',point.x>w-room);anchor.style.left=point.x+'px';anchor.style.top=point.y+'px';}
   }
