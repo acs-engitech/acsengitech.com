@@ -109,6 +109,37 @@ export async function createWorld(mount, { onProject, onLost, onPart, reduced = 
     for(const y of [.1,3.6])line(drawing,[[x-.12,y,-.75],[x+.12,y,-.75]],0x6795ab);
   }
   line(drawing,[[-1.7,3.6,-.75],[1.7,3.6,-.75]],0x6795ab);
+  // Generic process roles, never a claimed factory layout or equipment specification.
+  const process=actors.process;
+  function cylinder(parent,radius,length,at,material='steel',axis='y') {
+    const mesh=new THREE.Mesh(new THREE.CylinderGeometry(radius,radius,length,32),materials[material]);
+    mesh.position.copy(v(at));if(axis==='x')mesh.rotation.z=Math.PI/2;
+    mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh;
+  }
+  for(const x of [-1.45,.5]){
+    for(const dx of [-.4,.4])for(const z of [-.35,.35])block(process,[.06,.65,.06],[x+dx,.4,z],'steel');
+    cylinder(process,.66,1.65,[x,1.45,0],'face');
+    for(const y of [.65,2.24])cylinder(process,.69,.06,[x,y,0],'steel');
+    const lid=new THREE.Mesh(new THREE.SphereGeometry(.66,32,16,0,Math.PI*2,0,Math.PI/2),materials.face);
+    lid.scale.y=.35;lid.position.set(x,2.27,0);lid.castShadow=true;process.add(lid);
+    cylinder(process,.075,.3,[x,2.62,0],'steel');
+    block(process,[.22,.18,.18],[x,2.84,0],'blue');
+    path(process,[[x,.9,.64],[x,.9,.94],[x,.4,1.05]],'steel',.055);
+  }
+  block(process,[5.1,.12,2.5],[0,.04,.15],'base');
+  block(process,[1.12,.15,.72],[1.9,.2,.63],'dark');
+  cylinder(process,.26,.72,[1.83,.54,.63],'steel','x');
+  for(let i=0;i<6;i++)cylinder(process,.28,.025,[1.6+i*.08,.54,.63],'shell','x');
+  block(process,[.23,.16,.24],[1.85,.85,.63],'face');
+  path(process,[[-1.45,.4,1.05],[-.7,.4,1.05],[.5,.4,1.05],[1.3,.4,.63],[1.5,.54,.63]],'blue',.045);
+  path(process,[[2.2,.54,.63],[2.48,.54,.63],[2.48,1.65,-.6],[.5,1.65,-.65]],'steel',.045);
+  cylinder(process,.14,.13,[-.4,.4,1.05],'dark','x');
+  cylinder(process,.035,.22,[-.4,.55,1.05],'steel');
+  block(process,[.36,.035,.075],[-.4,.68,1.05],'blue');
+  block(process,[.08,1.7,.08],[2.05,.93,-.65],'steel');
+  block(process,[.72,.46,.12],[2.05,1.95,-.65],'dark');
+  block(process,[.61,.35,.015],[2.05,1.95,-.579],'face');
+  label(process,'PROCESS / FLOW + MOTORS + SIGNALS',3.8,[0,.115,1.31],true);
   const cabinet=actors.cabinet;
   block(cabinet,[2.94,.19,1.14],[0,.1,0],'dark');
   block(cabinet,[2.87,3.24,.075],[0,1.84,-.5],'shell');
@@ -183,7 +214,8 @@ export async function createWorld(mount, { onProject, onLost, onPart, reduced = 
     path(world,[[-.7,.025,.4],[-.7,.025,1.3],[-3,.025,1.3],[-4.1,.025,.2],[-4.1,.025,-1]],'blue',.014),
     path(world,[[.9,.025,-.4],[1.6,.025,-1],[2.8,.025,-2.1],[4.2,.025,-2.1]],'teal',.014)
   ];
-  routes.push(path(world,[[-5,.1,-1.8],[-5,.02,-3],[-7,.02,-5],[-10,.02,-5]],'blue',.016));
+  routes.push(path(world,[[-4.1,.1,-1],[-5,.025,.2],[-5,.025,2],[-3.9,.025,4.63],[-3.9,.4,4.63]],'blue',.016));
+  routes.push(path(world,[[-5.3,2.84,4],[-5.3,2.84,3.4],[-3.4,.035,3],[1.5,.035,3],[3.2,.035,2.1]],'teal',.012));
   path(data,[[0,.035,0],[0,.65,-.1],[0,1.15,0]],'teal',.015);
   const terminals=[];
   for(const [id,slot] of Object.entries(modelSlots))if(id!=='installation'){
@@ -212,7 +244,7 @@ export async function createWorld(mount, { onProject, onLost, onPart, reduced = 
   const raycaster=new THREE.Raycaster();let pointerStart;
   renderer.domElement.addEventListener('pointerdown',e=>{pointerStart=[e.clientX,e.clientY];});
   renderer.domElement.addEventListener('pointerup',e=>{
-    if(!pointerStart||Math.hypot(e.clientX-pointerStart[0],e.clientY-pointerStart[1])>6||Math.round(progress)!==2)return;
+    if(!pointerStart||Math.hypot(e.clientX-pointerStart[0],e.clientY-pointerStart[1])>6||!stages[Math.round(progress)].inspection)return;
     const rect=renderer.domElement.getBoundingClientRect();
     raycaster.setFromCamera(new THREE.Vector2((e.clientX-rect.left)/rect.width*2-1,1-(e.clientY-rect.top)/rect.height*2),camera);
     const hit=raycaster.intersectObjects(cabinet.children,true)[0];
@@ -224,10 +256,10 @@ export async function createWorld(mount, { onProject, onLost, onPart, reduced = 
   function configureCamera(){
     const a=Math.floor(progress),b=Math.min(stages.length-1,a+1),t=progress-a;
     const A=stages[a],B=stages[b];
-    const target=v(A.target).lerp(v(B.target),t),offset=v(A.offset).lerp(v(B.offset),t);
     const narrow=width<1000,aspect=width/height;
+    const target=v(narrow?(A.mobileTarget||A.target):A.target).lerp(v(narrow?(B.mobileTarget||B.target):B.target),t),offset=v(A.offset).lerp(v(B.offset),t);
     let view=THREE.MathUtils.lerp(A.height,B.height,t);
-    if(narrow)view=Math.max(THREE.MathUtils.lerp(a===1?5:9,b===1?5:9,t),view,THREE.MathUtils.lerp(A.mobileWidth,B.mobileWidth,t)/aspect);
+    if(narrow)view=Math.max(9,view,THREE.MathUtils.lerp(A.mobileWidth,B.mobileWidth,t)/aspect);
     const horizontal=narrow?0:THREE.MathUtils.lerp(A.placement[0],B.placement[0],t);
     const shift=view*(narrow?THREE.MathUtils.lerp(A.mobileY??-.015,B.mobileY??-.015,t):THREE.MathUtils.lerp(A.placement[1],B.placement[1],t));
     camera.left=-view*aspect/2-horizontal*view*aspect;camera.right=view*aspect/2-horizontal*view*aspect;camera.top=view/2+shift;camera.bottom=-view/2+shift;
@@ -241,13 +273,14 @@ export async function createWorld(mount, { onProject, onLost, onPart, reduced = 
     if(Math.abs(delta)>.001){progress=reduced?desired:progress+delta*(1-Math.exp(-elapsed/85));forceCamera=true;}
     else if(progress!==desired){progress=desired;forceCamera=true;}
     if(forceCamera){configureCamera();forceCamera=false;}
-    const open=doorOverride??(THREE.MathUtils.smoothstep(progress,1.35,2)*(1-THREE.MathUtils.smoothstep(progress,2.7,3.3)));
-    doors.forEach(({door,side,baseRotation=0})=>door.rotation.y=baseRotation+side*(.14+open*1.95));
-    routes.forEach((route,i)=>{route.material.emissive.setHex((Math.round(progress)===i+1||Math.round(progress)===4)?0x063a55:0x000000);route.material.emissiveIntensity=.16;});
-    // Reveal roles progressively. Hidden actors retain their world-space footprints.
     const a=Math.floor(progress),b=Math.min(stages.length-1,a+1),mix=progress-a;
+    const activeStage=stages[Math.round(progress)];
+    const open=doorOverride??THREE.MathUtils.lerp(stages[a].doorOpen||0,stages[b].doorOpen||0,mix);
+    doors.forEach(({door,side,baseRotation=0})=>door.rotation.y=baseRotation+side*(.14+open*1.95));
+    routes.forEach(route=>{route.material.emissive.setHex(activeStage.software?0x063a55:0x000000);route.material.emissiveIntensity=.16;});
+    // Reveal roles progressively. Hidden actors retain their world-space footprints.
     for(const [id,items] of Object.entries(surfaces)){
-      const emphasis=index=>(stages[index].actor===id||index===6)?1:0;
+      const emphasis=index=>stages[index].actors.includes(id)?1:0;
       const opacity=width<1000?emphasis(Math.round(progress)):THREE.MathUtils.lerp(emphasis(a),emphasis(b),mix);
       actors[id].visible=opacity>.005;
       for(const item of items){
@@ -258,15 +291,15 @@ export async function createWorld(mount, { onProject, onLost, onPart, reduced = 
         item.object.castShadow=opacity>.9;
       }
     }
-    drawing.visible=progress>1.3&&progress<3;
-    incoming.visible=progress<3||progress>5;
-    routes.forEach((route,i)=>{route.visible=progress>i*.7+.6||progress>5;});
-    terminals.forEach(node=>node.scale.setScalar(1+THREE.MathUtils.smoothstep(progress,5,6)*.5));
-    const traceRoute=progress<1?incoming.children[3]:routes[Math.min(2,Math.max(0,Math.floor(progress)-1))];
+    drawing.visible=Boolean(activeStage.drawing);
+    incoming.visible=activeStage.id!=='arrival';
+    routes.forEach((route,i)=>{route.visible=i<activeStage.routes;});
+    terminals.forEach((node,i)=>{node.visible=activeStage.actors.includes(Object.keys(modelSlots).filter(id=>id!=='installation')[i]);});
+    const traceRoute=routes.find(route=>route.visible)||incoming.children[3];
     trace.position.copy(traceRoute.userData.curve.getPointAt(progress-Math.floor(progress)));
-    trace.position.y+=.06;trace.visible=progress<4&&Math.abs(desired-progress)>.002&&!reduced;
+    trace.position.y+=.06;trace.visible=activeStage.routes>0&&Math.abs(desired-progress)>.002&&!reduced;
     renderer.render(scene,camera);
-    const index=Math.round(progress),point=v(index===2&&inspected?partAnchors[inspected]:stages[index].anchor).project(camera);
+    const index=Math.round(progress),point=v(activeStage.inspection&&inspected?partAnchors[inspected]:stages[index].anchor).project(camera);
     const distance=Math.abs(progress-index);
     onProject?.({x:(point.x+1)*width/2,y:(1-point.y)*height/2,index,stable:distance<.15,copyOpacity:1-THREE.MathUtils.smoothstep(distance,.08,.38)});
     if(Math.abs(desired-progress)>.001)invalidate();
