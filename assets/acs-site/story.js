@@ -9,8 +9,8 @@
 
   const hero=main.querySelector('.rs-breadcrumb-one'),heroImage=hero?.querySelector('.acs-breadcrumb-photo');
   if(document.body.classList.contains('acs-family-product')&&heroImage){
-    const actual=main.querySelector('.acs-product-card img,.acs-content-flow img');
-    if(actual){
+    const actual=main.querySelector('.acs-panel-specification img')||main.querySelector('.acs-product-card img,.acs-content-flow img');
+    if(actual&&!actual.closest('.acs-related-products')){
       heroImage.src=actual.getAttribute('src');heroImage.alt=actual.alt;heroImage.removeAttribute('loading');
       hero.classList.add('acs-product-hero');hero.querySelector('.rs-breadcrumb-content-wrapper').append(heroImage);
     }
@@ -38,6 +38,7 @@
 
   // Reuse existing content nodes: disclosure changes hierarchy, not the underlying copy.
   main.querySelectorAll('article.acs-detail-card').forEach(card=>{
+    if(card.matches('.acs-package-record,.acs-software-record'))return;
     if(document.body.classList.contains('acs-family-product'))return;
     if(card.querySelector('img,a,button,input,details'))return;
     let source=card;
