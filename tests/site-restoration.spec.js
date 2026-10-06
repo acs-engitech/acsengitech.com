@@ -43,9 +43,11 @@ test('mobile scope reveals original copy and returns focus to the scene',async({
  await page.locator('#arrival .mobile-scope').click();await expect(page.locator('#world-scope')).toBeVisible();
  await expect(page.locator('#world-scope')).toContainText('manufacture, program and commission');
  await page.keyboard.press('Escape');await expect(page.locator('#arrival .mobile-scope')).toBeFocused();
- await page.selectOption('#world-jump','control');await expect(page.locator('#acs-world')).toHaveAttribute('data-stage','control');
- await expect(page.locator('#world-door')).toHaveAttribute('aria-label','View cabinet exterior');
- await expect(page.locator('#world-door')).toHaveText('');
+ await page.selectOption('#world-jump','inside');await expect(page.locator('#acs-world')).toHaveAttribute('data-stage','inside');
+ await expect(page.locator('#world-door')).toHaveAttribute('aria-label','Close panel doors');
+ await expect(page.locator('#world-door')).toHaveText('Close doors');
+ await page.locator('#inside .mobile-scope').click();await expect(page.locator('#world-scope .component-index li')).toHaveCount(8);
+ await page.keyboard.press('Escape');
 });
 test('partner form keeps aligned controls and full-width long-form fields',async({page})=>{
  for(const width of [320,390,1440]){
