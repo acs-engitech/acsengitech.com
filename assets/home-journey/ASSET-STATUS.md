@@ -1,17 +1,15 @@
 # Homepage asset status
 
-The homepage now uses real Three.js schematic actors and a shared installation environment. The old photograph-led showroom is inactive.
+The homepage is a single procedural Three.js factory scene. All machines, panels and the building are illustrative models, not replicas of the ACS facility or of any client plant.
 
-NEEDS CONFIRMATION: cabinet dimensions, exterior views, internal layout and door pivots. Current cabinet geometry represents system roles, not an exact ACS assembly.
+NEEDS CONFIRMATION: approved panel layouts if ACS wants the hero panel interior to match a specific delivered project. The current interior shows typical component roles without makes or ratings.
 
-NEEDS CONFIRMATION: selected MCC/VFD lineup, bay dimensions and approved component identities. Schematic bays carry no equipment ratings.
+NEEDS CONFIRMATION: approved MCC / VFD lineup if a specific project should be shown. The lineup follows the arrangement in assets/acs/vfd-panel.jpg.
 
-NEEDS CONFIRMATION: approved field-interface enclosure. The current dimensional volume is conceptual.
-
-NEEDS CONFIRMATION: facility CAD, approved wide photographs and testing imagery. The installation floor is conceptual and is not labeled as ACS premises. The documented 36,000 sq. ft. figure is presented separately as facility evidence.
+NEEDS CONFIRMATION: facility CAD or wide photography if ACS later wants the factory floor to represent its own 36,000 sq. ft. facility. Until then the figure is presented as text, separately from the scene.
 
 NEEDS CONFIRMATION: project-specific media and permission to name the client behind the 2300 I/O FMCG application. The project remains anonymous.
 
-EMS screenshot and LogView architecture are existing ACS assets. They appear on the spatial software surface and are not live data. Team imagery, client logos and credentials remain supporting evidence.
+The operator desk screens show existing ACS EMS and LogView images; they are not live data. The HMI and meter graphics are illustrative. Team imagery, client logos and credentials remain supporting evidence.
 
-Fallback images are direct renders of the actual schematic Three.js scenes, not stock imagery or product photographs.
+Fallback images are direct renders of the same Three.js scene, not stock imagery or product photographs.
