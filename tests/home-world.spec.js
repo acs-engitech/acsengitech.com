@@ -45,7 +45,7 @@ test('panel doors, component callouts, rotation and reset change the actual canv
  await page.waitForTimeout(150);expect(Buffer.compare(closed,await canvas.screenshot())).not.toBe(0);
  await chapter(page,'inside');
  await expect(page.locator('.world-callouts')).toBeVisible();await expect(page.locator('.world-callouts .callout')).toHaveCount(8);
- await expect(page.locator('.world-callouts')).toContainText('PLC & I/O modules');await expect(page.locator('.world-callouts')).toContainText('Variable frequency drives');
+ await expect(page.locator('.world-callouts')).toContainText('PLC CPU & I/O modules');await expect(page.locator('.world-callouts')).toContainText('Interface relays');
  const dots=await page.locator('.callout-dot').evaluateAll(nodes=>nodes.map(n=>n.getBoundingClientRect()));
  const stage=await canvas.boundingBox();
  for(const dot of dots){expect(dot.x).toBeGreaterThan(stage.x);expect(dot.x).toBeLessThan(stage.x+stage.width);expect(dot.y).toBeGreaterThan(stage.y);expect(dot.y).toBeLessThan(stage.y+stage.height);}
@@ -147,7 +147,7 @@ test('touch controls work and canvas permits native vertical scrolling',async({b
 test('CMS metadata and real ACS evidence remain intact',async({page})=>{
  await page.route('**/api/public?path=*',r=>r.fulfill({json:{settings:{},pageSeo:{'/':{title:'ACS SEO integration test'}}}}));
  await page.goto('/');await expect(page).toHaveTitle('ACS SEO integration test');await expect(page.locator('#acs-world')).toBeVisible();
- for(const [id,text] of [['panel','36,000'],['capabilities','2300'],['experience','7000+'],['experience','2018'],['contact','sales@acsengitech.com']])await expect(page.locator('#'+id)).toContainText(text);
+ for(const [id,text] of [['panel','36,000'],['capabilities','36,000'],['capabilities','250'],['capabilities','TIA Portal'],['capabilities','IP66'],['experience','Prisma SeT'],['experience','Ri4Power'],['experience','7000+'],['experience','2018'],['contact','sales@acsengitech.com']])await expect(page.locator('#'+id)).toContainText(text);
 });
 
 test('no-JavaScript retains evidence and real scene renders',async({browser})=>{
