@@ -43,7 +43,7 @@
   jump.addEventListener('change',()=>document.getElementById(jump.value).scrollIntoView({behavior:motion.matches?'instant':'smooth',block:'start'}));
   const record=document.querySelector('.trust-record');
   const standards=document.createElement('details');standards.className='mobile-standards';
-  standards.innerHTML='<summary>Standards &amp; certifications <i class="ri-add-line" aria-hidden="true"></i></summary>';
+  standards.innerHTML='<summary>Partnerships &amp; approvals <i class="ri-add-line" aria-hidden="true"></i></summary>';
   for(const a of record.querySelectorAll(':scope > a'))standards.append(a.cloneNode(true));
   record.append(standards);
   let engine, stages, calloutList = [], active = -1, frame = 0, scrollPositions = [], visible = true, lost = false;

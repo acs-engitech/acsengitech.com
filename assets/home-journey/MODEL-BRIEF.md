@@ -4,22 +4,22 @@ The active homepage uses world-scene.js and stages.js. Every object is real Thre
 
 ## Journey
 
-Factory floor → production line with its control panel → the closed ACS panel → doors open with component callouts → "Panels that work 24×7" → ACS team → capabilities (2300 I/O proof) → enquiry.
+Plant floor → MEE + ATFD (ZLD) plant with its PLC control panel → the closed ACS PLC panel in front of a compartmental MCC → doors open with PLC-panel component callouts → "Panels that work 24×7" → ACS team → capabilities (facility, stated capacity, tools and standards) → enquiry.
 
 `stages` in stages.js owns each chapter's camera (target, view direction, framed height, desktop placement, mobile framing), annotation anchor, door state (`doorOpen`) and whether the interior callouts show (`callouts`). Chapter IDs match the `<section>` IDs in index.html.
 
 ## Model slots
 
-- factory: cut-away hall (floor, walls, columns, rafters, high-bay lights), pallet racking, two CNC machining centres and an operator desk showing the real EMS and LogView images. Illustrative, NOT the ACS facility or a client plant.
-- line: packaging line with belt conveyor, guarded machine stations, inspection arch, robot palletiser (2-link IK, synchronised to the carton pitch), safety fence and cable tray back to the panel.
-- panel: hero two-door enclosure modelled on assets/acs/control-panels.jpg: door HMI, indication lamps, E-stop, meter, louvres; interior mounting plate with MCCB incomer, busbars, PLC + I/O, MCBs, 24 V supplies, VFDs, contactors/overloads, terminal strip, ducts and wiring. Layout is illustrative; makes and ratings are not asserted.
-- mcc: nine-section MCC / VFD lineup modelled on assets/acs/vfd-panel.jpg.
+- factory: cut-away hall (floor, walls, columns, rafters, high-bay lights), effluent holding tanks, RO skid, dosing tanks and an operator desk showing the real EMS and LogView images. Illustrative, NOT the ACS facility or a client plant.
+- line: MEE + ATFD zero liquid discharge plant: steel structure with grating, handrails and stair; three evaporator effects (calandria, vapour separator, vapour line, circulation pump); surface condenser and vacuum pump; agitated thin film dryer with rotating drive and salt discharge; feed/steam headers with moving flow texture; cable tray back to the panel.
+- panel: hero two-door PLC control panel modelled on assets/acs/control-panels.jpg: door HMI, indication lamps, E-stop, meter, louvres; PLC-panel interior with isolator, 24 V supplies, MCB distribution, PLC CPU + I/O, Ethernet switch, interface relays, signal isolators, terminal strip, ducts and wiring. Layout is illustrative; ratings are not asserted.
+- mcc: compartmental MCC modelled on ACS MCC photographs: top busbar chamber, incomer, five feeder columns of six modules (lamps, push-button, meter, rotary handle), louvred cable alleys and bottom chamber.
 
 Callouts are defined in `callouts` (stages.js) with panel-local anchors; showroom.js draws the HTML labels and leader lines from projected points every frame.
 
 ## Rendering
 
-Perspective camera, ACES tone mapping, procedural studio reflections (PMREM), soft directional shadows and canvas-generated textures (floor, belt, cartons, HMI, meter, nameplate, hazard tape). Static meshes are merged per material at build time (`bake`), so hundreds of parts render in a few dozen draw calls; animated parts are flagged `userData.live`. Ambient motion (conveyor, robot, press, blinking LEDs) runs only while the stage is visible and is frozen for reduced-motion users. CPU-only WebGL (SwiftShader / llvmpipe) gets no shadow pass and 1× pixels.
+Perspective camera, ACES tone mapping, procedural studio reflections (PMREM), soft directional shadows and canvas-generated textures (floor, flow headers, caution labels, HMI, meter, nameplate, hazard tape). Static meshes are merged per material at build time (`bake`), so hundreds of parts render in a few dozen draw calls; animated parts are flagged `userData.live`. Ambient motion (ATFD drive, header flow, blinking LEDs) runs only while the stage is visible and is frozen for reduced-motion users. CPU-only WebGL (SwiftShader / llvmpipe) gets no shadow pass and 1× pixels.
 
 ## Replacing an actor with a GLB
 

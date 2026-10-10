@@ -35,6 +35,10 @@ test('homepage presents the complete automation lifecycle in document and model 
   await expect(page.locator('#panel')).toContainText('tested');
   await expect(page.locator('#inside')).toContainText('PLC');
   await expect(page.locator('#always-on')).toContainText('24×7');
+  await expect(page.locator('#production')).toContainText('MEE');
+  await expect(page.locator('#experience')).not.toContainText('ERDA');
+  await expect(page.locator('#experience')).not.toContainText('WWT');
+  await expect(page.locator('#experience .client-logos img')).toHaveCount(6);
   await expect(page.locator('#experience')).toContainText('support');
 });
 test('manufacturing evidence is available without obscuring the mobile model',async({page})=>{

@@ -550,3 +550,62 @@ html:not(.has-js) .round-clock strong{font-size:90px}
 @media(min-width:1000px) and (max-height:850px),(min-width:1000px) and (max-width:1199px){.capability-index{display:none}}
 @media(min-width:1700px) and (max-height:1000px){#panel .facility-proof strong{font-size:64px}#panel .scene-description{top:215px;width:430px}#panel .scene-description p{font-size:19px}#panel .scene-description p strong{font-size:22px}}
 @media(min-width:1700px) and (max-height:1000px){#always-on .scene-title h2{font-size:56px}.round-clock strong{font-size:150px}#always-on .scene-description{width:440px;bottom:80px}#always-on .scene-description p{font-size:19px}#always-on .scene-description p strong{font-size:22px}}
+
+/* Team: partnerships, three experience figures and the client wall. */
+.trust-record>a span{text-align:right;max-width:62%;line-height:1.45}
+#experience .experience-numbers{grid-template-columns:repeat(3,1fr)}
+#experience .client-strip{display:flex;align-items:center;gap:28px}
+.client-logos{flex:1;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:18px}
+#experience .client-logos img{width:auto;height:46px;max-width:120px;object-fit:contain;mix-blend-mode:multiply}
+@media(max-width:999px){
+ #experience .client-strip{gap:0}
+ .client-logos{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 16px;justify-items:center}
+ #experience .client-logos img{height:28px;max-width:100%}
+}
+
+/* Capabilities board: facility, stated capacity and engineering standards. */
+[data-stage=capabilities] .world-stage::after{opacity:.93}
+#capabilities .scene-content{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);grid-template-rows:auto minmax(0,1fr);gap:28px 64px;align-content:start}
+#capabilities .scene-content>*{position:static;inset:auto;width:auto;max-width:none;margin:0}
+#capabilities .scene-title{grid-column:1/-1}
+#capabilities .scene-title h2{font-size:52px;line-height:1.08}
+.cap-capacity{display:flex;flex-direction:column;justify-content:center;gap:30px;min-height:0}
+.cap-area strong{display:block;font-size:92px;line-height:1;font-weight:400;color:var(--ink)}
+.cap-area strong span{font-size:18px;margin-left:12px;color:var(--blue);font-weight:600}
+.cap-area p{font-size:14px;color:var(--muted);margin-top:10px}
+.cap-chart{margin:0}
+.cap-chart figcaption{font-size:13px;font-weight:600;color:#365969;margin-bottom:12px}
+.cap-chart figcaption span{font-weight:400;color:var(--muted)}
+.cap-bar{display:flex;height:64px;gap:3px}
+.cap-seg{display:flex;flex-direction:column;justify-content:center;padding:0 16px;color:#fff;font-size:12px;line-height:1.3;min-width:0}
+.cap-seg b{font-size:26px;font-weight:600;line-height:1.1}
+.cap-seg.is-mcc{background:#0b4f80}
+.cap-seg.is-plc{background:var(--blue)}
+.cap-scale{display:flex;position:relative;height:20px;font-size:10px;color:var(--muted);border-top:1px solid var(--line);margin-top:6px}
+.cap-scale span{position:absolute;top:4px;transform:translateX(-50%)}
+.cap-scale span:nth-child(1){left:0;transform:none}.cap-scale span:nth-child(2){left:40%}.cap-scale span:nth-child(3){right:0;left:auto;transform:none}
+.cap-total{font-size:14px;color:#344b56;margin-top:10px}
+.cap-total strong{font-size:34px;font-weight:600;color:var(--ink);margin-right:8px}
+.cap-specs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 28px;margin:0;align-content:center;min-height:0}
+.cap-spec{padding:18px 0 16px;border-top:1px solid var(--line);position:relative}
+.cap-spec:before{content:'';position:absolute;left:0;top:-1px;width:28px;height:2px;background:var(--blue)}
+.cap-spec dt{font-size:12px;color:var(--muted);margin-bottom:6px}
+.cap-spec dd{margin:0;font-size:20px;line-height:1.3;font-weight:600;color:var(--ink)}
+.ip-chip{display:inline-block;font-size:14px;font-weight:700;color:#005b92;border:1.5px solid #0069ab;padding:3px 9px;margin:2px 6px 2px 0}
+@media(min-width:1700px){#capabilities .scene-title h2{font-size:64px}.cap-area strong{font-size:120px}.cap-spec dd{font-size:24px}.cap-bar{height:76px}}
+@media(min-width:1000px) and (max-height:850px){#capabilities .scene-content{gap:18px 48px}#capabilities .scene-title h2{font-size:40px}.cap-area strong{font-size:64px}.cap-capacity{gap:16px}.cap-bar{height:52px}.cap-seg b{font-size:20px}.cap-spec{padding:11px 0 10px}.cap-spec dd{font-size:16px}.cap-total strong{font-size:26px}}
+@media(min-width:1000px) and (max-width:1199px){#capabilities .scene-content{gap:20px 36px}#capabilities .scene-title h2{font-size:42px}.cap-area strong{font-size:70px}.cap-spec dd{font-size:16px}}
+@media(max-width:999px){
+ #capabilities .scene-content{grid-template-columns:1fr;grid-template-rows:auto auto auto;gap:16px;align-content:start}
+ #capabilities .scene-title h2{font-size:31px;line-height:1.16}
+ .cap-capacity{gap:12px}
+ .cap-area strong{font-size:44px}.cap-area strong span{font-size:13px}.cap-area p{font-size:11px;margin-top:4px}
+ .cap-chart figcaption{font-size:11px;margin-bottom:6px}
+ .cap-bar{height:42px}.cap-seg{padding:0 10px;font-size:10px}.cap-seg b{font-size:17px}
+ .cap-scale{display:none}.cap-total{font-size:11px;margin-top:6px}.cap-total strong{font-size:20px}
+ .cap-specs{gap:0 16px}
+ .cap-spec{padding:8px 0 7px}.cap-spec dt{font-size:10px;margin-bottom:2px}.cap-spec dd{font-size:13px}
+ .ip-chip{font-size:11px;padding:1px 5px;margin:1px 3px 1px 0}
+}
+@media(max-height:740px) and (max-width:999px){.cap-area{display:none}}
+@media(min-width:1700px) and (max-height:1000px){#production .scene-title h2{font-size:58px}#production .scene-description p{font-size:19px}#production .scene-description p strong{font-size:22px}}

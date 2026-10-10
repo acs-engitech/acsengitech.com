@@ -6,8 +6,6 @@ import { modelSlots, stages, callouts } from './stages.js';
 const v = a => new THREE.Vector3(...a);
 const paper = 0xf2f5f4;
 const FOV = 30;
-const CYCLE = 4; // seconds per robot pick, matched to carton pitch / belt speed
-const PITCH = 1.2, SPEED = PITCH / CYCLE;
 const smooth = t => t * t * (3 - 2 * t);
 
 export async function createWorld(mount, { onProject, onCallouts, onLost, reduced = false } = {}) {
@@ -70,21 +68,13 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
       for (let i = 0; i < 40; i++) { x.fillStyle = `rgba(120,135,140,${Math.random() * .035})`; x.beginPath(); x.ellipse(Math.random() * w, Math.random() * h, 20 + Math.random() * 90, 10 + Math.random() * 50, Math.random() * 3, 0, 7); x.fill(); }
       x.strokeStyle = 'rgba(110,125,130,.35)'; x.lineWidth = 2; x.strokeRect(0, 0, w, h);
     }, [6, 22 / 6]),
-    belt: canvasTexture(64, 64, (x, w, h) => { x.fillStyle = '#30373a'; x.fillRect(0, 0, w, h); x.fillStyle = '#3c4447'; x.fillRect(0, 0, 10, h); }, [40, 1]),
-    carton: canvasTexture(256, 256, (x, w, h) => {
-      x.fillStyle = '#c59c6b'; x.fillRect(0, 0, w, h);
-      for (let i = 0; i < 300; i++) { x.fillStyle = `rgba(90,60,30,${Math.random() * .06})`; x.fillRect(Math.random() * w, Math.random() * h, 2, 8); }
-      x.fillStyle = '#d9bc8f'; x.fillRect(0, h * .44, w, h * .12);
-      x.fillStyle = '#0069ab'; x.fillRect(w * .12, h * .14, w * .2, h * .06);
-    }),
     hatch: canvasTexture(128, 128, (x, w, h) => {
       x.fillStyle = '#2b2f31'; x.fillRect(0, 0, w, h); x.fillStyle = '#e8b923';
       for (let i = -2; i < 4; i++) { x.beginPath(); x.moveTo(i * 64, 0); x.lineTo(i * 64 + 32, 0); x.lineTo(i * 64 + 32 + h, h); x.lineTo(i * 64 + h, h); x.fill(); }
     }, [8, 1.5]),
-    fence: canvasTexture(128, 128, (x, w, h) => {
-      x.clearRect(0, 0, w, h); x.strokeStyle = 'rgba(60,66,70,.95)'; x.lineWidth = 3;
-      for (let i = 0; i <= w; i += 16) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i, h); x.stroke(); x.beginPath(); x.moveTo(0, i); x.lineTo(w, i); x.stroke(); }
-    }, [6, 6]),
+    flowWater: canvasTexture(256, 32, (x, w, h) => { x.fillStyle = '#3f8f6b'; x.fillRect(0, 0, w, h); x.fillStyle = '#7fd1a8'; for (let i = 0; i < w; i += 64) { x.beginPath(); x.moveTo(i, 4); x.lineTo(i + 22, h / 2); x.lineTo(i, h - 4); x.fill(); } }, [27, 1]),
+    flowSteam: canvasTexture(256, 32, (x, w, h) => { x.fillStyle = '#c9d0d3'; x.fillRect(0, 0, w, h); x.fillStyle = '#0069ab'; for (let i = 0; i < w; i += 64) { x.beginPath(); x.moveTo(i, 6); x.lineTo(i + 20, h / 2); x.lineTo(i, h - 6); x.fill(); } }, [27, 1]),
+    caution: canvasTexture(128, 80, (x, w, h) => { x.fillStyle = '#f3c330'; x.fillRect(0, 0, w, h); x.fillStyle = '#e2553a'; x.fillRect(0, 0, w, 30); x.fillStyle = '#fff'; x.font = font(800, 22); x.textAlign = 'center'; x.fillText('CAUTION', w / 2, 23); x.fillStyle = '#1b1d1f'; x.font = font(700, 16); x.fillText('CABLE ALLEY', w / 2, 58); }),
     contact: canvasTexture(128, 128, (x, w, h) => {
       const g = x.createRadialGradient(w / 2, h / 2, 4, w / 2, h / 2, w / 2);
       g.addColorStop(0, 'rgba(25,38,44,.55)'); g.addColorStop(.55, 'rgba(25,38,44,.22)'); g.addColorStop(1, 'rgba(25,38,44,0)');
@@ -93,15 +83,15 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
     hmi: canvasTexture(512, 360, (x, w, h) => {
       x.fillStyle = '#0d2633'; x.fillRect(0, 0, w, h);
       x.fillStyle = '#0069ab'; x.fillRect(0, 0, w, 52);
-      x.fillStyle = '#fff'; x.font = font(700, 24); x.fillText('LINE 01  ·  PACKAGING', 18, 35);
+      x.fillStyle = '#fff'; x.font = font(700, 24); x.fillText('MEE + ATFD  ·  ZLD', 18, 35);
       x.fillStyle = '#3ddc84'; x.font = font(700, 20); x.textAlign = 'right'; x.fillText('AUTO  ●  RUN', w - 18, 34); x.textAlign = 'left';
       x.strokeStyle = '#4f7d93'; x.lineWidth = 6; x.beginPath(); x.moveTo(30, 150); x.lineTo(w - 30, 150); x.stroke();
-      [[60, 'FORM'], [200, 'SEAL'], [330, 'CHECK'], [450, 'PALLET']].forEach(([px, name]) => {
+      [[60, 'FEED'], [200, 'MEE'], [330, 'ATFD'], [450, 'COND']].forEach(([px, name]) => {
         x.fillStyle = '#1b4255'; x.fillRect(px - 42, 96, 84, 40); x.fillStyle = '#3ddc84'; x.beginPath(); x.arc(px - 26, 116, 7, 0, 7); x.fill();
         x.fillStyle = '#dbe9ef'; x.font = font(600, 15); x.fillText(name, px - 14, 122);
       });
-      x.fillStyle = '#9fc3d3'; x.font = font(600, 17); x.fillText('SPEED', 30, 205); x.fillText('UPTIME', 190, 205); x.fillText('ALARMS', 350, 205);
-      x.fillStyle = '#fff'; x.font = font(700, 38); x.fillText('18 /min', 30, 250); x.fillText('24×7', 190, 250); x.fillText('0', 350, 250);
+      x.fillStyle = '#9fc3d3'; x.font = font(600, 17); x.fillText('FEED', 30, 205); x.fillText('UPTIME', 190, 205); x.fillText('ALARMS', 350, 205);
+      x.fillStyle = '#fff'; x.font = font(700, 38); x.fillText('8.5 m³/h', 30, 250); x.fillText('24×7', 190, 250); x.fillText('0', 350, 250);
       x.fillStyle = '#163a4b'; x.fillRect(30, 285, w - 60, 16); x.fillStyle = '#3ddc84'; x.fillRect(30, 285, (w - 60) * .78, 16);
       x.fillStyle = '#7fa6b7'; x.font = font(600, 14); x.fillText('ACS ENGITECH  ·  CONTROL SYSTEM', 30, 334);
     }),
@@ -137,11 +127,8 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
     aluminium: M(0xc4cacd, .35, .8),
     duct: M(0xc6cac8, .72),
     ductSlot: M(0x8e9592, .8),
-    copper: M(0xc98552, .28, 1),
-    insulator: M(0xb43a2e, .55),
     device: M(0xe9ebe8, .55), deviceDark: M(0x34393c, .5, .1), deviceMid: M(0x6c7478, .5, .1),
     plc: M(0x31373a, .45, .15), plcFace: M(0x9aa6aa, .5, .1),
-    vfd: M(0x495156, .45, .2), vfdFace: M(0x24292b, .3, .1),
     terminal: M(0xb8bdbd, .6), terminalBlue: M(0x2f6cb3, .55), terminalEarth: M(0x9dbb3a, .55),
     wireRed: M(0xb8322b, .55), wireYellow: M(0xd9b52b, .55), wireBlue: M(0x2b5fb0, .55), wireBlack: M(0x1d2022, .55), wireControl: M(0x3f78c4, .55), wireGrey: M(0x7b8387, .6),
     lampGreen: M(0x2cc16a, .3, 0, { emissive: 0x31ff86, emissiveIntensity: 1.6 }),
@@ -160,17 +147,19 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
     danger: M(0xffffff, .5, 0, { map: textures.danger, transparent: true }),
     machine: new THREE.MeshPhysicalMaterial({ color: 0xeaedec, roughness: .42, metalness: .05, clearcoat: .4, clearcoatRoughness: .4 }),
     machineDark: M(0x3a4246, .5, .2),
-    blue: M(0x0069ab, .38, .15), blueDeep: M(0x0b4f80, .4, .2),
-    glass: new THREE.MeshPhysicalMaterial({ color: 0xd6e8ee, roughness: .06, metalness: 0, transparent: true, opacity: .2, depthWrite: false }),
-    belt: M(0xffffff, .82, 0, { map: textures.belt }),
-    carton: M(0xffffff, .82, 0, { map: textures.carton }),
-    wood: M(0xb8935f, .85), rackBlue: M(0x2c63a0, .45, .3), rackOrange: M(0xd47a2a, .5, .25),
-    fence: M(0x5b6266, .5, .3, { map: textures.fence, side: THREE.DoubleSide, transparent: true, depthWrite: false }),
-    robot: new THREE.MeshPhysicalMaterial({ color: 0xf1f3f2, roughness: .32, metalness: .05, clearcoat: .6, clearcoatRoughness: .25 }),
-    robotJoint: M(0x0069ab, .35, .2), rubber: M(0x222629, .85),
     contact: new THREE.MeshBasicMaterial({ map: textures.contact, transparent: true, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2 }),
     lamp: M(0xffffff, .3, 0, { emissive: 0xfff6e3, emissiveIntensity: 1.2 }),
-    monitor: M(0x1b1f21, .35, .2)
+    monitor: M(0x1b1f21, .35, .2),
+    cladding: M(0xd5dadc, .3, .75), claddingBand: M(0xa9b1b4, .35, .8),
+    tank: M(0xe2e6e4, .6, .05), tankBand: M(0xc9d0d1, .6, .1),
+    pipeGreen: M(0x3f8f6b, .5, .2), pipeGrey: M(0x7e888c, .45, .5),
+    motor: M(0x1f5f9e, .45, .3), pump: M(0x5b6670, .45, .45),
+    grating: M(0x9aa3a6, .55, .6), salt: M(0xefe8d6, .95), membrane: M(0xf3f5f4, .4, .05), dosing: M(0x2e6fb4, .5),
+    relay: M(0x5aa0e0, .25, 0, { transparent: true, opacity: .85 }),
+    gap: M(0x3d4448, .7, .1), brass: M(0xc9a24a, .35, .8),
+    caution: M(0xffffff, .5, 0, { map: textures.caution }),
+    flowWater: M(0xffffff, .45, .1, { map: textures.flowWater }),
+    flowSteam: M(0xffffff, .3, .4, { map: textures.flowSteam })
   };
 
   // ---------- geometry helpers ----------
@@ -258,149 +247,160 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
   plane(factory, 1.75, .8, [modelSlots.panel.position[0], .006, modelSlots.panel.position[2] + .75], 'hatch', [-Math.PI / 2, 0, 0]).receiveShadow = true;
   plane(factory, 2.2, .45, [-2.3, .006, 5.05], 'hatch', [-Math.PI / 2, 0, 0]).receiveShadow = true;
 
-  // Pallet racking along the side wall.
-  function pallet(parent, at, layers = 0, rotation = 0) {
-    const g = new THREE.Group(); g.position.copy(v(at)); g.rotation.y = rotation; parent.add(g);
-    for (const z of [-.36, 0, .36]) box(g, [1.2, .1, .1], [0, .05, z], 'wood');
-    for (let i = 0; i < 6; i++) box(g, [.14, .025, .8], [-.52 + i * .208, .112, 0], 'wood');
-    for (let l = 0; l < layers; l++) for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) box(g, [.37, .31, .29], [-.38 + i * .38, .28 + l * .32, -.15 + j * .3], 'carton', .006);
+  // Clad process vessels: jacket with bands, domed head and optional cone bottom.
+  function vessel(parent, x, z, r, y0, h, opts = {}) {
+    const g = new THREE.Group(); g.position.set(x, 0, z); parent.add(g);
+    const mat = opts.mat || 'cladding';
+    cyl(g, r, h, [0, y0 + h / 2, 0], mat, 'y', 40);
+    for (let y = y0 + .3; y < y0 + h - .1; y += opts.band || .6) cyl(g, r + .008, .028, [0, y, 0], opts.bandMat || 'claddingBand', 'y', 40);
+    const dome = mesh(g, new THREE.SphereGeometry(r, 40, 12, 0, Math.PI * 2, 0, Math.PI / 2), mat, [0, y0 + h, 0]); dome.scale.y = opts.dome ?? .45;
+    if (opts.cone) cyl(g, r, opts.cone, [0, y0 - opts.cone / 2, 0], mat, 'y', 40, .1);
     return g;
   }
-  for (let z = -9.6; z <= 3.6; z += 2.7) {
-    for (const dx of [-.5, .5]) box(factory, [.08, 5.4, .08], [-16.4 + dx, 2.7, z], 'rackBlue');
+  function ladder(parent, x, z, y0, y1, rot = 0) {
+    const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = rot; parent.add(g);
+    for (const dx of [-.2, .2]) box(g, [.04, y1 - y0, .04], [dx, (y0 + y1) / 2, 0], 'yellow');
+    for (let y = y0 + .3; y < y1; y += .3) cyl(g, .012, .4, [0, y, 0], 'yellow', 'x', 6);
   }
-  for (let z = -8.25; z <= 3.6; z += 2.7) for (const y of [1.6, 3.3, 5]) {
-    for (const dx of [-.5, .5]) box(factory, [.06, .12, 2.6], [-16.4 + dx, y, z], 'rackOrange');
-    pallet(factory, [-16.4, y + .06, z - .62], (z + y) % 2 > .7 ? 2 : 1, Math.PI / 2);
-    pallet(factory, [-16.4, y + .06, z + .62], 2, Math.PI / 2);
+  function pumpSkid(parent, x, z, rot = 0) {
+    const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = rot; parent.add(g);
+    box(g, [.95, .12, .42], [0, .06, 0], 'machineDark', .01);
+    cyl(g, .14, .46, [.18, .3, 0], 'motor', 'x', 24);
+    for (let i = 0; i < 6; i++) cyl(g, .152, .012, [.02 + i * .06, .3, 0], 'motor', 'x', 24);
+    cyl(g, .15, .07, [.45, .3, 0], 'machineDark', 'x', 24);
+    box(g, [.14, .14, .18], [-.12, .3, 0], 'yellow', .01);
+    cyl(g, .17, .13, [-.3, .3, 0], 'pump', 'z', 24);
+    cyl(g, .05, .22, [-.3, .5, 0], 'pump', 'y', 12);
+    cyl(g, .05, .2, [-.47, .3, 0], 'pump', 'x', 12);
+    contact(g, 1.3, .8);
+    return g;
   }
-  for (let z = -8.25; z <= 3.6; z += 2.7) pallet(factory, [-16.4, 0, z], 2, Math.PI / 2);
-  contact(factory, 1.8, 14, [-16.4, 0, -2.8]);
-
-  // CNC machining centres.
-  function cnc(x, z) {
+  // Effluent holding tanks, RO skid and dosing tanks: the front end of the ZLD plant.
+  for (const [x, z] of [[-15, -8.4], [-15, -4.9], [-11.7, -8.4]]) {
+    vessel(factory, x, z, 1.25, 0, 4.2, { mat: 'tank', bandMat: 'tankBand', band: 1.05, dome: .22 });
+    ladder(factory, x + 1.32, z, .2, 4.35, Math.PI / 2);
+    contact(factory, 3.3, 3.3, [x, 0, z]);
+  }
+  tube(factory, [[-13.75, .5, -8.4], [-13, .5, -7.4], [-12.4, .5, -6.7], [-10.1, .5, -6.7]], .07, 'pipeGreen', 20);
+  tube(factory, [[-13.75, .5, -4.9], [-12.6, .5, -5.6], [-10.1, .55, -6.4]], .07, 'pipeGreen', 16);
+  (function roSkid(x, z) {
     const g = new THREE.Group(); g.position.set(x, 0, z); factory.add(g);
-    box(g, [2.7, .35, 2], [0, .175, 0], 'machineDark', .02);
-    box(g, [2.7, 2.05, 2], [0, 1.37, 0], 'machine', .05);
-    box(g, [2.72, .16, 2.02], [0, 2.3, 0], 'blue', .02);
-    box(g, [1.5, 1.3, .04], [-.35, 1.35, 1.01], 'machineDark', .015);
-    box(g, [1.32, 1.08, .02], [-.35, 1.38, 1.035], 'glass');
-    box(g, [.04, .5, .06], [.38, 1.35, 1.05], 'chrome', .01);
-    box(g, [.5, .7, .14], [1.05, 1.5, 1.08], 'machineDark', .02);
-    box(g, [.4, .28, .01], [1.05, 1.66, 1.155], 'screen');
-    for (let i = 0; i < 4; i++) box(g, [.07, .05, .01], [.9 + i * .1, 1.38, 1.155], 'device');
-    stackLight(g, [1.2, 2.38, -.7]);
-    box(g, [.6, .55, 1.4], [-1.65, .3, .1], 'machineDark', .02);
-    contact(g, 3.9, 2.8, [0, 0, 0]);
-  }
-  cnc(-11.6, -6.6); cnc(-7.8, -6.6);
-
-  // ---------- production line ----------
-  const line = actors.line;
-  const conveyor = { x0: -10.6, x1: 1.4, z: 1.6, top: .85 };
-  const beltLength = conveyor.x1 - conveyor.x0, beltX = (conveyor.x0 + conveyor.x1) / 2;
-  const belt = box(line, [beltLength, .03, .5], [beltX, conveyor.top - .015, conveyor.z], 'belt');
-  textures.belt.repeat.set(beltLength / .3, 1);
-  for (const dz of [-.29, .29]) {
-    box(line, [beltLength + .1, .1, .05], [beltX, conveyor.top - .04, conveyor.z + dz], 'aluminium', .01);
-    for (let x = conveyor.x0 + .6; x < conveyor.x1; x += 1.6) {
-      cyl(line, .008, .2, [x, 1.03, conveyor.z + dz * .78], 'chrome', 'y', 6);
-      box(line, [.05, .78, .05], [x, .39, conveyor.z + dz], 'aluminium', .005);
-      box(line, [.12, .02, .1], [x, .01, conveyor.z + dz], 'black');
+    for (const dx of [-1.6, 0, 1.6]) for (const dz of [-.5, .5]) box(g, [.06, 2.0, .06], [dx, 1.0, dz], 'galv');
+    for (const y of [.25, 1.98]) for (const dz of [-.5, .5]) box(g, [3.26, .06, .06], [0, y, dz], 'galv');
+    for (const y of [.62, 1.04, 1.46]) for (const dz of [-.24, .24]) {
+      cyl(g, .12, 3.0, [0, y, dz], 'membrane', 'x', 24);
+      for (const sx of [-1.52, 1.52]) cyl(g, .13, .08, [sx, y, dz], 'machineDark', 'x', 24);
     }
-    cyl(line, .01, beltLength, [beltX, 1.06, conveyor.z + dz * .8], 'chrome', 'x', 8);
+    for (const dz of [-.24, .24]) cyl(g, .035, 1.3, [1.62, 1.04, dz], 'chrome', 'y', 10);
+    box(g, [.5, .7, .3], [-1.25, 1.6, .7], 'machine', .02); box(g, [.36, .24, .01], [-1.25, 1.7, .855], 'screen');
+    for (const dx of [-2.3, -2.0]) cyl(g, .1, .9, [dx, .55, 0], 'chrome', 'y', 20);
+    pumpSkid(g, 2.45, 0, Math.PI / 2);
+    contact(g, 4.8, 1.8);
+  })(-8.4, -6.6);
+  for (let i = 0; i < 3; i++) {
+    const z = -4.9 + i * .85;
+    cyl(factory, .32, .95, [-11.4, .48, z], 'dosing', 'y', 28);
+    box(factory, [.2, .16, .16], [-11.4, 1.03, z], 'machineDark', .01);
+    contact(factory, .9, .9, [-11.4, 0, z]);
   }
-  cyl(line, .12, .32, [conveyor.x0 + .25, .58, conveyor.z - .45], 'blueDeep', 'z', 20);
-  box(line, [.22, .22, .2], [conveyor.x0 + .25, .58, conveyor.z - .7], 'deviceMid', .01);
-  contact(line, beltLength + .4, 1.1, [beltX, 0, conveyor.z], .7);
 
-  function station(x, w, d, h, opts = {}) {
-    const g = new THREE.Group(); g.position.set(x, 0, conveyor.z); line.add(g);
-    box(g, [w, .8, d], [0, .4, 0], 'machine', .025);
-    box(g, [w + .02, .05, d + .02], [0, .82, 0], 'blue', .01);
-    for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(g, [.045, h - .8, .045], [sx * (w / 2 - .02), .8 + (h - .8) / 2, sz * (d / 2 - .02)], 'aluminium', .006);
-    for (const sz of [-1, 1]) box(g, [w - .06, h - .95, .012], [0, .8 + (h - .8) / 2 - .04, sz * (d / 2 - .02)], 'glass');
-    box(g, [w, .32, d], [0, h + .16, 0], 'machine', .03);
-    box(g, [w + .01, .06, d + .01], [0, h + .05, 0], 'blueDeep', .01);
-    box(g, [.42, .26, .03], [w / 2 - .3, h + .16, d / 2 + .005], 'machineDark', .01);
-    box(g, [.32, .18, .005], [w / 2 - .3, h + .17, d / 2 + .022], 'screen');
-    stackLight(g, [-w / 2 + .15, h + .32, -d / 2 + .15]);
-    contact(g, w + .9, d + .9);
-    return g;
+  // ---------- MEE + ATFD plant (zero liquid discharge) ----------
+  const line = actors.line;
+  const effects = [-9.4, -6.8, -4.2];
+  const deck = { x0: -10.6, x1: -2.6, z0: .95, z1: 3.75, y: 3.3 };
+  const deckX = (deck.x0 + deck.x1) / 2, deckW = deck.x1 - deck.x0, deckD = deck.z1 - deck.z0, deckZ = (deck.z0 + deck.z1) / 2;
+  // Steel structure: columns, beams, grating, handrails and an access stair.
+  for (let i = 0; i <= 3; i++) for (const z of [deck.z0, deck.z1]) {
+    const x = deck.x0 + i * deckW / 3;
+    box(line, [.2, deck.y, .04], [x, deck.y / 2, z], 'column'); box(line, [.04, deck.y, .2], [x, deck.y / 2, z + .08], 'column'); box(line, [.04, deck.y, .2], [x, deck.y / 2, z - .08], 'column');
+    box(line, [.36, .03, .36], [x, .015, z], 'column');
   }
-  const stationA = station(-8, 2, 1.7, 2.05);
-  const press = new THREE.Group(); press.userData.live = true; press.position.set(0, 1.45, 0); stationA.add(press);
-  box(press, [.5, .06, .4], [0, 0, 0], 'aluminium', .01);
-  box(press, [.42, .02, .34], [0, -.04, 0], 'rubber');
-  for (const dx of [-.15, .15]) cyl(press, .02, .65, [dx, .33, 0], 'chrome', 'y', 10);
-  box(stationA, [.3, .3, .3], [0, 2.0, 0], 'deviceMid', .02);
-  const stationB = station(-4.4, 1.3, 1.2, 1.6);
-  cyl(stationB, .22, .1, [.2, 1.25, .85], 'device', 'z', 28);
-  cyl(stationB, .06, .12, [.2, 1.25, .85], 'chrome', 'z', 12);
-  box(stationB, [.08, .9, .08], [.2, .9, .72], 'aluminium');
-  const arch = new THREE.Group(); arch.position.set(-1.6, 0, conveyor.z); line.add(arch);
-  for (const dz of [-.42, .42]) box(arch, [.12, 1.75, .12], [0, .875, dz], 'machine', .02);
-  box(arch, [.2, .16, 1], [0, 1.78, 0], 'machine', .025);
-  box(arch, [.16, .16, .2], [0, 1.6, 0], 'machineDark', .02);
-  const ring = mesh(arch, new THREE.TorusGeometry(.13, .018, 8, 32), 'lamp', [0, 1.5, 0], [Math.PI / 2, 0, 0]);
-  ring.castShadow = false;
-  box(arch, [.5, .5, .5], [.3, .25, -.75], 'machineDark', .02);
-  stackLight(arch, [0, 1.86, .35]);
+  for (const z of [deck.z0, deck.z1]) box(line, [deckW + .2, .2, .12], [deckX, deck.y - .1, z], 'column');
+  for (let i = 0; i <= 3; i++) box(line, [.12, .2, deckD], [deck.x0 + i * deckW / 3, deck.y - .1, deckZ], 'column');
+  box(line, [deckW + .2, .04, deckD + .1], [deckX, deck.y + .02, deckZ], 'grating');
+  box(line, [deckW + .2, .1, .02], [deckX, deck.y + .09, deck.z0 - .05], 'yellow');
+  for (let x = deck.x0; x <= deck.x1 + .01; x += deckW / 8) box(line, [.04, 1.05, .04], [x, deck.y + .55, deck.z0 - .05], 'yellow');
+  for (const y of [deck.y + .55, deck.y + 1.07]) box(line, [deckW, .04, .04], [deckX, y, deck.z0 - .05], 'yellow');
+  for (const x of [deck.x0, deck.x1]) for (const y of [deck.y + .55, deck.y + 1.07]) box(line, [.04, .04, deckD], [x, y, deckZ], 'yellow');
+  (function stair(x0, x1, z) {
+    const run = x1 - x0, len = Math.hypot(run, deck.y), ang = Math.atan2(deck.y, run);
+    for (const dz of [-.45, .45]) {
+      box(line, [len, .22, .05], [(x0 + x1) / 2, deck.y / 2, z + dz], 'column', 0, [0, 0, -ang]);
+      box(line, [len, .04, .04], [(x0 + x1) / 2, deck.y / 2 + 1, z + dz], 'yellow', 0, [0, 0, -ang]);
+      for (const t of [.15, .5, .85]) box(line, [.04, 1, .04], [x1 - run * t, deck.y * t + .5, z + dz], 'yellow');
+    }
+    for (let i = 1; i < 14; i++) { const t = i / 14; box(line, [.26, .03, .86], [x1 - run * t, deck.y * t, z], 'grating'); }
+  })(deck.x1, deck.x1 + 2.3, 1.45);
+  // Three evaporator effects: calandria, vapour separator, vapour line and circulation pump.
+  effects.forEach((x, i) => {
+    vessel(line, x, 2.95, .42, .45, 4.4, { cone: .35 });
+    vessel(line, x, 1.65, .6, 1.0, 3.2, { cone: .55, dome: .5 });
+    const next = i < effects.length - 1 ? [effects[i + 1], 5.05, 2.95] : [-.9, 1.95, 3.1];
+    const vapour = i < effects.length - 1
+      ? [[x, 4.5, 1.65], [x, 4.95, 1.65], [x + .7, 5.3, 2.2], [x + 2.0, 5.3, 2.9], next]
+      : [[x, 4.5, 1.65], [x, 4.95, 1.65], [x + 1.0, 5.25, 2.4], [-1.3, 5.2, 3.1], [-.9, 3.6, 3.1], next];
+    tube(line, vapour, .13, 'cladding', 40);
+    tube(line, [[x, .1, 2.95], [x, .12, 2.35], [x, .32, 1.65]], .06, 'pipeGrey', 12);
+    pumpSkid(line, x + .95, 2.25, Math.PI);
+    cyl(line, .07, .03, [x + .3, 2.3, 2.2], 'device', 'z', 20);
+    cyl(line, .075, .02, [x + .3, 2.3, 2.19], 'black', 'z', 20);
+    cyl(line, .025, 1.6, [x + .63, 2.4, 1.65], 'chrome', 'y', 10);
+    box(line, [.1, .12, .08], [x - .5, 2.9, 1.95], 'deviceMid', .01);
+    contact(line, 1.6, 2.8, [x, 0, 2.3], .8);
+  });
+  // Surface condenser and vacuum pump.
+  const condenser = new THREE.Group(); condenser.position.set(-.9, 1.5, 3.1); line.add(condenser);
+  cyl(condenser, .42, 2.4, [0, 0, 0], 'cladding', 'x', 36);
+  for (let x = -1; x <= 1.01; x += .5) cyl(condenser, .43, .03, [x, 0, 0], 'claddingBand', 'x', 36);
+  for (const sx of [-1, 1]) { const head = mesh(condenser, new THREE.SphereGeometry(.42, 32, 10, 0, Math.PI * 2, 0, Math.PI / 2), 'pump', [sx * 1.2, 0, 0], [0, 0, -sx * Math.PI / 2]); head.scale.y = .35; }
+  for (const sx of [-.8, .8]) box(condenser, [.25, 1.3, .6], [sx, -.85, 0], 'column', .01);
+  tube(line, [[-2.3, 1.35, 3.1], [-2.7, 1.2, 3.6], [-2.7, .1, 3.9]], .07, 'pipeGreen', 12);
+  tube(line, [[-2.3, 1.7, 3.1], [-2.9, 1.8, 3.5], [-3.0, .1, 3.95]], .07, 'pipeGreen', 12);
+  pumpSkid(line, .55, 3.6, 0);
+  tube(line, [[-.2, 1.5, 3.4], [.1, .9, 3.6], [.25, .52, 3.6]], .05, 'pipeGrey', 10);
+  contact(line, 3.2, 1.4, [-.9, 0, 3.1], .8);
+  // Agitated thin film dryer: jacketed body, gear motor and rotating drive, salt discharge.
+  const atfd = new THREE.Group(); atfd.position.set(2.4, 0, 2.4); line.add(atfd);
+  for (const dx of [-.55, .55]) for (const dz of [-.55, .55]) box(atfd, [.14, 1.25, .14], [dx, .625, dz], 'column');
+  for (const dz of [-.55, .55]) box(atfd, [1.24, .14, .12], [0, 1.25, dz], 'column');
+  for (const dx of [-.55, .55]) box(atfd, [.12, .14, 1.24], [dx, 1.25, 0], 'column');
+  vessel(atfd, 0, 0, .38, 1.35, 2.35, { cone: .35, dome: .2, band: .4 });
+  cyl(atfd, .46, .06, [0, 2.6, 0], 'pump', 'y', 32);
+  cyl(atfd, .46, .06, [0, 3.72, 0], 'pump', 'y', 32);
+  box(atfd, [.46, .32, .46], [0, 4.08, 0], 'pump', .02);
+  cyl(atfd, .17, .55, [0, 4.5, 0], 'motor', 'y', 28);
+  for (let i = 0; i < 5; i++) cyl(atfd, .18, .012, [0, 4.32 + i * .08, 0], 'motor', 'y', 28);
+  cyl(atfd, .185, .12, [0, 4.83, 0], 'machineDark', 'y', 28);
+  const rotor = new THREE.Group(); rotor.position.set(0, 3.84, 0); rotor.userData.live = true; atfd.add(rotor);
+  cyl(rotor, .13, .1, [0, 0, 0], 'chrome', 'y', 24);
+  for (let k = 0; k < 4; k++) { const a = k * Math.PI / 2; box(rotor, [.05, .12, .05], [Math.cos(a) * .1, 0, Math.sin(a) * .1], 'yellow'); }
+  cyl(atfd, .14, .4, [0, .78, 0], 'chrome', 'y', 20);
+  box(atfd, [.9, .45, .7], [0, .26, 0], 'chrome', .02);
+  box(atfd, [.82, .06, .62], [0, .47, 0], 'salt');
+  cyl(atfd, .09, .25, [.48, 2.95, 0], 'cladding', 'x', 16);
+  contact(atfd, 1.8, 1.8, [0, 0, 0], .9);
+  tube(line, [[2.95, 2.95, 2.4], [3.2, 3.6, 2.6], [1.8, 4.3, 3.1], [.6, 3.4, 3.1], [.35, 1.95, 3.1]], .09, 'cladding', 30);
+  tube(line, [[-4.2, .3, 1.3], [-3.2, .25, .78], [1.2, .25, .78], [1.75, 1.6, 1.6], [2.0, 3.25, 2.25]], .05, 'pipeGrey', 40);
+  // Live headers: feed water and steam, with flow textures that move while the plant runs.
+  const header = (y, z, mat, r) => tube(line, [[-11, y, z], [2.6, y, z]], r, mat, 2);
+  header(.55, .62, 'flowWater', .07); header(.8, .62, 'flowSteam', .06);
+  for (let x = -10.5; x <= 2.5; x += 1.5) box(line, [.08, .82, .1], [x, .41, .62], 'column');
 
-  // Robot palletiser cell.
-  const robotBase = new THREE.Vector3(2.5, 0, 1.6);
-  const robot = new THREE.Group(); robot.position.copy(robotBase); line.add(robot);
-  box(robot, [.75, .5, .75], [0, .25, 0], 'machineDark', .03);
-  cyl(robot, .34, .22, [0, .61, 0], 'robot', 'y', 32);
-  const L1 = 1.05, L2 = 1.0, shoulderY = 1.05;
-  const j1 = new THREE.Group(); j1.position.set(0, .72, 0); j1.userData.live = true; robot.add(j1);
-  cyl(j1, .29, .2, [0, .1, 0], 'robot', 'y', 32);
-  box(j1, [.42, .3, .5], [.05, .3, 0], 'robot', .06);
-  const shoulder = new THREE.Group(); shoulder.position.set(.08, shoulderY - .72, 0); shoulder.userData.live = true; j1.add(shoulder);
-  cyl(shoulder, .17, .52, [0, 0, 0], 'robotJoint', 'z', 28);
-  box(shoulder, [L1, .2, .24], [L1 / 2, 0, .02], 'robot', .07);
-  const elbow = new THREE.Group(); elbow.position.set(L1, 0, 0); elbow.userData.live = true; shoulder.add(elbow);
-  cyl(elbow, .13, .38, [0, 0, 0], 'robotJoint', 'z', 24);
-  box(elbow, [L2, .15, .17], [L2 / 2, 0, -.03], 'robot', .06);
-  box(elbow, [.32, .22, .24], [-.12, 0, -.03], 'robot', .06);
-  const wrist = new THREE.Group(); wrist.position.set(L2, 0, 0); wrist.userData.live = true; elbow.add(wrist);
-  cyl(wrist, .08, .22, [0, 0, 0], 'robotJoint', 'z', 20);
-  cyl(wrist, .055, .14, [0, -.08, 0], 'robot', 'y', 16);
-  box(wrist, [.34, .03, .26], [0, -.17, 0], 'aluminium', .008);
-  for (const dx of [-.1, .1]) for (const dz of [-.07, .07]) cyl(wrist, .025, .04, [dx, -.2, dz], 'rubber', 'y', 10);
-  const held = box(wrist, [.37, .31, .29], [0, -.375, 0], 'carton', .006); held.userData.live = true;
-  const palletAt = new THREE.Vector3(2.75, 0, 3.05);
-  pallet(line, palletAt.toArray(), 1);
-  const slots = [];
-  for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) slots.push(new THREE.Vector3(palletAt.x - .38 + i * .38, .6, palletAt.z - .15 + j * .3));
-  const placed = slots.map(p => { const m = box(line, [.37, .31, .29], [p.x, p.y, p.z], 'carton', .006); m.userData.live = true; return m; });
-  pallet(line, [4.1, 0, 3.6], 0, .2); pallet(line, [4.1, .15, 3.6], 0, .25); pallet(line, [4.1, .3, 3.6], 0, .18);
-  contact(line, 2.2, 2.2, [2.5, 0, 1.6], .8); contact(line, 1.7, 1.2, [palletAt.x, 0, palletAt.z], .7);
-  // Safety fence on the two sides that do not face the viewer.
-  const fencePanel = (x, z, w, rot) => {
-    const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = rot; line.add(g);
-    plane(g, w, 1.7, [0, 1.0, 0], 'fence');
-    box(g, [w, .04, .04], [0, 1.86, 0], 'yellow'); box(g, [w, .04, .04], [0, .14, 0], 'yellow');
-    for (const dx of [-w / 2, w / 2]) { box(g, [.06, 1.95, .06], [dx, .975, 0], 'yellow', .01); box(g, [.16, .015, .16], [dx, .008, 0], 'yellow'); }
-  };
-  fencePanel(2.55, .42, 2.3, 0); fencePanel(3.75, 1.45, 2.1, Math.PI / 2);
-
-  // Cable tray from the control panel to every station.
+  // Cable tray from the control panel to the plant motors.
   const PX = modelSlots.panel.position[0], PZ = modelSlots.panel.position[2];
-  const trayY = 3.05, trayZ = .78;
+  const trayY = 3.0, trayZ = .42;
   const tray = (x1, x2) => {
     const len = x2 - x1, cx = (x1 + x2) / 2;
     for (const dz of [-.15, .15]) box(line, [len, .06, .012], [cx, trayY, trayZ + dz], 'galv');
     for (let x = x1 + .1; x < x2; x += .3) box(line, [.025, .012, .3], [x, trayY - .025, trayZ], 'galv');
     for (const dz of [-.07, 0, .07]) cyl(line, .022, len, [cx, trayY - .005, trayZ + dz], 'wireBlack', 'x', 8);
   };
-  tray(-8.6, PX);
-  for (const x of [-6, 0, 6]) if (x < PX) cyl(line, .01, 3.75, [x, trayY + 1.88, trayZ], 'aluminium', 'y', 6);
-  for (const [x, top] of [[-8, 2.4], [-4.4, 1.92], [-1.6, 1.86], [2.5, 1.15]]) {
-    tube(line, [[x, trayY, trayZ], [x, trayY - .3, trayZ + .2], [x, top + .4, conveyor.z - .45], [x + (x === 2.5 ? -.2 : 0), top, conveyor.z - (x === 2.5 ? .3 : .2)]], .02, 'wireBlack', 20);
-  }
+  tray(-10, PX);
+  for (let x = -9; x < PX; x += 3) { box(line, [.08, trayY, .08], [x, trayY / 2, trayZ - .25], 'galv'); box(line, [.08, .06, .5], [x, trayY - .07, trayZ], 'galv'); }
+  for (const x of effects) tube(line, [[x + 1.2, trayY, trayZ], [x + 1.2, 2.5, trayZ + .1], [x + 1.25, .15, .7], [x + 1.25, .12, 1.9], [x + 1.25, .32, 2.2]], .02, 'wireBlack', 24);
+  tube(line, [[2.4, trayY, trayZ], [2.4, 3.6, 1.0], [2.25, 4.45, 2.25]], .02, 'wireBlack', 16);
   for (const dz of [-.15, .15]) box(line, [.012, trayY - 2.15, .06], [PX, 2.15 + (trayY - 2.15) / 2, trayZ + dz], 'galv');
-  tube(line, [[PX, trayY, trayZ], [PX, 2.5, trayZ + .02], [PX - .1, 2.16, PZ - .15]], .03, 'wireBlack', 16);
+  tube(line, [[PX, trayY, trayZ], [PX, 2.5, trayZ + .2], [PX - .1, 2.16, PZ - .15]], .03, 'wireBlack', 16);
 
   // ---------- control panel (hero) ----------
   const panel = actors.panel;
@@ -416,7 +416,7 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
     for (const sx of [-.62, .62]) for (const sz of [-.2, .2]) mesh(root, new THREE.TorusGeometry(.03, .008, 8, 16), 'galv', [sx, base + H + .08, sz]);
     for (let i = 0; i < 8; i++) box(root, [.012, .012, .26], [W / 2 + .004, .45 + i * .03, 0], 'plinth', 0, [0, 0, .6]);
     contact(root, 2.2, 1.2, [0, 0, .05], 1);
-    // Interior: galvanised mounting plate, ducts and devices, laid out in rows like an ACS build.
+    // Interior of a PLC control panel, laid out like an ACS build: galvanised plate, ducts and rows of devices.
     const ix = 0, plateZ = -.26;
     box(root, [1.48, 1.86, .015], [ix, base + .97, plateZ], 'galv');
     const dz = plateZ + .045;
@@ -425,46 +425,34 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
     vDuct(-.69); vDuct(.69);
     for (const y of [2.0, 1.62, 1.16, .7, .3]) hDuct(y, -.66, .66);
     const rail = (y, x1, x2) => box(root, [x2 - x1, .035, .008], [(x1 + x2) / 2, y, plateZ + .012], 'galv');
-    // Row A: incomer MCCB and copper busbars.
-    box(root, [.21, .3, .12], [-.5, 1.81, plateZ + .07], 'deviceDark', .01);
-    box(root, [.15, .1, .02], [-.5, 1.81, plateZ + .14], 'deviceMid', .005);
-    cyl(root, .035, .03, [-.5, 1.81, plateZ + .16], 'black', 'z', 16);
-    box(root, [.09, .022, .02], [-.5, 1.81, plateZ + .18], 'yellow', .004, [0, 0, .7]);
-    for (const [i, mat] of [[0, 'wireRed'], [1, 'wireYellow'], [2, 'wireBlue']]) tube(root, [[-.56 + i * .06, 1.96, plateZ + .07], [-.56 + i * .06, 2.01, plateZ + .06]], .007, mat, 4);
-    for (const y of [1.91, 1.85, 1.79]) box(root, [.66, .03, .01], [.2, y, plateZ + .085], 'copper', .002);
-    for (const x of [-.1, .2, .5]) box(root, [.03, .16, .06], [x, 1.85, plateZ + .045], 'insulator', .005);
-    for (const [i, mat] of [[0, 'wireRed'], [1, 'wireYellow'], [2, 'wireBlue']]) tube(root, [[-.39, 1.88 - i * .04, plateZ + .07], [-.2, 1.91 - i * .06, plateZ + .09], [-.12, 1.91 - i * .06, plateZ + .09]], .006, mat, 8);
-    // Row B: PLC rack, MCB distribution and 24 V power supplies.
+    // Row A: incoming isolator, 24 V power supplies and MCB distribution.
+    box(root, [.16, .24, .11], [-.52, 1.81, plateZ + .065], 'deviceMid', .01);
+    cyl(root, .04, .03, [-.52, 1.83, plateZ + .13], 'yellow', 'z', 18);
+    box(root, [.1, .022, .02], [-.52, 1.83, plateZ + .15], 'estop', .004, [0, 0, .7]);
+    for (const [i, mat] of [[0, 'wireRed'], [1, 'wireYellow'], [2, 'wireBlue']]) tube(root, [[-.56 + i * .04, 1.93, plateZ + .07], [-.56 + i * .04, 2.01, plateZ + .06]], .006, mat, 4);
+    rail(1.81, -.4, .64);
+    for (const x of [-.31, -.17]) { box(root, [.12, .19, .11], [x, 1.81, plateZ + .065], 'deviceMid', .008); for (let k = 0; k < 5; k++) box(root, [.012, .01, .005], [x - .04 + k * .02, 1.88, plateZ + .122], 'terminalBlue'); box(root, [.008, .008, .004], [x + .04, 1.75, plateZ + .122], 'led'); }
+    for (let i = 0; i < 22; i++) { const x = -.05 + i * .0315; box(root, [.028, .09, .07], [x, 1.81, plateZ + .045], 'device', .002); box(root, [.008, .02, .02], [x, 1.82, plateZ + .085], i % 7 === 0 ? 'estop' : 'black'); }
+    // Row B: PLC CPU, I/O modules and an industrial Ethernet switch.
     rail(1.39, -.64, .64);
-    box(root, [.12, .19, .1], [-.56, 1.39, plateZ + .06], 'plc', .006);
-    box(root, [.1, .07, .005], [-.56, 1.43, plateZ + .112], 'plcFace');
-    for (let i = 0; i < 6; i++) {
-      const x = -.47 + i * .048;
-      box(root, [.045, .19, .1], [x, 1.39, plateZ + .06], 'plc', .004);
+    box(root, [.13, .2, .1], [-.56, 1.39, plateZ + .06], 'plc', .006);
+    box(root, [.11, .075, .005], [-.56, 1.43, plateZ + .112], 'plcFace');
+    for (let i = 0; i < 11; i++) {
+      const x = -.465 + i * .048;
+      box(root, [.045, .2, .1], [x, 1.39, plateZ + .06], 'plc', .004);
       box(root, [.038, .05, .006], [x, 1.33, plateZ + .112], 'plcFace');
-      for (let k = 0; k < 4; k++) box(root, [.006, .006, .004], [x - .01 + (k % 2) * .02, 1.44 + Math.floor(k / 2) * .015, plateZ + .112], k === 1 && i % 2 ? 'ledBlink' : 'led');
+      for (let k = 0; k < 4; k++) box(root, [.006, .006, .004], [x - .01 + (k % 2) * .02, 1.44 + Math.floor(k / 2) * .015, plateZ + .112], k === 1 && i % 3 === 1 ? 'ledBlink' : 'led');
     }
-    for (let i = 0; i < 14; i++) {
-      const x = -.13 + i * .019;
-      box(root, [.017, .09, .07], [x, 1.39, plateZ + .045], 'device', .002);
-      box(root, [.007, .02, .02], [x, 1.4, plateZ + .085], 'black');
+    box(root, [.13, .16, .09], [.45, 1.39, plateZ + .055], 'deviceDark', .008);
+    for (let k = 0; k < 8; k++) box(root, [.012, .012, .004], [.4 + (k % 4) * .03, 1.36 + Math.floor(k / 4) * .03, plateZ + .102], k % 2 ? 'led' : 'ledBlink');
+    // Row C: interface relays and signal isolators.
+    rail(.93, -.64, .64);
+    for (let i = 0; i < 26; i++) {
+      const x = -.62 + i * .0235;
+      box(root, [.02, .1, .075], [x, .93, plateZ + .047], 'device', .002);
+      box(root, [.018, .04, .02], [x, .95, plateZ + .094], 'relay', .002);
     }
-    for (const x of [.38, .53]) { box(root, [.12, .17, .11], [x, 1.39, plateZ + .065], 'deviceMid', .008); for (let k = 0; k < 5; k++) box(root, [.012, .01, .005], [x - .04 + k * .02, 1.46, plateZ + .122], 'terminalBlue'); box(root, [.008, .008, .004], [x + .04, 1.33, plateZ + .122], 'led'); }
-    // Row C: drives and motor starters.
-    for (let i = 0; i < 3; i++) {
-      const x = -.55 + i * .16;
-      box(root, [.14, .36, .16], [x, .93, plateZ + .085], 'vfd', .012);
-      box(root, [.08, .06, .01], [x, 1.02, plateZ + .17], 'vfdFace', .004);
-      box(root, [.05, .02, .004], [x, 1.02, plateZ + .176], 'meter');
-      for (let k = 0; k < 3; k++) box(root, [.03, .004, .1], [x, .79 + k * .015, plateZ + .12], 'plinth');
-    }
-    for (let i = 0; i < 6; i++) {
-      const x = .09 + i * .09;
-      box(root, [.07, .11, .11], [x, .98, plateZ + .06], 'deviceMid', .006);
-      box(root, [.05, .03, .02], [x, 1.0, plateZ + .12], 'device', .003);
-      box(root, [.07, .07, .1], [x, .86, plateZ + .055], 'deviceDark', .006);
-      box(root, [.02, .015, .01], [x + .015, .87, plateZ + .11], 'lampAmber');
-    }
+    for (let i = 0; i < 9; i++) { const x = .05 + i * .065; box(root, [.022, .12, .1], [x, .93, plateZ + .06], 'plc', .003); box(root, [.006, .006, .004], [x, .97, plateZ + .112], 'led'); }
     // Row D: terminal strip.
     rail(.5, -.64, .64);
     for (let i = 0; i < 120; i++) {
@@ -474,10 +462,9 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
     box(root, [1.26, .012, .004], [0, .55, plateZ + .072], 'device');
     // Wiring: dressed drops from devices into the nearest duct.
     const drop = (x, y1, y2, mat, z = plateZ + .05) => cyl(root, .0035, Math.abs(y2 - y1), [x, (y1 + y2) / 2, z], mat, 'y', 5);
-    for (let i = 0; i < 6; i++) { drop(-.47 + i * .048, 1.49, 1.59, 'wireControl'); drop(-.47 + i * .048, 1.19, 1.29, 'wireControl'); }
-    for (let i = 0; i < 14; i += 2) drop(-.13 + i * .019, 1.44, 1.59, 'wireBlack');
-    for (let i = 0; i < 3; i++) { drop(-.57 + i * .16, 1.11, 1.13, 'wireBlack'); drop(-.55 + i * .16, .73, .75, 'wireRed'); }
-    for (let i = 0; i < 6; i++) { drop(.08 + i * .09, 1.04, 1.13, i % 2 ? 'wireYellow' : 'wireRed'); drop(.1 + i * .09, .73, .82, 'wireBlue'); }
+    for (let i = 0; i < 22; i += 2) drop(-.05 + i * .0315, 1.66, 1.76, 'wireBlack');
+    for (let i = 0; i < 11; i++) { drop(-.465 + i * .048, 1.49, 1.59, 'wireControl'); drop(-.465 + i * .048, 1.19, 1.29, 'wireControl'); }
+    for (let i = 0; i < 26; i += 2) { drop(-.62 + i * .0235, .73, .88, 'wireControl'); drop(-.62 + i * .0235, .98, 1.13, 'wireBlue'); }
     for (let i = 0; i < 40; i++) { const x = -.6 + i * .031; drop(x, .54, .67, ['wireControl', 'wireBlue', 'wireGrey', 'wireBlack'][i % 4], plateZ + .06); drop(x, .33, .46, 'wireGrey', plateZ + .06); }
     cyl(root, .06, .02, [.55, 2.06, plateZ + .2], 'lamp', 'x', 12).castShadow = false;
     // Doors: hinged at the outer edges, ACS nameplate, HMI, indication and controls.
@@ -518,28 +505,53 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
   buildPanel(panel);
   const panelAnchors = callouts.map(c => v(c.anchor));
 
-  // ---------- MCC / VFD lineup ----------
+  // ---------- compartmental MCC lineup (after ACS MCC photographs) ----------
   const mcc = actors.mcc;
   (function buildMcc() {
-    const H = 2.2, D = .6, base = .1, widths = [1, .8, .8, .8, .8, .8, .8, .8, .8];
-    let x = -widths.reduce((a, b) => a + b) / 2;
-    box(mcc, [7.4, base, D - .04], [0, base / 2, 0], 'plinth');
-    widths.forEach((w, i) => {
+    const H = 2.3, D = .62, base = .1, top = .36, bottom = .3, front = D / 2;
+    const layout = [['incomer', 1.0]]; for (let i = 0; i < 5; i++) layout.push(['alley', .3], ['feeder', .8]); layout.push(['alley', .3]);
+    const total = layout.reduce((a, [, w]) => a + w, 0);
+    box(mcc, [total, base, D - .04], [0, base / 2, 0], 'plinth');
+    box(mcc, [total, H, D - .02], [0, base + H / 2, -.01], 'gap', .004);
+    const yMid0 = base + bottom, yMid1 = base + H - top, mid = yMid1 - yMid0;
+    const door = (cx, cy, w, h) => box(mcc, [w - .012, h - .012, .02], [cx, cy, front], 'paint', .004);
+    const screws = (cx, cy, w, h) => { for (const sx of [-1, 1]) for (const sy of [-1, 1]) cyl(mcc, .011, .012, [cx + sx * (w / 2 - .035), cy + sy * (h / 2 - .035), front + .015], 'brass', 'z', 10); };
+    const caution = (cx, cy) => box(mcc, [.07, .045, .002], [cx, cy, front + .012], 'caution');
+    let x = -total / 2;
+    for (const [kind, w] of layout) {
       const cx = x + w / 2; x += w;
-      box(mcc, [w - .006, H, D], [cx, base + H / 2, 0], 'paint', .006);
-      box(mcc, [w - .04, .36, .012], [cx, base + H - .2, D / 2 + .006], 'paint', .004);
-      box(mcc, [.09, .08, .002], [cx, base + H - .2, D / 2 + .013], 'danger');
-      for (const sx of [-.25, .25]) louvres(mcc, cx + sx * w, base + H - .3, D / 2 + .016, .14, 5, .03);
-      box(mcc, [w - .04, H - .44, .02], [cx, base + (H - .42) / 2 + .01, D / 2 + .01], 'paint', .006);
-      box(mcc, [.03, .14, .02], [cx + w / 2 - .09, base + 1.1, D / 2 + .03], 'black', .006);
-      if (i === 0) { box(mcc, [.11, .11, .015], [cx, base + 1.45, D / 2 + .025], 'black', .004); box(mcc, [.09, .09, .002], [cx, base + 1.45, D / 2 + .034], 'meter'); return; }
-      [['lampRedOn', -.1], ['lampYellowOn', 0], ['lampBlueOn', .1]].forEach(([mat, dx]) => cyl(mcc, .013, .02, [cx + dx, base + 1.6, D / 2 + .03], mat, 'z', 14));
-      [['lampGreen', -.1], ['lampAmber', 0], ['lampRed', .1]].forEach(([mat, dx]) => cyl(mcc, .013, .02, [cx + dx, base + 1.52, D / 2 + .03], mat, 'z', 14));
-      box(mcc, [.07, .11, .012], [cx, base + 1.36, D / 2 + .024], 'black', .004); box(mcc, [.055, .045, .002], [cx, base + 1.38, D / 2 + .031], 'meter');
-      cyl(mcc, .025, .02, [cx, base + 1.15, D / 2 + .03], 'black', 'z', 16); box(mcc, [.06, .015, .012], [cx, base + 1.15, D / 2 + .042], 'device', .003);
-      for (const sx of [-.17, .17]) louvres(mcc, cx + sx * w / .8, base + .25, D / 2 + .025, .16, 9, .035);
-    });
-    contact(mcc, 8.2, 1.5, [0, 0, .1], 1);
+      door(cx, base + H - top / 2, w, top); door(cx, base + bottom / 2, w, bottom);
+      for (const sx of w > .5 ? [-.25, .25] : [0]) { louvres(mcc, cx + sx * w, base + H - top + .1, front + .016, Math.min(.16, w * .5), 5, .032); louvres(mcc, cx + sx * w, base + .07, front + .016, Math.min(.16, w * .5), 5, .032); }
+      caution(cx, base + H - top / 2 + .12);
+      if (kind === 'alley') {
+        door(cx, yMid0 + mid / 2, w, mid); screws(cx, yMid0 + mid / 2, w, mid);
+        louvres(mcc, cx, yMid1 - .32, front + .016, .14, 5, .032); louvres(mcc, cx, yMid0 + .12, front + .016, .14, 5, .032);
+        caution(cx, yMid0 + mid / 2);
+      } else if (kind === 'incomer') {
+        const h1 = mid * .55, h2 = mid - h1;
+        door(cx, yMid1 - h1 / 2, w, h1); screws(cx, yMid1 - h1 / 2, w, h1);
+        door(cx, yMid0 + h2 / 2, w, h2); screws(cx, yMid0 + h2 / 2, w, h2);
+        [['lampRedOn', -.12], ['lampYellowOn', 0], ['lampBlueOn', .12]].forEach(([mat, dx]) => cyl(mcc, .016, .022, [cx + dx, yMid1 - .14, front + .02], mat, 'z', 14));
+        box(mcc, [.1, .1, .015], [cx, yMid1 - .36, front + .02], 'black', .004); box(mcc, [.08, .08, .002], [cx, yMid1 - .36, front + .029], 'meter');
+        box(mcc, [.06, .09, .002], [cx, yMid1 - .58, front + .012], 'danger');
+        box(mcc, [.03, .14, .02], [cx + w / 2 - .09, yMid1 - h1 / 2, front + .02], 'black', .006);
+        box(mcc, [.14, .14, .015], [cx + .2, yMid0 + h2 * .4, front + .018], 'plinth', .004); louvres(mcc, cx + .2, yMid0 + h2 * .4 - .05, front + .03, .12, 4, .03);
+        cyl(mcc, .02, .02, [cx - .2, yMid0 + h2 * .65, front + .02], 'estop', 'z', 16);
+      } else {
+        const rows = 6, mh = mid / rows;
+        for (let r = 0; r < rows; r++) {
+          const cy = yMid0 + mh * (r + .5);
+          door(cx, cy, w, mh); screws(cx, cy, w, mh);
+          box(mcc, [.09, .025, .002], [cx - w / 2 + .1, cy + mh / 2 - .04, front + .012], 'plinth');
+          [['lampGreen', -.22], ['lampRedOn', -.16], ['lampAmber', -.1]].forEach(([mat, dx]) => cyl(mcc, .012, .018, [cx + dx, cy + .05, front + .02], mat, 'z', 12));
+          cyl(mcc, .016, .02, [cx - .16, cy - .02, front + .02], 'estop', 'z', 14);
+          box(mcc, [.07, .035, .004], [cx - .12, cy - .075, front + .013], 'meter');
+          cyl(mcc, .028, .025, [cx + .18, cy, front + .022], 'black', 'z', 16); box(mcc, [.012, .05, .012], [cx + .18, cy, front + .038], 'black', .003);
+          cyl(mcc, .022, .01, [cx + .04, cy + .02, front + .016], 'black', 'z', 14);
+        }
+      }
+    }
+    contact(mcc, total + .8, 1.5, [0, 0, .1], 1);
   })();
 
   // SCADA operator desk with real ACS software imagery.
@@ -562,12 +574,6 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
     t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = maxAniso; screens[i].map = t; screens[i].color.set(0xffffff); screens[i].needsUpdate = true; loaded.push(t); invalidate();
   }).catch(() => { mount.dataset.texture = 'unavailable'; }));
   const loaded = [];
-
-  // ---------- cartons on the belt ----------
-  const CARTONS = 9, pickX = conveyor.x1 - .25, startX = pickX - (CARTONS - 1) * PITCH;
-  const cartons = new THREE.InstancedMesh(roundedBox(.37, .31, .29, .006), materials.carton, CARTONS);
-  cartons.castShadow = true; cartons.receiveShadow = true; cartons.frustumCulled = false; line.add(cartons);
-  const dummy = new THREE.Object3D();
 
   // Merge static meshes per material: hundreds of parts become a few dozen draw calls.
   function bake(root) {
@@ -631,50 +637,10 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
   function invalidate() { if (alive && visible && !frame) frame = requestAnimationFrame(render); }
 
   // ---------- animation ----------
-  const toCyl = p => { const d = p.clone().sub(robotBase); return { yaw: Math.atan2(-d.z, d.x), r: Math.hypot(d.x, d.z), y: p.y }; };
-  const fromCyl = c => new THREE.Vector3(robotBase.x + Math.cos(c.yaw) * c.r, c.y, robotBase.z - Math.sin(c.yaw) * c.r);
-  function lerpCyl(p, q, t) {
-    const a = toCyl(p), b = toCyl(q); let dy = b.yaw - a.yaw; if (dy > Math.PI) dy -= Math.PI * 2; if (dy < -Math.PI) dy += Math.PI * 2;
-    return fromCyl({ yaw: a.yaw + dy * t, r: a.r + (b.r - a.r) * t, y: a.y + (b.y - a.y) * t });
-  }
-  const HOLD = .375; // wrist pivot to carried-carton centre
-  const pickDown = new THREE.Vector3(pickX, conveyor.top + .155 + HOLD, conveyor.z), pickUp = pickDown.clone().setY(pickDown.y + .5);
-  function solveArm(target) {
-    const c = toCyl(target);
-    j1.rotation.y = c.yaw;
-    const r = c.r - .08, h = c.y - shoulderY;
-    const d = Math.min(L1 + L2 - .001, Math.hypot(r, h));
-    const t1 = Math.atan2(h, r) + Math.acos(THREE.MathUtils.clamp((L1 * L1 + d * d - L2 * L2) / (2 * L1 * d), -1, 1));
-    const ex = L1 * Math.cos(t1), ey = L1 * Math.sin(t1), t2 = Math.atan2(h - ey, r - ex);
-    shoulder.rotation.z = t1; elbow.rotation.z = t2 - t1; wrist.rotation.z = -t2;
-  }
   function animate(time) {
-    const cycle = Math.floor(time / CYCLE), u = time / CYCLE - cycle;
-    for (let i = 0; i < CARTONS; i++) {
-      const x = startX + ((time * SPEED + i * PITCH) % (CARTONS * PITCH));
-      const grow = THREE.MathUtils.clamp((x - startX) / .3, 0, 1);
-      dummy.position.set(x, conveyor.top + .155 * grow, conveyor.z);
-      dummy.scale.set(1, Math.max(.001, grow) * (x <= pickX + .001 ? 1 : 0) || .0001, 1); dummy.updateMatrix();
-      cartons.setMatrixAt(i, dummy.matrix);
-    }
-    cartons.instanceMatrix.needsUpdate = true;
-    textures.belt.offset.x = -((time * SPEED / .3) % 1);
-    const slot = cycle % slots.length, placeDown = slots[slot].clone().setY(slots[slot].y + HOLD), placeUp = placeDown.clone().setY(placeDown.y + .55);
-    const seg = (a, b) => smooth(THREE.MathUtils.clamp((u - a) / (b - a), 0, 1));
-    let target;
-    if (u < .08) target = pickDown;
-    else if (u < .2) target = pickDown.clone().lerp(pickUp, seg(.08, .2));
-    else if (u < .5) target = lerpCyl(pickUp, placeUp, seg(.2, .5));
-    else if (u < .6) target = placeUp.clone().lerp(placeDown, seg(.5, .6));
-    else if (u < .66) target = placeDown;
-    else if (u < .76) target = placeDown.clone().lerp(placeUp, seg(.66, .76));
-    else if (u < .92) target = lerpCyl(placeUp, pickUp, seg(.76, .92));
-    else target = pickUp.clone().lerp(pickDown, seg(.92, 1));
-    solveArm(target);
-    held.visible = u < .63; held.rotation.y = -j1.rotation.y;
-    const filled = slot + (u >= .63 ? 1 : 0);
-    placed.forEach((m, i) => { m.visible = i < filled; });
-    press.position.y = 1.45 - .12 * Math.max(0, Math.sin(time * Math.PI * 2 / CYCLE * 2));
+    rotor.rotation.y = time * 2.4;
+    materials.flowWater.map.offset.x = -(time * .35 % 1);
+    materials.flowSteam.map.offset.x = -(time * .6 % 1);
     const blink = Math.sin(time * 9) > 0;
     materials.ledBlink.emissiveIntensity = blink ? 1.4 : .05;
     materials.lampGreen.emissiveIntensity = 1.5 + Math.sin(time * 2.2) * .15;
