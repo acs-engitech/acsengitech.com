@@ -722,9 +722,9 @@
           <span class="acs-eyebrow" style="justify-content:center">Trusted by</span>
           <h2 class="acs-h2">Some of the companies we work with</h2>
           <div class="acs-clients-row">
-            <img src="https://acsengitech.com/wp-content/uploads/2026/03/hikal-straight-logo.png" alt="Hikal">
-            <img src="https://matthey.com/o/jm-platinum-theme/images/new__jm__images/Johnson_Matthey%20_Logo_blue.svg" alt="Johnson Matthey">
-            <img src="https://acsengitech.com/wp-content/uploads/2026/03/Untitled-design.png" alt="Rexroth">
+            <img src="assets/acs/hikal-logo.png" alt="Hikal">
+            <img src="assets/acs/johnson-matthey-logo.svg" alt="Johnson Matthey">
+            <img src="assets/acs/rexroth-logo.png" alt="Rexroth">
           </div>
         </div>
       </section>
