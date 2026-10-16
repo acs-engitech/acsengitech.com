@@ -15,6 +15,8 @@ Plant floor → MEE + ATFD (ZLD) plant with its PLC control panel → the closed
 - panel: hero two-door PLC control panel modelled on assets/acs/control-panels.jpg: door HMI, indication lamps, E-stop, meter, louvres; PLC-panel interior with isolator, 24 V supplies, MCB distribution, PLC CPU + I/O, Ethernet switch, interface relays, signal isolators, terminal strip, ducts and wiring. Layout is illustrative; ratings are not asserted.
 - mcc: compartmental MCC modelled on ACS MCC photographs: top busbar chamber, incomer, five feeder columns of six modules (lamps, push-button, meter, rotary handle), louvred cable alleys and bottom chamber.
 
+On desktop the story copy sits in one left column (`--copy-w` in world.css) and every chapter's `placement` frames its subject to the right of it; squarer screens pull the camera back so the horizontal extent stays the same. On phones showroom.js measures the gap between each chapter's title and story copy and passes it to the scene (`setZones`), which centres and scales the subject (`mobileFill`) inside that gap.
+
 Callouts are defined in `callouts` (stages.js) with panel-local anchors; showroom.js draws the HTML labels and leader lines from projected points every frame.
 
 ## Rendering

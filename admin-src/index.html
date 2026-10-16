@@ -116,7 +116,11 @@
         </button>
         <button class="nav-btn group" data-tab="settings" type="button" :class="{ active: activeTab === 'settings' }" @click="selectTab('settings')">
           <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2.75a1.75 1.75 0 0 1 .698.146l6.25 2.723A1.75 1.75 0 0 1 20 7.183v4.317c0 5.086-3.31 8.94-7.464 10.454a1.75 1.75 0 0 1-1.072 0C7.31 20.44 4 16.586 4 11.5V7.183c0-.702.416-1.338 1.052-1.614l6.25-2.723A1.75 1.75 0 0 1 12 2.75Zm3.28 6.47a.75.75 0 0 0-1.06-1.06l-3.47 3.47-1.47-1.47a.75.75 0 0 0-1.06 1.06l2 2a.75.75 0 0 0 1.06 0l4-4Z"/></svg>
-          <span class="flex flex-col"><span class="text-sm font-medium">Robots / LLMs</span><small class="text-xs font-normal text-gray-400">Crawler directives</small></span>
+          <span class="flex flex-col"><span class="text-sm font-medium">Robots.txt</span><small class="text-xs font-normal text-gray-400">Crawler rules &amp; sitemap</small></span>
+        </button>
+        <button class="nav-btn group" data-tab="llms" type="button" :class="{ active: activeTab === 'llms' }" @click="selectTab('llms')">
+          <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2.75a.75.75 0 0 1 .7.48l1.53 3.98 3.98 1.53a.75.75 0 0 1 0 1.4l-3.98 1.53-1.53 3.98a.75.75 0 0 1-1.4 0l-1.53-3.98-3.98-1.53a.75.75 0 0 1 0-1.4l3.98-1.53 1.53-3.98a.75.75 0 0 1 .7-.48Zm6 11.5a.75.75 0 0 1 .7.48l.66 1.71 1.71.66a.75.75 0 0 1 0 1.4l-1.71.66-.66 1.71a.75.75 0 0 1-1.4 0l-.66-1.71-1.71-.66a.75.75 0 0 1 0-1.4l1.71-.66.66-1.71a.75.75 0 0 1 .7-.48Z"/></svg>
+          <span class="flex flex-col"><span class="text-sm font-medium">LLMs.txt</span><small class="text-xs font-normal text-gray-400">AI assistant summary</small></span>
         </button>
       </aside>
 
@@ -145,28 +149,76 @@
           <div class="split grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr]">
             <div class="list card p-2" id="pageList"></div>
             <form class="editor card space-y-5" id="seoForm">
-              <h3 id="seoFormTitle" class="text-base font-semibold text-gray-800">Select a page</h3>
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <h3 id="seoFormTitle" class="text-base font-semibold text-gray-800">Select a page</h3>
+                <a id="seoViewPage" class="text-sm font-medium text-brand-500" href="/" target="_blank" rel="noopener">View page &#8599;</a>
+              </div>
+              <div class="seo-overview">
+                <div class="serp-preview" aria-label="Google search result preview">
+                  <span class="serp-label">Search result preview</span>
+                  <span class="serp-url" id="serpUrl"></span>
+                  <strong class="serp-title" id="serpTitle"></strong>
+                  <span class="serp-desc" id="serpDesc"></span>
+                </div>
+                <div class="seo-score" aria-label="SEO checks">
+                  <div class="seo-score-head"><span>SEO checks</span><strong id="seoScore">0/0</strong></div>
+                  <ul id="seoChecks"></ul>
+                </div>
+              </div>
               <h4 class="form-subhead">Page metadata</h4>
-              <label class="field-label">Title tag <input name="title" maxlength="70" class="field-input"></label>
-              <label class="field-label">Meta description <textarea name="description" maxlength="170" class="field-input"></textarea></label>
+              <label class="field-label">Focus keyword <input name="focusKeyword" placeholder="e.g. MCC panel manufacturer in Ahmedabad" class="field-input"></label>
+              <label class="field-label"><span class="label-row">Title tag <small class="char-count" data-count-for="title" data-min="30" data-max="60"></small></span><input name="title" maxlength="90" class="field-input"></label>
+              <label class="field-label"><span class="label-row">Meta description <small class="char-count" data-count-for="description" data-min="120" data-max="160"></small></span><textarea name="description" maxlength="200" class="field-input"></textarea></label>
+              <label class="field-label">Keywords <input name="keywords" placeholder="Comma separated" class="field-input"></label>
               <div class="two-col">
                 <label class="field-label">Canonical URL <input name="canonical" class="field-input"></label>
-                <label class="field-label">Robots <input name="robots" placeholder="index, follow" class="field-input"></label>
+                <label class="field-label">Robots meta
+                  <span class="input-with-select"><input name="robots" placeholder="index, follow" class="field-input"><select id="robotsPreset" class="field-input" aria-label="Robots presets"><option value="">Presets</option><option>index, follow, max-image-preview:large</option><option>index, follow</option><option>noindex, follow</option><option>noindex, nofollow</option></select></span>
+                </label>
               </div>
-              <label class="field-label">Keywords <input name="keywords" class="field-input"></label>
               <h4 class="form-subhead">Open Graph / Social</h4>
               <div class="two-col">
                 <label class="field-label">OG title <input name="ogTitle" class="field-input"></label>
-                <label class="field-label">OG image URL <input name="ogImage" class="field-input"></label>
+                <label class="field-label">OG type <select name="ogType" class="field-input"><option value="">website (default)</option><option value="website">website</option><option value="article">article</option><option value="product">product</option><option value="profile">profile</option></select></label>
               </div>
               <label class="field-label">OG description <textarea name="ogDescription" class="field-input"></textarea></label>
+              <label class="field-label">OG image URL <span class="hint">1200 &times; 630 px recommended</span><input name="ogImage" class="field-input"></label>
               <div class="two-col">
+                <label class="field-label">Twitter card <select name="twitterCard" class="field-input"><option value="">summary_large_image (default)</option><option value="summary_large_image">summary_large_image</option><option value="summary">summary</option></select></label>
                 <label class="field-label">Twitter title <input name="twitterTitle" class="field-input"></label>
+              </div>
+              <div class="two-col">
+                <label class="field-label">Twitter description <textarea name="twitterDescription" class="field-input"></textarea></label>
                 <label class="field-label">Twitter image URL <input name="twitterImage" class="field-input"></label>
               </div>
-              <label class="field-label">Twitter description <textarea name="twitterDescription" class="field-input"></textarea></label>
-              <h4 class="form-subhead">Structured data</h4>
-              <label class="field-label">JSON-LD <textarea name="jsonLd" class="field-input code-field"></textarea></label>
+              <div class="social-preview" aria-label="Social share preview">
+                <div class="social-image" id="socialImage"></div>
+                <div class="social-body"><span id="socialHost">acsengitech.com</span><strong id="socialTitle"></strong><span id="socialDesc"></span></div>
+              </div>
+              <h4 class="form-subhead">Sitemap</h4>
+              <div class="three-col">
+                <label class="field-label">Include in sitemap.xml <select name="sitemapExclude" class="field-input"><option value="">Yes</option><option value="yes">No, leave out</option></select></label>
+                <label class="field-label">Priority <select name="sitemapPriority" class="field-input"><option value="">Auto</option><option>1.0</option><option>0.9</option><option>0.8</option><option>0.7</option><option>0.6</option><option>0.5</option><option>0.3</option></select></label>
+                <label class="field-label">Change frequency <select name="sitemapChangefreq" class="field-input"><option value="">Auto</option><option>daily</option><option>weekly</option><option>monthly</option><option>yearly</option></select></label>
+              </div>
+              <h4 class="form-subhead">Structured data (JSON-LD)</h4>
+              <div class="jsonld-tools">
+                <select id="jsonLdTemplate" class="field-input" aria-label="JSON-LD template">
+                  <option value="">Insert a template&hellip;</option>
+                  <option value="Organization">Organization</option>
+                  <option value="LocalBusiness">LocalBusiness</option>
+                  <option value="WebPage">WebPage</option>
+                  <option value="Service">Service</option>
+                  <option value="BreadcrumbList">BreadcrumbList</option>
+                  <option value="FAQPage">FAQPage</option>
+                  <option value="JobPosting">JobPosting</option>
+                  <option value="Article">Article</option>
+                </select>
+                <button type="button" id="formatJsonLdBtn" class="btn-secondary">Format &amp; validate</button>
+                <a class="text-sm font-medium text-brand-500" href="https://search.google.com/test/rich-results" target="_blank" rel="noopener">Rich Results Test &#8599;</a>
+                <span id="jsonLdStatus" class="jsonld-status" role="status"></span>
+              </div>
+              <label class="field-label">JSON-LD <textarea name="jsonLd" class="field-input code-field tall"></textarea></label>
             </form>
           </div>
         </section>
@@ -179,6 +231,10 @@
             </div>
             <button id="newPostBtn" class="primary btn-primary" type="button">New post</button>
           </div>
+          <section class="card schedule-card mb-4" aria-labelledby="scheduleTitle">
+            <div class="flex flex-wrap items-center justify-between gap-2"><h3 id="scheduleTitle" class="text-base font-semibold text-gray-800">Publishing schedule</h3><small class="text-xs text-gray-500">Scheduled posts go live automatically at their publish time.</small></div>
+            <ol id="scheduleList" class="schedule-list"></ol>
+          </section>
           <div class="filters mb-4 flex flex-wrap gap-2">
             <button class="filter-chip active" data-post-filter="all" type="button">All</button>
             <button class="filter-chip" data-post-filter="published" type="button">Published</button>
@@ -394,15 +450,53 @@
         <section class="panel" id="settings" :class="{ active: activeTab === 'settings' }">
           <div class="section-head">
             <div>
-              <p class="eyebrow">Crawler files</p>
-              <h2 class="text-xl font-semibold text-gray-800">Robots / LLMs</h2>
+              <p class="eyebrow">Crawler rules</p>
+              <h2 class="text-xl font-semibold text-gray-800">Robots.txt</h2>
             </div>
-            <button id="saveSettingsBtn" class="primary btn-primary" type="button">Save settings</button>
+            <button id="saveSettingsBtn" class="primary btn-primary" type="button">Save robots.txt</button>
           </div>
-          <form class="editor wide card space-y-5" id="settingsForm">
-            <label class="field-label">robots.txt <textarea name="robotsTxt" class="field-input code-field tall"></textarea></label>
-            <label class="field-label">llms.txt intro <textarea name="llmsIntro" class="field-input code-field tall"></textarea></label>
-          </form>
+          <div class="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_340px]">
+            <form class="editor wide card space-y-5" id="settingsForm">
+              <label class="field-label">robots.txt <span class="hint">Served at /robots.txt</span><textarea name="robotsTxt" class="field-input code-field tall" spellcheck="false"></textarea></label>
+              <div class="form-actions">
+                <button type="button" id="resetRobotsBtn" class="btn-secondary">Reset to recommended</button>
+                <a href="/robots.txt" target="_blank" rel="noopener">View live robots.txt &#8599;</a>
+                <a href="/sitemap.xml" target="_blank" rel="noopener">View sitemap.xml &#8599;</a>
+              </div>
+            </form>
+            <aside class="card space-y-3">
+              <h3 class="text-base font-semibold text-gray-800">Checks</h3>
+              <ul id="robotsChecks" class="check-list"></ul>
+              <h3 class="pt-2 text-base font-semibold text-gray-800">Sitemap</h3>
+              <p class="text-sm text-gray-500"><span id="sitemapCount">0</span> URLs in /sitemap.xml: every page not set to noindex or left out in SEO, plus live blog posts. It updates when you save.</p>
+            </aside>
+          </div>
+        </section>
+
+        <section class="panel" id="llms" :class="{ active: activeTab === 'llms' }">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">AI assistants &amp; answer engines</p>
+              <h2 class="text-xl font-semibold text-gray-800">LLMs.txt</h2>
+            </div>
+            <button id="saveLlmsBtn" class="primary btn-primary" type="button">Save llms.txt</button>
+          </div>
+          <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+            <form class="editor wide card space-y-5" id="llmsForm">
+              <label class="field-label">llms.txt body <span class="hint">Markdown. Start with a # title and a short summary of ACS.</span><textarea name="llmsIntro" class="field-input code-field tall" spellcheck="false"></textarea></label>
+              <fieldset class="space-y-2">
+                <legend class="field-label">Generated sections</legend>
+                <label class="check-row"><input type="checkbox" name="llmsIncludePages"> Pages with their meta descriptions</label>
+                <label class="check-row"><input type="checkbox" name="llmsIncludePosts"> Published blog posts</label>
+                <label class="check-row"><input type="checkbox" name="llmsIncludePositions"> Open positions</label>
+              </fieldset>
+              <label class="field-label">Closing notes <span class="hint">Optional, added at the end</span><textarea name="llmsFooter" class="field-input code-field" spellcheck="false"></textarea></label>
+            </form>
+            <section class="card space-y-3">
+              <div class="flex items-center justify-between gap-2"><h3 class="text-base font-semibold text-gray-800">Preview</h3><a class="text-sm font-medium text-brand-500" href="/llms.txt" target="_blank" rel="noopener">View live llms.txt &#8599;</a></div>
+              <pre id="llmsPreview" class="code-preview"></pre>
+            </section>
+          </div>
         </section>
       </section>
     </main>

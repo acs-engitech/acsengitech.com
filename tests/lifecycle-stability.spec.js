@@ -38,7 +38,7 @@ test('homepage presents the complete automation lifecycle in document and model 
   await expect(page.locator('#production')).toContainText('MEE');
   await expect(page.locator('#experience')).not.toContainText('ERDA');
   await expect(page.locator('#experience')).not.toContainText('WWT');
-  await expect(page.locator('#experience .client-logos img')).toHaveCount(6);
+  await expect(page.locator('#experience .client-logos:not([aria-hidden]) img')).toHaveCount(69);await expect(page.locator('#experience .partner-logos img[alt=Siemens], #experience .partner-logos img[alt=Rittal], #experience .partner-logos [aria-label="EcoXpert by Schneider Electric"]')).toHaveCount(3);
   await expect(page.locator('#experience')).toContainText('support');
 });
 test('manufacturing evidence is available without obscuring the mobile model',async({page})=>{

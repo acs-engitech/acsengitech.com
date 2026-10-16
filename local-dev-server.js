@@ -18,6 +18,8 @@ const apiRoutes = {
   '/api/llms': './api/llms',
   '/robots.txt': './api/robots',
   '/llms.txt': './api/llms',
+  '/api/sitemap': './api/sitemap',
+  '/sitemap.xml': './api/sitemap',
 };
 
 const rewrites = {

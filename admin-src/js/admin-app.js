@@ -1,4 +1,11 @@
+// Shared with the serverless functions so previews match what /llms.txt and /sitemap.xml serve.
+import adminCore from '../../lib/admin-core.js';
+import acsDefaults from '../../lib/acs-defaults.js';
+
 (function () {
+  const { buildLlmsTxt, buildSitemap, SITE_URL } = adminCore;
+  const { DEFAULT_SETTINGS } = acsDefaults;
+
   const state = {
     pages: [],
     pageSeo: {},
@@ -169,7 +176,7 @@
     const publishedAt = post.publishedAt || new Date().toISOString();
     const publishDate = new Date(publishedAt);
     const selectedStatus = post.status || 'published';
-    const status = selectedStatus === 'draft' ? 'draft' : publishDate > new Date() ? 'scheduled' : selectedStatus;
+    const status = selectedStatus === 'draft' ? 'draft' : publishDate > new Date() ? 'scheduled' : 'published';
     return {
       ...post,
       id: post.id || crypto.randomUUID(),
@@ -232,7 +239,8 @@
   function applyData(data) {
     state.pages = data.pages || state.pages;
     state.pageSeo = Object.fromEntries(state.pages.map((page) => [page.path, page.seo || {}]));
-    state.posts = data.posts || state.posts;
+    // A scheduled post whose time has passed is live on the site; show it as published.
+    state.posts = (data.posts || state.posts).map((post) => (post.status === 'scheduled' && new Date(post.publishedAt) <= new Date() ? { ...post, status: 'published' } : post));
     state.positions = data.positions || state.positions;
     state.positionTypes = data.positionTypes || state.positionTypes;
     state.applications = data.applications || state.applications;
@@ -302,6 +310,7 @@
       metric('SEO pages', state.pages.length, 'grid', 'brand'),
       metric('Published blogs', published, 'doc', 'success'),
       metric('Scheduled blogs', scheduled, 'clock', 'warning'),
+      metric('SEO pages with JSON-LD', state.pages.filter((page) => (state.pageSeo[page.path]?.jsonLd || page.defaults?.jsonLd)).length, 'grid', 'info'),
       metric('Open positions', openPositions, 'briefcase', 'info'),
       metric('New applications', newApplications, 'user', 'warning'),
       metric('Total applications', state.applications.length, 'user', 'brand'),
@@ -325,6 +334,69 @@
     for (const field of $('#seoForm').elements) {
       if (field.name) field.value = seo[field.name] || '';
     }
+    $('#seoViewPage').href = page ? (page.path === '/' ? '/' : page.path) : '/';
+    $('#jsonLdStatus').textContent = '';
+    updateSeoInsights();
+  }
+
+  function seoFormValues() {
+    return Object.fromEntries(Array.from($('#seoForm').elements).filter((field) => field.name).map((field) => [field.name, field.value.trim()]));
+  }
+
+  // Live feedback while editing: character counts, search and social previews, and a short checklist.
+  function updateSeoInsights() {
+    const page = state.pages.find((item) => item.path === state.selectedPage) || state.pages[0];
+    if (!page) return;
+    const seo = seoFormValues();
+    const url = seo.canonical || `${SITE_URL}${page.path === '/' ? '/' : page.path}`;
+    $$('#seoForm [data-count-for]').forEach((counter) => {
+      const length = (seo[counter.dataset.countFor] || '').length;
+      const min = Number(counter.dataset.min), max = Number(counter.dataset.max);
+      counter.textContent = `${length} / ${max}`;
+      counter.className = `char-count ${!length ? 'is-bad' : length > max ? 'is-bad' : length < min ? 'is-warn' : 'is-good'}`;
+    });
+    const clip = (text, max) => (text.length > max ? `${text.slice(0, max - 1).trim()}…` : text);
+    $('#serpUrl').textContent = url.replace(/^https?:\/\//, '').replace(/\/$/, '').replace(/\//g, ' › ');
+    $('#serpTitle').textContent = clip(seo.title || page.label, 60);
+    $('#serpDesc').textContent = clip(seo.description || 'Add a meta description so search engines show your summary instead of guessing one.', 160);
+    const image = seo.ogImage || seo.twitterImage;
+    $('#socialImage').style.backgroundImage = /^https?:\/\//.test(image) ? `url("${image.replace(/"/g, '%22')}")` : '';
+    $('#socialTitle').textContent = seo.ogTitle || seo.title || page.label;
+    $('#socialDesc').textContent = clip(seo.ogDescription || seo.description || '', 120);
+
+    const keyword = seo.focusKeyword.toLowerCase();
+    let jsonValid = !seo.jsonLd;
+    try { if (seo.jsonLd) { JSON.parse(seo.jsonLd); jsonValid = true; } } catch { jsonValid = false; }
+    const checks = [
+      [seo.title.length >= 30 && seo.title.length <= 60, 'Title is 30 to 60 characters'],
+      [seo.description.length >= 120 && seo.description.length <= 160, 'Meta description is 120 to 160 characters'],
+      [!!keyword, 'Focus keyword is set'],
+      [!!keyword && seo.title.toLowerCase().includes(keyword), 'Focus keyword appears in the title'],
+      [!!keyword && seo.description.toLowerCase().includes(keyword), 'Focus keyword appears in the description'],
+      [/^https:\/\//.test(seo.canonical), 'Canonical URL is an absolute https URL'],
+      [!/noindex/i.test(seo.robots), 'Page can be indexed'],
+      [/^https?:\/\//.test(image || ''), 'Social share image is set'],
+      [!!seo.jsonLd && jsonValid, seo.jsonLd && !jsonValid ? 'JSON-LD is not valid JSON' : 'Structured data (JSON-LD) is present'],
+    ];
+    $('#seoChecks').innerHTML = checks.map(([ok, label]) => `<li class="${ok ? '' : 'is-fail'}">${escapeHtml(label)}</li>`).join('');
+    $('#seoScore').textContent = `${checks.filter(([ok]) => ok).length}/${checks.length}`;
+  }
+
+  function jsonLdTemplate(type, page, seo) {
+    const url = seo.canonical || `${SITE_URL}${page.path === '/' ? '/' : page.path}`;
+    const org = { '@type': 'Organization', name: 'ACS Engitech Private Limited', url: SITE_URL, logo: `${SITE_URL}/logo-1.svg` };
+    const address = { '@type': 'PostalAddress', streetAddress: 'A-98, Swayam Industrial Park, Opp. Gharda Ghar, Vill-Kuha, Taluka-Daskroi', addressLocality: 'Ahmedabad', addressRegion: 'Gujarat', postalCode: '382433', addressCountry: 'IN' };
+    const templates = {
+      Organization: { ...org, email: 'sales@acsengitech.com', telephone: '+91 70485 20058', address, sameAs: [] },
+      LocalBusiness: { '@type': 'LocalBusiness', name: org.name, url: SITE_URL, image: seo.ogImage || `${SITE_URL}/logo-1.svg`, telephone: '+91 70485 20058', email: 'sales@acsengitech.com', address, openingHours: 'Mo-Sa 10:00-18:00', priceRange: '$$' },
+      WebPage: { '@type': 'WebPage', name: seo.title || page.label, description: seo.description, url, isPartOf: { '@type': 'WebSite', name: 'ACS Engitech', url: SITE_URL }, publisher: org },
+      Service: { '@type': 'Service', name: page.label, serviceType: page.label, description: seo.description, url, provider: org, areaServed: { '@type': 'Country', name: 'India' } },
+      BreadcrumbList: { '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` }, ...(page.path === '/' ? [] : [{ '@type': 'ListItem', position: 2, name: page.label, item: url }])] },
+      FAQPage: { '@type': 'FAQPage', mainEntity: [{ '@type': 'Question', name: 'Question?', acceptedAnswer: { '@type': 'Answer', text: 'Answer.' } }] },
+      JobPosting: { '@type': 'JobPosting', title: 'Automation Engineer', description: 'Role description', datePosted: new Date().toISOString().slice(0, 10), employmentType: 'FULL_TIME', hiringOrganization: org, jobLocation: { '@type': 'Place', address } },
+      Article: { '@type': 'Article', headline: seo.title || page.label, description: seo.description, image: seo.ogImage, author: org, publisher: org, datePublished: new Date().toISOString().slice(0, 10), mainEntityOfPage: url },
+    };
+    return JSON.stringify({ '@context': 'https://schema.org', ...templates[type] }, null, 2);
   }
 
   function renderPosts() {
@@ -337,7 +409,21 @@
       </button>
     `).join('') || '<p class="empty-state">No posts in this view.</p>';
     $$('.filters button[data-post-filter]').forEach((button) => button.classList.toggle('active', button.dataset.postFilter === state.postFilter));
+    renderSchedule();
     fillPostForm();
+  }
+
+  // Upcoming posts in publish order; a scheduled post whose time has passed is already live.
+  function renderSchedule() {
+    const now = Date.now();
+    const upcoming = state.posts.filter((post) => post.status !== 'draft' && new Date(post.publishedAt).getTime() > now)
+      .sort((a, b) => new Date(a.publishedAt) - new Date(b.publishedAt));
+    const relative = (date) => {
+      const hours = Math.round((new Date(date).getTime() - now) / 36e5);
+      return hours < 24 ? `in ${Math.max(1, hours)} h` : `in ${Math.round(hours / 24)} days`;
+    };
+    $('#scheduleList').innerHTML = upcoming.map((post) => `<li><button type="button" data-schedule-post="${escapeHtml(post.id)}">${escapeHtml(post.title)}</button><span class="schedule-when">${new Date(post.publishedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })} · ${relative(post.publishedAt)}</span></li>`).join('')
+      || '<li class="empty-state">Nothing scheduled. Set a future publish date on a post to schedule it.</li>';
   }
 
   function fillPostForm() {
@@ -638,10 +724,33 @@
   }
 
   function renderSettings() {
-    const form = $('#settingsForm');
-    ['robotsTxt', 'llmsIntro'].forEach((name) => {
-      form[name].value = state.settings[name] || '';
-    });
+    $('#settingsForm').robotsTxt.value = state.settings.robotsTxt || '';
+    const llms = $('#llmsForm');
+    llms.llmsIntro.value = state.settings.llmsIntro || '';
+    llms.llmsFooter.value = state.settings.llmsFooter || '';
+    ['llmsIncludePages', 'llmsIncludePosts', 'llmsIncludePositions'].forEach((name) => { llms[name].checked = state.settings[name] !== false; });
+    updateCrawlerInsights();
+  }
+
+  function previewData() {
+    return { settings: { ...state.settings, ...collectCrawlerSettings(), ...collectLlmsSettings() }, pages: state.pages.map((page) => ({ ...page, seo: state.pageSeo[page.path] || {} })), posts: state.posts, positions: state.positions };
+  }
+
+  function updateCrawlerInsights() {
+    const robots = $('#settingsForm').robotsTxt.value;
+    const lines = robots.split(/\r?\n/).map((line) => line.trim());
+    const blocksAll = lines.some((line, i) => /^disallow:\s*\/\s*$/i.test(line) && lines.slice(0, i).reverse().find((l) => /^user-agent:/i.test(l))?.match(/:\s*\*/));
+    const checks = [
+      [/^user-agent:/im.test(robots), 'Has at least one User-agent group'],
+      [!blocksAll, 'Does not block the whole site for all crawlers'],
+      [/^sitemap:\s*https:\/\/\S+sitemap\.xml/im.test(robots), 'Points crawlers to the sitemap'],
+      [/^disallow:\s*\/admin/im.test(robots), 'Keeps /admin out of search'],
+      [/^disallow:\s*\/api\//im.test(robots), 'Keeps /api/ out of search'],
+    ];
+    $('#robotsChecks').innerHTML = checks.map(([ok, label]) => `<li class="${ok ? '' : 'is-fail'}">${label}</li>`).join('');
+    const data = previewData();
+    $('#sitemapCount').textContent = (buildSitemap(data).match(/<url>/g) || []).length;
+    $('#llmsPreview').textContent = buildLlmsTxt(data);
   }
 
   function render() {
@@ -665,6 +774,7 @@
       ...state.settings,
       ...collectAnalyticsTags(),
       ...collectCrawlerSettings(),
+      ...collectLlmsSettings(),
     };
   }
 
@@ -674,8 +784,12 @@
   }
 
   function collectCrawlerSettings() {
-    const form = $('#settingsForm');
-    return Object.fromEntries(Array.from(form.elements).filter((field) => field.name).map((field) => [field.name, field.value.trim()]));
+    return { robotsTxt: $('#settingsForm').robotsTxt.value.trim() };
+  }
+
+  function collectLlmsSettings() {
+    const form = $('#llmsForm');
+    return Object.fromEntries(Array.from(form.elements).filter((field) => field.name).map((field) => [field.name, field.type === 'checkbox' ? field.checked : field.value.trim()]));
   }
 
   function bindEvents() {
@@ -1117,8 +1231,66 @@
       apply: () => {},
       rerender: renderSettings,
       request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ settings: { ...state.settings, ...collectCrawlerSettings() } }) }),
-      successMessage: 'Crawler settings saved.',
+      successMessage: 'robots.txt saved.',
     }));
+    $('#saveLlmsBtn').addEventListener('click', async () => mutate({
+      apply: () => {},
+      rerender: renderSettings,
+      request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ settings: { ...state.settings, ...collectLlmsSettings() } }) }),
+      successMessage: 'llms.txt saved.',
+    }));
+    $('#resetRobotsBtn').addEventListener('click', () => {
+      if (!confirm('Replace robots.txt with the recommended rules? Save to publish.')) return;
+      $('#settingsForm').robotsTxt.value = DEFAULT_SETTINGS.robotsTxt;
+      updateCrawlerInsights();
+    });
+    $('#settingsForm').addEventListener('input', updateCrawlerInsights);
+    $('#llmsForm').addEventListener('input', updateCrawlerInsights);
+    $('#llmsForm').addEventListener('change', updateCrawlerInsights);
+
+    $('#seoForm').addEventListener('input', updateSeoInsights);
+    $('#seoForm').addEventListener('change', updateSeoInsights);
+    $('#robotsPreset').addEventListener('change', (event) => {
+      if (!event.target.value) return;
+      $('#seoForm').robots.value = event.target.value;
+      event.target.value = '';
+      updateSeoInsights();
+    });
+    $('#jsonLdTemplate').addEventListener('change', (event) => {
+      const type = event.target.value;
+      event.target.value = '';
+      if (!type) return;
+      const field = $('#seoForm').jsonLd;
+      if (field.value.trim() && !confirm(`Replace the current JSON-LD with a ${type} template?`)) return;
+      const page = state.pages.find((item) => item.path === state.selectedPage) || state.pages[0];
+      field.value = jsonLdTemplate(type, page, seoFormValues());
+      updateSeoInsights();
+    });
+    $('#formatJsonLdBtn').addEventListener('click', () => {
+      const field = $('#seoForm').jsonLd;
+      const status = $('#jsonLdStatus');
+      if (!field.value.trim()) { status.textContent = 'No JSON-LD to check.'; status.className = 'jsonld-status'; return; }
+      try {
+        const parsed = JSON.parse(field.value);
+        field.value = JSON.stringify(parsed, null, 2);
+        const items = Array.isArray(parsed) ? parsed : parsed['@graph'] || [parsed];
+        const missing = items.filter((item) => !item['@type']).length;
+        status.textContent = missing ? `Valid JSON, but ${missing} item(s) have no @type.` : `Valid JSON-LD: ${items.map((item) => item['@type']).join(', ')}`;
+        status.className = `jsonld-status ${missing ? 'is-bad' : 'is-good'}`;
+      } catch (error) {
+        status.textContent = `Invalid JSON: ${error.message}`;
+        status.className = 'jsonld-status is-bad';
+      }
+      updateSeoInsights();
+    });
+
+    $('#scheduleList').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-schedule-post]');
+      if (!button) return;
+      state.selectedPost = button.dataset.schedulePost;
+      renderPosts();
+      $('#postForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
     $('#saveAllTop').addEventListener('click', async () => {
       collectSeo();
       await save({ pageSeo: state.pageSeo, posts: state.posts, positions: state.positions, settings: collectSettings() }, 'All changes saved.');

@@ -2,8 +2,9 @@ const store = require('./_store');
 const { summarizeAnalytics } = require('../lib/admin-core');
 const crypto = require('node:crypto');
 
-const DEFAULT_ADMIN_EMAIL = 'acs.mmo@gmail.com';
-const DEFAULT_ADMIN_PASSWORD_HASH = 'b75a2dbee0058fc142cc4b15c7ca5df52621cfc69cd7024a527f8facad439524';
+// Default sign-in (ACS_ADMIN_EMAIL / ACS_ADMIN_PASSWORD_HASH or ACS_ADMIN_PASSWORD override it). Only the SHA-256 hash is stored.
+const DEFAULT_ADMIN_EMAIL = 'acsengitech@gmail.com';
+const DEFAULT_ADMIN_PASSWORD_HASH = '06b61aecf910f8007c9a0d7e0b0fcd7f6be95b29fb5a5fea8f158d5cc6e69598';
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
 
 function send(res, status, payload) {

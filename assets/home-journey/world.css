@@ -10,8 +10,8 @@ body{background:var(--paper)}
 .world-poster{width:100%;height:100%;object-fit:contain}
 [data-renderer=ready] .world-fallback{visibility:hidden}
 .world-copy{position:relative;pointer-events:none}
-.world-chapter{height:130svh;min-height:780px;scroll-margin-top:var(--header);position:relative}
-.world-chapter:last-child{height:100svh;min-height:700px}
+.world-chapter{height:calc(100svh - var(--header));min-height:520px;scroll-margin-top:var(--header);position:relative;scroll-snap-align:start;scroll-snap-stop:always}
+.world-chapter:last-child{height:calc(100svh - var(--header));min-height:520px}
 .scene-content{position:fixed;inset:calc(var(--header) + 60px) var(--gutter) 154px;visibility:hidden;opacity:0;pointer-events:none;z-index:3}
 .is-active .scene-content{visibility:visible;opacity:var(--copy-opacity,1)}
 .world-journey:not(.is-present) .scene-content{visibility:hidden}
@@ -127,7 +127,7 @@ body{background:var(--paper)}
 @media(min-width:1000px) and (max-height:800px){.scene-content{bottom:140px}.team-evidence{top:155px;width:43%}.team-evidence img{height:140px}#experience .experience-numbers{bottom:88px}#contact .scene-title h2{font-size:54px}#contact .scene-description{bottom:0}#experience .client-strip{padding-top:16px}.quiet-proof{bottom:8px}}
 @media(max-width:999px){
  :root{--gutter:24px}
- .world-chapter{height:115svh;min-height:700px}.world-chapter:last-child{height:100svh}
+ .world-chapter,.world-chapter:last-child{min-height:480px}
  .scene-content{inset:calc(var(--header) + 40px) 24px 105px}
  .scene-title,#field .scene-title,#power .scene-title{left:0;right:0;top:0;max-width:none;width:auto}
  .world-kicker{font-size:10px;margin-bottom:15px}
@@ -555,12 +555,17 @@ html:not(.has-js) .round-clock strong{font-size:90px}
 .trust-record>a span{text-align:right;max-width:62%;line-height:1.45}
 #experience .experience-numbers{grid-template-columns:repeat(3,1fr)}
 #experience .client-strip{display:flex;align-items:center;gap:28px}
-.client-logos{flex:1;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:18px}
-#experience .client-logos img{width:auto;height:46px;max-width:120px;object-fit:contain;mix-blend-mode:multiply}
+/* Client wall: one continuous, auto-scrolling strip. The second track is a copy so the loop has no seam; hover or focus pauses it. */
+.client-marquee{flex:1;min-width:0;display:flex;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 7%,#000 93%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 7%,#000 93%,transparent 100%)}
+.client-logos{flex:none;display:flex;align-items:center;gap:clamp(28px,3vw,48px);padding-right:clamp(28px,3vw,48px);animation:client-scroll 150s linear infinite}
+.client-marquee:hover .client-logos,.client-marquee:focus-within .client-logos{animation-play-state:paused}
+#experience .client-logos img{flex:none;width:auto;height:42px;max-width:130px;object-fit:contain;mix-blend-mode:multiply}
+@keyframes client-scroll{to{transform:translateX(-100%)}}
+@media(prefers-reduced-motion:reduce){.client-logos{animation:none}.client-logos[aria-hidden]{display:none}.client-marquee{overflow-x:auto;-webkit-mask-image:none;mask-image:none}}
 @media(max-width:999px){
  #experience .client-strip{gap:0}
- .client-logos{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 16px;justify-items:center}
- #experience .client-logos img{height:28px;max-width:100%}
+ #experience .client-logos img{height:30px;max-width:96px}
+ .client-logos{animation-duration:110s}
 }
 
 /* Capabilities board: facility, stated capacity and engineering standards. */
@@ -609,3 +614,69 @@ html:not(.has-js) .round-clock strong{font-size:90px}
 }
 @media(max-height:740px) and (max-width:999px){.cap-area{display:none}}
 @media(min-width:1700px) and (max-height:1000px){#production .scene-title h2{font-size:58px}#production .scene-description p{font-size:19px}#production .scene-description p strong{font-size:22px}}
+
+/* Copy column (desktop). Story copy stacks in one left column sized to the viewport; stages.js frames the 3D in the space to its right, so copy never sits on the model or on other copy at any size. */
+@media(min-width:1000px){
+ #acs-world{--copy-w:clamp(320px,33vw,600px);--copy-top:calc(var(--header) + clamp(26px,5.5vh,76px));--copy-bottom:clamp(124px,16vh,158px)}
+ #acs-world .world-chapter:not(#experience):not(#capabilities) .scene-content{inset:var(--copy-top) auto var(--copy-bottom) var(--gutter);width:var(--copy-w);display:flex;flex-direction:column;gap:clamp(14px,2.8vh,36px)}
+ #acs-world .world-chapter:not(#experience):not(#capabilities) .scene-content>*{position:static;inset:auto;width:auto;max-width:none;transform:none;margin:0}
+ #acs-world .world-chapter:not(#experience):not(#capabilities) .scene-title h1{font-size:clamp(40px,min(4.3vw,8vh),96px);line-height:1.04}
+ #acs-world .world-chapter:not(#experience):not(#capabilities) .scene-title h2{font-size:clamp(30px,min(3.2vw,6.2vh),70px);line-height:1.08}
+ #acs-world .world-chapter:not(#experience):not(#capabilities) .world-kicker{margin-bottom:clamp(10px,2vh,24px)}
+ #acs-world .world-chapter:not(#experience):not(#capabilities) .scene-description{margin-top:auto}
+ #acs-world .world-chapter:not(#experience):not(#capabilities) .scene-description p{font-size:clamp(14px,min(1.1vw,2vh),19px);line-height:1.6;max-width:34em}
+ #acs-world .world-chapter:not(#experience):not(#capabilities) .scene-description p strong{font-size:inherit;margin-bottom:.35em}
+ #acs-world .world-chapter:not(#experience):not(#capabilities) .sh-link{margin-top:clamp(6px,1.4vh,16px);padding:clamp(6px,1.2vh,12px) 0;font-size:clamp(12px,min(.95vw,1.7vh),15px)}
+ #acs-world .scene-aside,#acs-world .round-clock,#acs-world .drawing-evidence{display:none}
+ #acs-world .quiet-proof{font-size:11px}
+ #acs-world .line-status{width:100%;max-width:420px;padding:0;background:none;border:0;box-shadow:none;backdrop-filter:none}
+ #acs-world .line-status li{padding:clamp(4px,.9vh,9px) 0;font-size:clamp(11px,min(.85vw,1.5vh),13px)}
+ #acs-world .facility-proof strong{font-size:clamp(40px,min(4.2vw,7vh),88px);line-height:1}
+ #acs-world .facility-proof p{font-size:12px;margin-top:6px}
+ #acs-world .deployment-route{display:grid;grid-template-columns:1fr 1fr;gap:clamp(8px,1.6vh,16px) 20px;padding-top:clamp(12px,2vh,18px);font-size:clamp(11px,min(.85vw,1.5vh),13px)}
+ #acs-world .deployment-route>*:before{margin-top:0;margin-bottom:6px}
+ #acs-world #inside .component-index{display:none}
+ #contact .contact-address{display:block;margin-top:8px}
+}
+@media(min-width:1000px) and (max-height:860px){#acs-world .line-status,#acs-world .facility-proof p{display:none}}
+@media(min-width:1000px) and (max-height:740px){#acs-world .facility-proof,#acs-world .quiet-proof{display:none}}
+@media(min-width:1000px){
+ #acs-world .world-stage::before{--wash:calc(var(--gutter) + var(--copy-w));background:linear-gradient(90deg,var(--paper) 0,#f2f5f4f0 calc(var(--wash) - 40px),#f2f5f4b8 var(--wash),#f2f5f400 calc(var(--wash) + 14vw))}
+ #acs-world[data-stage=arrival] .world-stage::before,#acs-world[data-stage=production] .world-stage::before,#acs-world[data-stage=panel] .world-stage::before,#acs-world[data-stage=inside] .world-stage::before,#acs-world[data-stage=always-on] .world-stage::before,#acs-world[data-stage=contact] .world-stage::before{opacity:1}
+}
+@media(min-width:1000px) and (max-width:1365px){.callout-label small{display:none}.callout-label strong{font-size:12px}}
+
+/* One gesture, one chapter: the journey snaps chapter to chapter; the footer releases it. */
+@media(pointer:coarse){html.has-js:has(#acs-world){scroll-snap-type:y mandatory}}
+.has-js .site-footer{scroll-snap-align:start}
+@media(min-width:1000px){#acs-world #inside .scene-content{width:min(var(--copy-w),27vw)}}
+/* Phones and tablets: title at the top, story at the bottom; showroom.js measures the gap between them and the 3D is framed inside it. */
+@media(max-width:999px){
+ #acs-world .world-chapter:not(#experience):not(#capabilities) .scene-content{display:flex;flex-direction:column;gap:12px}
+ #acs-world .world-chapter:not(#experience):not(#capabilities) .scene-content>*{position:static;inset:auto;width:auto;max-width:none;margin:0}
+ #acs-world .world-chapter:not(#experience):not(#capabilities) .scene-description{margin-top:auto}
+ #acs-world .world-chapter:not(#experience):not(#capabilities) .scene-title h1{font-size:clamp(30px,min(10vw,5.6vh),52px);line-height:1.06}
+ #acs-world .world-chapter:not(#experience):not(#capabilities) .scene-title h2{font-size:clamp(25px,min(8.4vw,4.6vh),40px);line-height:1.12}
+ #acs-world .round-clock,#acs-world .deployment-route,#acs-world .facility-proof,#acs-world .drawing-evidence,#acs-world .line-status,#acs-world .scene-aside,#acs-world .quiet-proof{display:none}
+ #acs-world .world-stage::before,#acs-world[data-stage] .world-stage::before{opacity:1;background:linear-gradient(180deg,var(--paper) 0,#f2f5f4cc calc(var(--zone-top,30%) - 10px),#f2f5f400 calc(var(--zone-top,30%) + 30px),#f2f5f400 calc(var(--zone-bottom,62%) - 30px),#f2f5f4d9 calc(var(--zone-bottom,62%) + 6px),var(--paper) 100%)}
+ #acs-world[data-stage=experience] .world-stage::before,#acs-world[data-stage=capabilities] .world-stage::before{background:none}
+}
+@media(max-width:999px) and (max-height:760px){#acs-world #contact .contact-address{display:none}#acs-world #contact .enquiry-action{margin:8px 0}}
+
+/* Team partnerships: Siemens, EcoXpert by Schneider Electric and Rittal marks with what each covers. */
+.partner-logos{list-style:none;margin:0;padding:0 0 clamp(10px,1.8vh,18px);display:grid;grid-template-columns:repeat(3,1fr);gap:18px;border-bottom:1px solid var(--line)}
+.partner-logos li{display:flex;flex-direction:column;justify-content:flex-end;gap:8px;min-width:0}
+.partner-logos li>span{font-size:11px;line-height:1.4;color:var(--muted)}
+.partner-logos li>span b{color:var(--ink)}
+.partner-logos img{display:block;width:auto;max-width:100%;height:clamp(24px,3.6vh,34px);object-fit:contain;object-position:left center}
+.partner-logos li:last-child img{height:clamp(36px,5.4vh,52px)}
+.ecoxpert-mark{display:flex;flex-direction:column;align-items:flex-start;gap:0;line-height:1}
+.ecoxpert-mark b{font:700 clamp(15px,1.25vw,19px)/1 Arial,sans-serif;color:#3dcd58;letter-spacing:-.01em}
+.ecoxpert-mark sup{font-size:.5em}
+.ecoxpert-mark small{font-size:9px;color:var(--muted);margin:2px 0 1px}
+.ecoxpert-mark img{height:clamp(18px,2.6vh,24px)!important}
+@media(max-width:999px){.partner-logos{gap:12px}.partner-logos li>span{font-size:10px}.partner-logos img{height:24px}.partner-logos li:last-child img{height:36px}}
+#experience .scene-content>*,#experience .client-strip{min-width:0}
+#experience .client-strip{overflow:hidden}
+.client-marquee{background:var(--paper)}
+.partner-logos li:last-child img{height:clamp(42px,6vh,56px)}

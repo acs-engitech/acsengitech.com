@@ -610,6 +610,7 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
   orbit.enablePan = false; orbit.enableZoom = false; orbit.enableDamping = false; orbit.rotateSpeed = .35;
   orbit.minPolarAngle = .3; orbit.maxPolarAngle = 1.48;
   orbit.addEventListener('change', () => invalidate());
+  let zones = [];
   let progress = 0, desired = 0, frame = 0, visible = true, forceCamera = true, width = 1, height = 1, doorOverride = null, lastTime = 0, clock = 1.4, alive = true;
   function resize() {
     const r = mount.getBoundingClientRect(); width = r.width; height = r.height; if (!width || !height) return;
@@ -626,12 +627,21 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
     const direction = v(A.direction).normalize().lerp(v(B.direction).normalize(), t).normalize();
     let view = THREE.MathUtils.lerp(A.height, B.height, t);
     if (narrow) view = Math.max(view * .8, THREE.MathUtils.lerp(A.mobileWidth, B.mobileWidth, t) / aspect);
-    const distance = view / 2 / tanHalf;
+    // Desktop framing keeps the same horizontal extent on squarer screens, so the model stays clear of the copy column.
+    else view *= Math.max(1, 1.8 / aspect);
     camera.aspect = aspect;
     const horizontal = narrow ? 0 : THREE.MathUtils.lerp(A.placement[0], B.placement[0], t);
-    const vertical = narrow ? THREE.MathUtils.lerp(A.mobileY ?? -.02, B.mobileY ?? -.02, t) : THREE.MathUtils.lerp(A.placement[1], B.placement[1], t);
+    let vertical = narrow ? THREE.MathUtils.lerp(A.mobileY ?? -.02, B.mobileY ?? -.02, t) : THREE.MathUtils.lerp(A.placement[1], B.placement[1], t);
+    // Phones: centre the subject in the measured gap between title and story copy, and shrink it when that gap is short.
+    const zoneA = narrow && zones[a], zoneB = narrow && zones[b];
+    if (zoneA && zoneB) {
+      const centre = THREE.MathUtils.lerp((zoneA.top + zoneA.bottom) / 2, (zoneB.top + zoneB.bottom) / 2, t);
+      const room = Math.max(60, THREE.MathUtils.lerp(zoneA.bottom - zoneA.top, zoneB.bottom - zoneB.top, t));
+      vertical = (centre - height / 2) / height;
+      view *= Math.max(1, THREE.MathUtils.lerp(A.mobileFill ?? .42, B.mobileFill ?? .42, t) * height / room);
+    }
     camera.setViewOffset(width, height, -horizontal * width, -vertical * height, width, height);
-    camera.position.copy(target).addScaledVector(direction, distance);
+    camera.position.copy(target).addScaledVector(direction, view / 2 / tanHalf);
     orbit.target.copy(target); camera.lookAt(target); camera.updateProjectionMatrix(); orbit.update();
   }
   function invalidate() { if (alive && visible && !frame) frame = requestAnimationFrame(render); }
@@ -705,6 +715,7 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
   resize(); invalidate();
   return {
     setProgress(value, instant = false) { const next = THREE.MathUtils.clamp(value, 0, stages.length - 1); if (Math.round(next) !== Math.round(desired)) doorOverride = null; desired = next; if (instant || reduced) { progress = desired; forceCamera = true; } invalidate(); },
+    setZones(value) { zones = value || []; forceCamera = true; invalidate(); },
     setReduced(value) { reduced = value; if (value) { progress = desired; forceCamera = true; } invalidate(); },
     setDoor(open) { doorOverride = open ? 1 : 0; invalidate(); },
     reset() { doorOverride = null; forceCamera = true; invalidate(); },

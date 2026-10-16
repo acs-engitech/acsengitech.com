@@ -1,24 +1,16 @@
-const { getAll } = require('./_store');
-const { DEFAULT_SETTINGS } = require('../lib/acs-defaults');
+const { getPublicData } = require('./_store');
+const { buildLlmsTxt } = require('../lib/admin-core');
+const { DEFAULT_SETTINGS, PAGE_DEFAULTS } = require('../lib/acs-defaults');
 
 module.exports = async function handler(req, res) {
+  let body;
   try {
-    const data = await getAll();
-    const posts = (data.posts || [])
-      .filter((post) => post.status === 'published')
-      .map((post) => `- ${post.title}: https://acsengitech.com/blog.html?post=${post.slug}`)
-      .join('\n');
-    const pages = (data.pages || [])
-      .map((page) => `- ${page.label}: https://acsengitech.com${page.path === '/' ? '/' : page.path}`)
-      .join('\n');
-
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    res.setHeader('Cache-Control', 's-maxage=0, max-age=0, must-revalidate');
-    res.end(`${data.settings?.llmsIntro || '# ACS Engitech'}\n\n## Pages\n${pages}\n\n## Published blog posts\n${posts || '- No published posts yet.'}\n`);
+    body = buildLlmsTxt(await getPublicData());
   } catch (error) {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    res.end(DEFAULT_SETTINGS.llmsIntro);
+    body = buildLlmsTxt({ settings: DEFAULT_SETTINGS, pages: PAGE_DEFAULTS.map((page) => ({ ...page, seo: {} })) });
   }
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=86400');
+  res.end(body);
 };
