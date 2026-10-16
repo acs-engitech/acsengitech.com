@@ -255,6 +255,10 @@
     upsertMeta('meta[property="og:title"]', { property: 'og:title', content: seo.ogTitle || seo.title || document.title });
     if (seo.ogDescription || seo.description) upsertMeta('meta[property="og:description"]', { property: 'og:description', content: seo.ogDescription || seo.description });
     if (seo.ogImage) upsertMeta('meta[property="og:image"]', { property: 'og:image', content: seo.ogImage });
+    if (seo.ogType) upsertMeta('meta[property="og:type"]', { property: 'og:type', content: seo.ogType });
+    if (seo.canonical) upsertMeta('meta[property="og:url"]', { property: 'og:url', content: seo.canonical });
+    upsertMeta('meta[property="og:site_name"]', { property: 'og:site_name', content: 'ACS Engitech' });
+    if (seo.twitterCard) upsertMeta('meta[name="twitter:card"]', { name: 'twitter:card', content: seo.twitterCard });
     upsertMeta('meta[name="twitter:title"]', { name: 'twitter:title', content: seo.twitterTitle || seo.ogTitle || seo.title || document.title });
     if (seo.twitterDescription || seo.ogDescription || seo.description) upsertMeta('meta[name="twitter:description"]', { name: 'twitter:description', content: seo.twitterDescription || seo.ogDescription || seo.description });
     if (seo.twitterImage || seo.ogImage) upsertMeta('meta[name="twitter:image"]', { name: 'twitter:image', content: seo.twitterImage || seo.ogImage });

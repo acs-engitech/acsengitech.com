@@ -4,11 +4,21 @@ const { PAGE_DEFAULTS, DEFAULT_SETTINGS, DEFAULT_JOBS, DEFAULT_POSITION_TYPES, D
 let sql;
 let initialization;
 
+// Neon connection string. NEON_DATABASE_URL is the dedicated variable; the names the Vercel Neon
+// integration creates (DATABASE_URL, POSTGRES_URL) are accepted as fallbacks.
+const CONNECTION_ENV = ['NEON_DATABASE_URL', 'DATABASE_URL', 'POSTGRES_URL'];
+
+function connectionString() {
+  for (const name of CONNECTION_ENV) if (process.env[name]) return process.env[name];
+  return '';
+}
+
 function db() {
-  if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL is not configured');
+  const url = connectionString();
+  if (!url) {
+    throw new Error(`Database is not configured: set ${CONNECTION_ENV.join(' or ')}`);
   }
-  sql ||= neon(process.env.DATABASE_URL);
+  sql ||= neon(url);
   return sql;
 }
 
@@ -317,6 +327,7 @@ async function getAnalytics(days = 30) {
 }
 
 module.exports = {
+  connectionString,
   getAll,
   getPublicData,
   saveAll,
