@@ -6,7 +6,9 @@ NEEDS CONFIRMATION: approved panel layouts if ACS wants the hero panel interior 
 
 NEEDS CONFIRMATION: approved MCC drawings if a specific project should be shown. The compartmental MCC follows the ACS MCC panel photographs.
 
-Client logos in assets/acs/clients/ come from the last client-logo slide of the ACS Engitech presentation. Partner approvals (Siemens, Schneider Prisma SeT, Rittal Ri4Power, CPRI) and capacity figures are as supplied by ACS.
+Client logos in assets/acs/clients/ come from the client-logo slides (30–34) of the ACS Engitech presentation; they run in an auto-scrolling strip in the team chapter.
+
+Partner marks in assets/acs/partners/ (Siemens, Schneider Electric, Rittal) are the public corporate logos. NEEDS CONFIRMATION: the official EcoXpert partner badge; until ACS supplies it, the team chapter shows an "EcoXpert by" label above the Schneider Electric logo. Partner approvals (Siemens, Schneider Prisma SeT, Rittal Ri4Power, CPRI) and capacity figures are as supplied by ACS.
 
 NEEDS CONFIRMATION: facility CAD or wide photography if ACS later wants the factory floor to represent its own 36,000 sq. ft. facility. Until then the figure is presented as text, separately from the scene.
 

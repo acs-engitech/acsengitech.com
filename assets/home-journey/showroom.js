@@ -43,8 +43,9 @@
   jump.addEventListener('change',()=>document.getElementById(jump.value).scrollIntoView({behavior:motion.matches?'instant':'smooth',block:'start'}));
   const record=document.querySelector('.trust-record');
   const standards=document.createElement('details');standards.className='mobile-standards';
-  standards.innerHTML='<summary>Partnerships &amp; approvals <i class="ri-add-line" aria-hidden="true"></i></summary>';
+  standards.innerHTML='<summary>Approvals &amp; certificates <i class="ri-add-line" aria-hidden="true"></i></summary>';
   for(const a of record.querySelectorAll(':scope > a'))standards.append(a.cloneNode(true));
+  const certificates=document.createElement('a');certificates.href='certificates.html';certificates.innerHTML='<strong>All certificates</strong><span>Siemens, Schneider Electric, Rittal &amp; CPRI</span>';standards.append(certificates);
   record.append(standards);
   let engine, stages, calloutList = [], active = -1, frame = 0, scrollPositions = [], visible = true, lost = false;
   const inspection=document.querySelector('.world-inspection');
@@ -108,9 +109,24 @@
     setDoorButton(Boolean(stages?.[index]?.doorOpen));
     if(stages){document.getElementById('world-anchor-label').textContent=stages[index].annotation;document.getElementById('world-note-copy').textContent=stages[index].detail;}
     if(journey.dataset.renderer!=='ready')updatePoster(index);
-    showInfo(false);
+    showInfo(false);paintZone();
   }
-  function measure() {scrollPositions=chapters.map(el=>el.getBoundingClientRect().top+scrollY-parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header')));schedule();}
+  let zones=[];
+  function paintZone(){const zone=zones[Math.max(0,active)];journey.style.setProperty('--zone-top',zone?zone.top+'px':'');journey.style.setProperty('--zone-bottom',zone?zone.bottom+'px':'');}
+  function measureZones(){
+    if(!engine)return;
+    if(!compact.matches){zones=[];engine.setZones([]);return;}
+    const box=mount.getBoundingClientRect();
+    zones=chapters.map(chapter=>{
+      const content=chapter.querySelector('.scene-content'),title=content.querySelector('.scene-title');
+      let bottom=box.bottom-12;
+      for(const el of content.children){if(el===title)continue;const r=el.getBoundingClientRect();if(r.height>0&&r.top>title.getBoundingClientRect().bottom)bottom=Math.min(bottom,r.top);}
+      const story=content.querySelector('.scene-description');if(story){const first=[...story.children].find(el=>el.getBoundingClientRect().height>0);if(first)bottom=Math.min(bottom,first.getBoundingClientRect().top);}
+      return {top:title.getBoundingClientRect().bottom-box.top+8,bottom:bottom-box.top-8};
+    });
+    engine.setZones(zones);paintZone();
+  }
+  function measure() {measureZones();scrollPositions=chapters.map(el=>el.getBoundingClientRect().top+scrollY-parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header')));schedule();}
   function update() {
     frame=0;
     if(!scrollPositions.length)return;
@@ -120,7 +136,7 @@
     for(let i=0;i<scrollPositions.length;i++)if(scrollY>=scrollPositions[i]-2)index=i;
     const length=(scrollPositions[index+1]||scrollPositions[index]+chapters[index].offsetHeight)-scrollPositions[index];
     const fraction=Math.max(0,Math.min(1,(scrollY-scrollPositions[index])/length));
-    const transition=Math.max(0,Math.min(1,(fraction-.55)/.45));
+    const transition=fraction;
     const eased=transition*transition*(3-2*transition);
     const progress=Math.min(chapters.length-1,index+eased);
     journey.style.setProperty('--journey-progress',String(progress/(chapters.length-1)));
@@ -129,6 +145,46 @@
   }
   function schedule(){if(!frame)frame=requestAnimationFrame(update);}
   window.addEventListener('scroll',schedule,{passive:true});
+  // One gesture, one chapter. Wheel and keys step to the neighbouring chapter with an eased scroll; touch uses CSS snapping.
+  let stepping=0,quietUntil=0,wheelSum=0,wheelReset=0;
+  function stepTarget(direction){
+    if(!scrollPositions.length)return null;
+    const y=scrollY,last=scrollPositions[scrollPositions.length-1];
+    if(direction>0){if(y>=last-2)return null;return scrollPositions.find(p=>p>y+2)??null;}
+    if(y>last+2||y<=scrollPositions[0]+2)return null;
+    return [...scrollPositions].reverse().find(p=>p<y-2)??null;
+  }
+  function glide(to){
+    if(motion.matches){scrollTo({top:to,behavior:'instant'});quietUntil=performance.now()+250;return;}
+    const from=scrollY,start=performance.now(),span=Math.min(1100,Math.max(650,Math.abs(to-from)*.9));
+    cancelAnimationFrame(stepping);
+    const tick=now=>{
+      const t=Math.min(1,(now-start)/span),e=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+      scrollTo({top:from+(to-from)*e,behavior:'instant'});
+      if(t<1)stepping=requestAnimationFrame(tick);else{stepping=0;quietUntil=performance.now()+380;}
+    };
+    stepping=requestAnimationFrame(tick);
+  }
+  function ownsGesture(target){return journey.classList.contains('is-present')&&!scope.open&&!target?.closest?.('dialog,.nav-dropdown,#main-navigation,select,input,textarea');}
+  window.addEventListener('wheel',e=>{
+    if(e.ctrlKey||Math.abs(e.deltaX)>Math.abs(e.deltaY)||!ownsGesture(e.target))return;
+    const direction=Math.sign(e.deltaY),to=stepTarget(direction);
+    if(to===null){wheelSum=0;return;}
+    e.preventDefault();
+    const now=performance.now();
+    if(stepping||now<quietUntil){quietUntil=Math.max(quietUntil,now+(stepping?0:160));return;}
+    if(now>wheelReset)wheelSum=0;wheelReset=now+260;
+    wheelSum+=e.deltaMode===1?e.deltaY*16:e.deltaY;
+    if(Math.abs(wheelSum)<24)return;
+    wheelSum=0;glide(to);
+  },{passive:false});
+  window.addEventListener('keydown',e=>{
+    if(e.altKey||e.ctrlKey||e.metaKey||!ownsGesture(e.target)||e.target.closest?.('a,button,[contenteditable]')&&e.key===' ')return;
+    const direction={ArrowDown:1,PageDown:1,' ':e.shiftKey?-1:1,ArrowUp:-1,PageUp:-1}[e.key];
+    if(!direction)return;
+    const to=stepTarget(direction);if(to===null)return;
+    e.preventDefault();if(!stepping)glide(to);
+  });
   window.addEventListener('resize',measure,{passive:true});
   document.fonts.ready.then(measure);
   function project(point) {
