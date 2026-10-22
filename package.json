@@ -8,7 +8,8 @@
     "vercel:dev": "npx vercel dev",
     "test": "node --test",
     "visual:test": "playwright test",
-    "build": "webpack --config admin-src/webpack.config.js"
+    "build": "node scripts/seo-head.js && webpack --config admin-src/webpack.config.js",
+    "seo:head": "node scripts/seo-head.js"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",

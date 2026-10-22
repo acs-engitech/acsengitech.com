@@ -98,6 +98,15 @@ async function setValue(key, value) {
   return value;
 }
 
+// Page SEO overrides saved before version 2 were full copies of the old defaults (plus test edits) and would
+// mask the current defaults on the live site, so only overrides saved by the current admin are applied.
+const PAGE_SEO_VERSION = 2;
+
+async function getPageSeo() {
+  const [pageSeo, version] = await Promise.all([getValue('pageSeo', {}), getValue('pageSeoVersion', 1)]);
+  return Number(version) >= PAGE_SEO_VERSION ? pageSeo || {} : {};
+}
+
 function migrateJobToPosition(job) {
   return {
     ...job,
@@ -242,7 +251,7 @@ async function deletePartners(ids) {
 }
 
 async function getAll() {
-  const pageSeo = await getValue('pageSeo', {});
+  const pageSeo = await getPageSeo();
   const settings = await getValue('settings', {});
   const [positions, positionTypes, partnerCategories, applications, partners] = await Promise.all([
     getPositions(),
@@ -271,7 +280,7 @@ async function getAll() {
 }
 
 async function getPublicData() {
-  const pageSeo = await getValue('pageSeo', {});
+  const pageSeo = await getPageSeo();
   const settings = await getValue('settings', {});
   const [positions, positionTypes, partnerCategories, posts, jobs] = await Promise.all([
     getPositions(),
@@ -299,7 +308,7 @@ async function getPublicData() {
 
 async function saveAll(payload) {
   const writes = [];
-  if (payload.pageSeo) writes.push(setValue('pageSeo', payload.pageSeo));
+  if (payload.pageSeo) writes.push(setValue('pageSeo', payload.pageSeo), setValue('pageSeoVersion', PAGE_SEO_VERSION));
   if (payload.posts) writes.push(setValue('posts', payload.posts));
   if (payload.jobs) writes.push(setValue('jobs', payload.jobs));
   if (payload.positions) writes.push(setValue('positions', payload.positions));
@@ -327,6 +336,7 @@ async function getAnalytics(days = 30) {
 }
 
 module.exports = {
+  PAGE_SEO_VERSION,
   connectionString,
   getAll,
   getPublicData,

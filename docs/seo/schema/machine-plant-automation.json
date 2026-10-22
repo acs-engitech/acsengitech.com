@@ -1,0 +1,78 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://www.acsengitech.com/machine-plant-automation#webpage",
+      "url": "https://www.acsengitech.com/machine-plant-automation",
+      "name": "Rolling Mill & Machine Automation in India | ACS Engitech",
+      "description": "Aluminium cold rolling mill, skin pass mill, pickling line and tandem cold mill automation in India, plus automation migration for rolling mills.",
+      "inLanguage": "en-IN",
+      "isPartOf": {
+        "@type": "WebSite",
+        "@id": "https://www.acsengitech.com/#website",
+        "url": "https://www.acsengitech.com/",
+        "name": "ACS Engitech"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "@id": "https://www.acsengitech.com/#organization",
+        "name": "ACS Engitech",
+        "url": "https://www.acsengitech.com/"
+      },
+      "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": "https://www.acsengitech.com/assets/acs/og-image.jpg"
+      },
+      "keywords": "aluminium cold rolling mill automation in India, skin pass mill automation in India, automation migration for rolling mill in India, pickling line and tandem cold mill automation in India, machine automation India",
+      "breadcrumb": {
+        "@id": "https://www.acsengitech.com/machine-plant-automation#breadcrumb"
+      },
+      "mainEntity": {
+        "@id": "https://www.acsengitech.com/machine-plant-automation#service"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://www.acsengitech.com/machine-plant-automation#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://www.acsengitech.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Applications",
+          "item": "https://www.acsengitech.com/application"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Machine / Plant Automation",
+          "item": "https://www.acsengitech.com/machine-plant-automation"
+        }
+      ]
+    },
+    {
+      "@id": "https://www.acsengitech.com/machine-plant-automation#service",
+      "url": "https://www.acsengitech.com/machine-plant-automation",
+      "provider": {
+        "@type": "Organization",
+        "@id": "https://www.acsengitech.com/#organization",
+        "name": "ACS Engitech",
+        "url": "https://www.acsengitech.com/"
+      },
+      "areaServed": {
+        "@type": "Country",
+        "name": "India"
+      },
+      "@type": "Service",
+      "name": "Machine and rolling mill automation",
+      "serviceType": "Machine and plant automation",
+      "description": "Drives, motion control, PLC and HMI automation for rolling mills, process lines and machine builders, including migration of legacy systems."
+    }
+  ]
+}

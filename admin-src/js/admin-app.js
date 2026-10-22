@@ -764,9 +764,16 @@ import acsDefaults from '../../lib/acs-defaults.js';
     renderSettings();
   }
 
+  // Only fields that differ from the page's built-in defaults are stored, so improved defaults keep reaching the site.
   function collectSeo() {
-    const form = $('#seoForm');
-    state.pageSeo[state.selectedPage] = Object.fromEntries(Array.from(form.elements).filter((field) => field.name).map((field) => [field.name, field.value.trim()]));
+    const page = state.pages.find((item) => item.path === state.selectedPage);
+    if (!page) return;
+    const defaults = page.defaults || {};
+    const overrides = {};
+    for (const [name, value] of Object.entries(seoFormValues())) {
+      if (value && value !== String(defaults[name] ?? '').trim()) overrides[name] = value;
+    }
+    state.pageSeo[state.selectedPage] = overrides;
   }
 
   function collectSettings() {
@@ -1250,6 +1257,11 @@ import acsDefaults from '../../lib/acs-defaults.js';
 
     $('#seoForm').addEventListener('input', updateSeoInsights);
     $('#seoForm').addEventListener('change', updateSeoInsights);
+    $('#resetSeoBtn').addEventListener('click', () => {
+      if (!confirm('Reset this page to its default SEO? Save SEO to publish.')) return;
+      state.pageSeo[state.selectedPage] = {};
+      renderSeo();
+    });
     $('#robotsPreset').addEventListener('change', (event) => {
       if (!event.target.value) return;
       $('#seoForm').robots.value = event.target.value;
