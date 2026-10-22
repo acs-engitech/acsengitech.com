@@ -6,7 +6,7 @@
       "@id": "https://www.acsengitech.com/centralized-automation#webpage",
       "url": "https://www.acsengitech.com/centralized-automation",
       "name": "Central Operation Cockpit & Centralized Automation | ACS",
-      "description": "Central operation cockpits and centralized automation: one control room for PLC, SCADA, reporting and plant data across your process lines.",
+      "description": "A central operation cockpit from ACS Engitech brings PLC, SCADA, reporting and plant data into one control room for centralized automation across process lines.",
       "inLanguage": "en-IN",
       "isPartOf": {
         "@type": "WebSite",

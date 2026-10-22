@@ -5,8 +5,8 @@
       "@type": "CollectionPage",
       "@id": "https://www.acsengitech.com/services#webpage",
       "url": "https://www.acsengitech.com/services",
-      "name": "Industrial Automation Services | Panels, PLC & SCADA | ACS",
-      "description": "Control panel manufacturing, PLC and SCADA engineering, process and plant automation, boiler automation, data logging and AMC support across India.",
+      "name": "Industrial Automation Services in India | ACS Engitech",
+      "description": "Industrial automation services from ACS Engitech: control panel manufacturing, PLC and SCADA engineering, process and plant automation, and AMC support.",
       "inLanguage": "en-IN",
       "isPartOf": {
         "@type": "WebSite",
