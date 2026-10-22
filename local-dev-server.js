@@ -20,7 +20,17 @@ const apiRoutes = {
   '/llms.txt': './api/llms',
   '/api/sitemap': './api/sitemap',
   '/sitemap.xml': './api/sitemap',
+  '/api/markdown': './api/markdown',
 };
+
+// Mirrors vercel.json redirects and middleware.js so local runs match production routing.
+const redirects = {
+  '/process-automation-2': '/process-automation',
+  '/smart-data-logger-2': '/smart-data-logger',
+};
+
+// middleware.js is an ES module with no imports; load it the same way the tests do.
+const middleware = import(`data:text/javascript;base64,${fs.readFileSync(path.join(__dirname, 'middleware.js')).toString('base64')}`);
 
 const rewrites = {
   '/admin': '/admin/index.html',
@@ -88,18 +98,32 @@ function serveStatic(req, res, parsedUrl) {
   }
   if (!fullPath || !fs.existsSync(fullPath) || fs.statSync(fullPath).isDirectory()) {
     res.statusCode = 404;
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    res.end('Not found');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    fs.createReadStream(path.join(root, '404.html')).pipe(res);
     return;
   }
 
   res.statusCode = 200;
+  if (fullPath.endsWith('.html')) res.setHeader('Vary', 'Accept');
   res.setHeader('Content-Type', types[path.extname(fullPath).toLowerCase()] || 'application/octet-stream');
   fs.createReadStream(fullPath).pipe(res);
 }
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   const parsedUrl = new URL(req.url, `http://${req.headers.host || `localhost:${port}`}`);
+  if (redirects[parsedUrl.pathname]) {
+    res.writeHead(308, { Location: redirects[parsedUrl.pathname] });
+    res.end();
+    return;
+  }
+  const { default: negotiate, config } = await middleware;
+  const matched = config.matcher.some((pattern) => new RegExp(`^${pattern}$`).test(parsedUrl.pathname));
+  const rewrite = matched && negotiate({ url: parsedUrl.href, headers: { get: (name) => req.headers[name.toLowerCase()] } });
+  if (rewrite) {
+    const target = new URL(rewrite.headers.get('x-middleware-rewrite'));
+    handleApi(target.pathname, req, res, target);
+    return;
+  }
   const apiRoute = apiRoutes[parsedUrl.pathname] ? parsedUrl.pathname : null;
   if (apiRoute) {
     handleApi(apiRoute, req, res, parsedUrl);

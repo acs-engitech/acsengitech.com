@@ -1,12 +1,91 @@
 {
   "rewrites": [
-    { "source": "/robots.txt", "destination": "/api/robots" },
-    { "source": "/llms.txt", "destination": "/api/llms" },
-    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
-    { "source": "/blog", "destination": "/blog.html" },
-    { "source": "/admin", "destination": "/admin/index.html" }
+    {
+      "source": "/robots.txt",
+      "destination": "/api/robots"
+    },
+    {
+      "source": "/llms.txt",
+      "destination": "/api/llms"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap"
+    },
+    {
+      "source": "/blog",
+      "destination": "/blog.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/admin/index.html"
+    }
   ],
   "cleanUrls": true,
   "trailingSlash": false,
-  "outputDirectory": "."
+  "outputDirectory": ".",
+  "redirects": [
+    {
+      "source": "/process-automation-2",
+      "destination": "/process-automation",
+      "permanent": true
+    },
+    {
+      "source": "/smart-data-logger-2",
+      "destination": "/smart-data-logger",
+      "permanent": true
+    }
+  ],
+  "headers": [
+    {
+      "source": "/((?!api/|assets/|admin/).*)",
+      "headers": [
+        {
+          "key": "Vary",
+          "value": "Accept"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)-(design|signal)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/(index-console|index-design|index-signal|header|footer)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/admin/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/admin",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    }
+  ],
+  "functions": {
+    "api/markdown.js": {
+      "includeFiles": "*.html"
+    }
+  }
 }

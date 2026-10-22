@@ -62,7 +62,20 @@ test('mergeSeo keeps page defaults when admin fields are blank', () => {
     twitterDescription: 'Join Our Team',
     twitterImage: '',
     jsonLd: '',
+    focusKeyword: '',
+    ogType: 'website',
+    twitterCard: 'summary_large_image',
+    sitemapExclude: '',
+    sitemapPriority: '',
+    sitemapChangefreq: '',
   });
+});
+
+test('mergeSeo ignores relative or junk canonical overrides and moves the apex host to www', () => {
+  const defaults = { canonical: 'https://www.acsengitech.com/about' };
+  assert.equal(mergeSeo(defaults, { canonical: '/about-us-page-gg' }).canonical, 'https://www.acsengitech.com/about');
+  assert.equal(mergeSeo(defaults, { canonical: 'https://acsengitech.com/about' }).canonical, 'https://www.acsengitech.com/about');
+  assert.equal(mergeSeo(defaults, { ogImage: 'assets/acs/og-image.jpg' }).ogImage, 'https://www.acsengitech.com/assets/acs/og-image.jpg');
 });
 
 test('summarizeAnalytics groups page views, visitors, devices, pages, and referrers', () => {
@@ -84,16 +97,18 @@ test('ACS page defaults include clean SEO defaults and JSON-LD', () => {
   const home = PAGE_DEFAULTS.find((page) => page.path === '/');
   const career = PAGE_DEFAULTS.find((page) => page.path === '/career');
 
-  assert.equal(home.defaults.canonical, 'https://acsengitech.com/');
-  assert.equal(career.defaults.canonical, 'https://acsengitech.com/career');
+  assert.equal(home.defaults.canonical, 'https://www.acsengitech.com/');
+  assert.equal(career.defaults.canonical, 'https://www.acsengitech.com/career');
   assert.doesNotMatch(career.defaults.canonical, /\.html$/);
   assert.match(career.defaults.keywords, /automation engineer jobs/i);
-  assert.equal(JSON.parse(career.defaults.jsonLd)['@type'], 'JobPosting');
+  const types = JSON.parse(career.defaults.jsonLd)['@graph'].map((node) => node['@type']);
+  assert.deepEqual(types, ['WebPage', 'BreadcrumbList']);
 });
 
 test('crawler defaults protect admin/API paths and describe ACS for LLMs', () => {
   assert.match(DEFAULT_SETTINGS.robotsTxt, /Disallow: \/admin\.html/);
-  assert.match(DEFAULT_SETTINGS.robotsTxt, /Sitemap: https:\/\/acsengitech\.com\/sitemap\.xml/);
-  assert.match(DEFAULT_SETTINGS.llmsIntro, /automation control panels/i);
+  assert.match(DEFAULT_SETTINGS.robotsTxt, /Sitemap: https:\/\/www\.acsengitech\.com\/sitemap\.xml/);
+  assert.match(DEFAULT_SETTINGS.robotsTxt, /^Allow: \/api\/public$/m);
+  assert.match(DEFAULT_SETTINGS.llmsIntro, /electrical control panels/i);
   assert.match(DEFAULT_SETTINGS.llmsIntro, /sales@acsengitech\.com/);
 });
