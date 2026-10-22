@@ -18,7 +18,7 @@ test('concurrent public reads share database setup, including subsequent warm re
   const store = isolatedStore(async parts => { calls.push(parts.join('?')); return []; });
   await Promise.all([store.getPublicData(), store.getPublicData()]);
   await store.getPublicData();
-  assert.equal(calls.filter(sql => sql.startsWith('CREATE TABLE')).length, 4);
+  assert.equal(calls.filter(sql => sql.startsWith('CREATE TABLE')).length, 5);
 });
 
 test('database setup can retry after a temporary failure', async () => {
@@ -31,5 +31,5 @@ test('database setup can retry after a temporary failure', async () => {
   });
   await assert.rejects(store.getPublicData(), /temporary database outage/);
   await store.getPublicData();
-  assert.equal(calls.filter(sql => sql.startsWith('CREATE TABLE')).length, 5);
+  assert.equal(calls.filter(sql => sql.startsWith('CREATE TABLE')).length, 6);
 });

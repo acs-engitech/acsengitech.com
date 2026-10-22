@@ -80,6 +80,10 @@ async function runAction(payload) {
       return store.updateApplication(payload.id, payload.patch || {});
     case 'application.delete':
       return store.deleteApplications(payload.ids || []);
+    case 'enquiry.update':
+      return store.updateEnquiry(payload.id, payload.patch || {});
+    case 'enquiry.delete':
+      return store.deleteEnquiries(payload.ids || []);
     case 'partner.update':
       return store.updatePartner(payload.id, payload.patch || {});
     case 'partner.delete':

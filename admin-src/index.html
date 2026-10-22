@@ -102,6 +102,10 @@
           <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M9 3.75c-1.243 0-2.25 1.007-2.25 2.25v.75H5.5c-1.243 0-2.25 1.007-2.25 2.25v8.25c0 1.243 1.007 2.25 2.25 2.25h13c1.243 0 2.25-1.007 2.25-2.25V9c0-1.243-1.007-2.25-2.25-2.25h-1.25V6c0-1.243-1.007-2.25-2.25-2.25H9Zm6.25 3V6a.75.75 0 0 0-.75-.75H9a.75.75 0 0 0-.75.75v.75h6.5ZM4.75 12.5h14.5v4.5a.75.75 0 0 1-.75.75h-13a.75.75 0 0 1-.75-.75v-4.5Z"/></svg>
           <span class="flex flex-col"><span class="text-sm font-medium">Positions</span><small class="text-xs font-normal text-gray-400">Open roles & internships</small></span>
         </button>
+        <button class="nav-btn group" data-tab="enquiries" type="button" :class="{ active: activeTab === 'enquiries' }" @click="selectTab('enquiries')">
+          <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.5 4.75A2.25 2.25 0 0 0 3.25 7v10A2.25 2.25 0 0 0 5.5 19.25h13A2.25 2.25 0 0 0 20.75 17V7A2.25 2.25 0 0 0 18.5 4.75h-13Zm.82 2.9a.75.75 0 0 0-.89 1.2l5.68 4.23a1.5 1.5 0 0 0 1.78 0l5.68-4.23a.75.75 0 0 0-.89-1.2L12 11.88 6.32 7.65Z"/></svg>
+          <span class="flex flex-col"><span class="text-sm font-medium">Enquiries</span><small class="text-xs font-normal text-gray-400">Contact form messages</small></span>
+        </button>
         <button class="nav-btn group" data-tab="applications" type="button" :class="{ active: activeTab === 'applications' }" @click="selectTab('applications')">
           <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M4.75 5.5c0-1.243 1.007-2.25 2.25-2.25h10c1.243 0 2.25 1.007 2.25 2.25v7.25h-4.19a.75.75 0 0 0-.67.415l-.67 1.34a.75.75 0 0 1-.67.415h-3.5a.75.75 0 0 1-.67-.415l-.67-1.34a.75.75 0 0 0-.67-.415H4.75V5.5Zm0 8.75h3.72l.45.9c.382.763 1.163 1.25 2.01 1.25h3.5c.847 0 1.628-.487 2.01-1.25l.45-.9h3.72v3.25a2.25 2.25 0 0 1-2.25 2.25H7a2.25 2.25 0 0 1-2.25-2.25v-3.25Z"/></svg>
           <span class="flex flex-col"><span class="text-sm font-medium">Applications</span><small class="text-xs font-normal text-gray-400">Job submissions</small></span>
@@ -344,6 +348,33 @@
           </div>
         </section>
 
+        <section class="panel" id="enquiries" :class="{ active: activeTab === 'enquiries' }">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Contact form</p>
+              <h2 class="text-xl font-semibold text-gray-800">Enquiries</h2>
+            </div>
+            <div class="section-actions flex flex-wrap items-center gap-2">
+              <button id="refreshEnquiriesBtn" class="btn-secondary" type="button">Refresh</button>
+              <button id="exportEnquiriesBtn" class="btn-secondary" type="button">Export CSV</button>
+            </div>
+          </div>
+          <div class="filters mb-3 flex flex-wrap gap-2" id="enquiryWorkflowFilters"></div>
+          <div class="filter-row card mb-4 flex flex-wrap items-end gap-3 p-4" id="enquiryFilterRow">
+            <label class="field-label">From <input type="date" id="enquiryFromDate" class="field-input mt-1.5"></label>
+            <label class="field-label">To <input type="date" id="enquiryToDate" class="field-input mt-1.5"></label>
+            <label class="field-label">Search <input type="search" id="enquirySearch" placeholder="Name, email or subject" class="field-input mt-1.5"></label>
+            <button id="clearEnquiryFiltersBtn" class="btn-secondary" type="button">Clear</button>
+          </div>
+          <div class="bulk-row card mb-4 flex flex-wrap items-center gap-3 p-4">
+            <label class="flex items-center gap-2 text-sm font-medium text-gray-700"><input type="checkbox" id="enquirySelectAll"> Select all shown</label>
+            <span class="text-sm text-gray-500" id="enquirySelectedCount">0 selected</span>
+            <button id="deleteEnquiriesBtn" class="danger btn-danger" type="button">Delete selected</button>
+            <span class="ml-auto text-sm text-gray-400" id="enquiryShownCount"></span>
+          </div>
+          <div class="list-full space-y-2" id="enquiryList"></div>
+        </section>
+
         <section class="panel" id="applications" :class="{ active: activeTab === 'applications' }">
           <div class="section-head">
             <div>
@@ -500,6 +531,21 @@
         </section>
       </section>
     </main>
+
+    <aside class="drawer" id="enquiryDrawer" aria-hidden="true">
+      <div class="drawer-backdrop" data-drawer-close></div>
+      <div class="drawer-panel">
+        <div class="drawer-head">
+          <h3 class="text-base font-semibold text-gray-800">Enquiry details</h3>
+          <button type="button" class="drawer-close" data-drawer-close aria-label="Close">&times;</button>
+        </div>
+        <div class="drawer-body" id="enquiryDrawerBody"></div>
+        <div class="drawer-foot">
+          <label class="field-label">Notes <textarea id="enquiryNotesField" class="field-input" rows="4"></textarea></label>
+          <button type="button" id="saveEnquiryNotesBtn" class="primary btn-primary mt-3">Save</button>
+        </div>
+      </div>
+    </aside>
 
     <aside class="drawer" id="applicationDrawer" aria-hidden="true">
       <div class="drawer-backdrop" data-drawer-close></div>

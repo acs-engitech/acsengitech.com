@@ -72,7 +72,7 @@ curl -sS -L -i -H 'Accept: text/markdown' https://www.acsengitech.com/some-path-
 
 1. **Apply the crawler files** in the admin (`robots.txt`, `llms-admin-body.md`); the database copies currently override the defaults. Delete or unpublish the test blog post ("new jaimin blog") if it is still live.
 2. **Write landing pages for keywords with no matching content**: TTA panels (Prisma SeT / Ri4Power), distillery automation, CBG plant automation, and a real Central Operation Cockpit page (`/centralized-automation` currently says "Something Exciting is Coming"). Meta tags alone will not rank thin or missing content.
-3. **Contact form**: `lib/contact.js` still posts to the old WordPress form at `acsengitech.com/wp-json/...`, which now redirects to this site, so enquiries are likely failing. It needs a new destination (database + email provider credentials).
+3. **Contact form**: enquiries are now saved to Neon (`acs_enquiries`) and listed in the admin under **Enquiries**. An email notification to sales@acsengitech.com still needs an email provider and its credentials.
 4. **Google Search Console**: verify `https://www.acsengitech.com`, submit `/sitemap.xml`, and check *Pages → Not indexed* for old WordPress URLs that need 301 redirects.
 5. **Confirm social profiles** in `sameAs` (LinkedIn, Facebook, Instagram URLs) and the business hours in `contactPoint`; add a Google Business Profile URL if one exists.
 6. **Have the privacy policy reviewed** by whoever handles legal for ACS (retention periods are proposed defaults).
