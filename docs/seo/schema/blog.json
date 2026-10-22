@@ -6,7 +6,7 @@
       "@id": "https://www.acsengitech.com/blog#webpage",
       "url": "https://www.acsengitech.com/blog",
       "name": "ACS Engitech Blog | Control Panels, PLC & SCADA Insights",
-      "description": "Articles from ACS Engitech on control panels, IEC 61439, PLC and SCADA engineering, process automation and plant data systems.",
+      "description": "The ACS Engitech blog: articles on control panels, IEC 61439, PLC and SCADA engineering, process automation and plant data systems for industry in India.",
       "inLanguage": "en-IN",
       "isPartOf": {
         "@type": "WebSite",

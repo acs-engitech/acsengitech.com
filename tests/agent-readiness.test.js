@@ -199,6 +199,8 @@ test('vercel.json negotiates on Accept, hides drafts from search and redirects d
   assert.deepEqual(config.redirects.map((r) => [r.source, r.destination, r.permanent]), [
     ['/process-automation-2', '/process-automation', true],
     ['/smart-data-logger-2', '/smart-data-logger', true],
+    ['/contact-us', '/contact', true],
+    ['/contact-us-2', '/contact', true],
   ]);
   assert.equal(config.functions['api/markdown.js'].includeFiles, '*.html');
   assert.ok(config.rewrites.some((r) => r.source === '/sitemap.xml'));
@@ -221,4 +223,52 @@ test('page SEO overrides saved before version 2 are not applied; new saves are',
   await store.saveAll({ pageSeo: { '/about': { focusKeyword: 'siemens system integrator' } } });
   assert.equal(values.pageSeoVersion, store.PAGE_SEO_VERSION);
   assert.deepEqual(about(await store.getPublicData()), { focusKeyword: 'siemens system integrator' });
+});
+
+// --- SEO manager checklist and internal links --------------------------------------------------
+
+// The same nine checks the admin SEO manager shows (admin-src/js/admin-app.js updateSeoInsights).
+test('every page passes all nine SEO manager checks', () => {
+  const { mergeSeo } = require('../lib/admin-core');
+  for (const page of PAGE_DEFAULTS) {
+    const seo = mergeSeo(page.defaults, {});
+    const keyword = seo.focusKeyword.toLowerCase();
+    const checks = {
+      'title is 30 to 60 characters': seo.title.length >= 30 && seo.title.length <= 60,
+      'meta description is 120 to 160 characters': seo.description.length >= 120 && seo.description.length <= 160,
+      'focus keyword is set': Boolean(keyword),
+      'focus keyword appears in the title': Boolean(keyword) && seo.title.toLowerCase().includes(keyword),
+      'focus keyword appears in the description': Boolean(keyword) && seo.description.toLowerCase().includes(keyword),
+      'canonical URL is an absolute https URL': /^https:\/\//.test(seo.canonical),
+      'page can be indexed': !/noindex/i.test(seo.robots),
+      'social share image is set': /^https?:\/\//.test(seo.ogImage || seo.twitterImage || ''),
+      'structured data (JSON-LD) is present and valid': Boolean(seo.jsonLd) && Boolean(JSON.parse(seo.jsonLd)['@context']),
+    };
+    for (const [label, ok] of Object.entries(checks)) assert.ok(ok, `${page.path}: ${label}`);
+  }
+});
+
+test('internal links on every public page resolve to a real page or file', () => {
+  const pages = fs.readdirSync(ROOT).filter((f) => f.endsWith('.html') && !/-(design|signal)\.html$|^(index-console|index-design|index-signal|header|footer)\.html$/.test(f));
+  const generated = new Set(['sitemap.xml', 'llms.txt', 'robots.txt']);
+  const broken = [];
+  for (const file of pages) {
+    for (const [, href] of read(file).matchAll(/href="([^"]*)"/g)) {
+      if (/^(https?:|mailto:|tel:|#|javascript:|data:)/.test(href)) continue;
+      let target = href.split('#')[0].split('?')[0].replace(/^\//, '').replace(/\/$/, '');
+      if (!target) continue;
+      if (target === 'index') target = 'index.html';
+      if (generated.has(target)) continue;
+      const candidates = path.extname(target) ? [target] : [target, `${target}.html`];
+      if (!candidates.some((c) => fs.existsSync(path.join(ROOT, c)))) broken.push(`${file} -> ${href}`);
+    }
+  }
+  assert.deepEqual(broken, []);
+});
+
+test('old WordPress contact URLs redirect to /contact', () => {
+  const config = JSON.parse(read('vercel.json'));
+  for (const source of ['/contact-us', '/contact-us-2']) {
+    assert.ok(config.redirects.some((r) => r.source === source && r.destination === '/contact' && r.permanent), source);
+  }
 });

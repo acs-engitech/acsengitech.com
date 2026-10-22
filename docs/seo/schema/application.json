@@ -5,8 +5,8 @@
       "@type": "CollectionPage",
       "@id": "https://www.acsengitech.com/application#webpage",
       "url": "https://www.acsengitech.com/application",
-      "name": "Automation Applications | Process, Plant & Boiler | ACS",
-      "description": "Where ACS automation runs: process plants, ZLD and MEE plants, machine and rolling mill automation, boiler systems, centralized monitoring and energy data.",
+      "name": "Industrial Automation Applications | ACS Engitech",
+      "description": "Industrial automation applications delivered by ACS: process plants, ZLD and MEE plants, machine and rolling mill automation, boilers and energy monitoring.",
       "inLanguage": "en-IN",
       "isPartOf": {
         "@type": "WebSite",

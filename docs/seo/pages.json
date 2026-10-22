@@ -3,7 +3,7 @@
     "path": "/",
     "file": "index.html",
     "title": "Electrical Control Panel Manufacturer India | ACS Engitech",
-    "description": "IEC 61439 TTA, MCC, Intelligent MCC and PLC panel manufacturer in India. Siemens Authorized System Integrator for ZLD, MEE, ETP and rolling mill automation.",
+    "description": "Electrical control panel manufacturer in India: IEC 61439 TTA, MCC, Intelligent MCC and PLC panels, plus ZLD, MEE and rolling mill automation by ACS Engitech.",
     "keywords": "electrical control panel manufacturer India, TTA panel manufacturers in India, IEC 61439 TTA panel manufacturers in India, MCC panel manufacturer in India, PLC panel manufacturer in India, Siemens authorized system integrator in India, ZLD plant automation panel manufacturer",
     "schema": "schema/home.json"
   },
@@ -11,31 +11,31 @@
     "path": "/about",
     "file": "about.html",
     "title": "About ACS Engitech | Siemens Authorized System Integrator",
-    "description": "Control panel manufacturer and automation company in Ahmedabad since 2009. Siemens Authorized System Integrator and panel partner for international OEMs.",
+    "description": "ACS Engitech, Ahmedabad: control panel manufacturer since 2009, Siemens Authorized System Integrator since 2018 and panel partner for international OEMs.",
     "keywords": "Siemens authorized system integrator in India, panel manufacturing partner for international OEMs, industrial automation company Ahmedabad, ACS Engitech",
     "schema": "schema/about.json"
   },
   {
     "path": "/services",
     "file": "services.html",
-    "title": "Industrial Automation Services | Panels, PLC & SCADA | ACS",
-    "description": "Control panel manufacturing, PLC and SCADA engineering, process and plant automation, boiler automation, data logging and AMC support across India.",
+    "title": "Industrial Automation Services in India | ACS Engitech",
+    "description": "Industrial automation services from ACS Engitech: control panel manufacturing, PLC and SCADA engineering, process and plant automation, and AMC support.",
     "keywords": "industrial automation services India, PLC SCADA services, control panel manufacturing services, automation AMC",
     "schema": "schema/services.json"
   },
   {
     "path": "/application",
     "file": "application.html",
-    "title": "Automation Applications | Process, Plant & Boiler | ACS",
-    "description": "Where ACS automation runs: process plants, ZLD and MEE plants, machine and rolling mill automation, boiler systems, centralized monitoring and energy data.",
+    "title": "Industrial Automation Applications | ACS Engitech",
+    "description": "Industrial automation applications delivered by ACS: process plants, ZLD and MEE plants, machine and rolling mill automation, boilers and energy monitoring.",
     "keywords": "industrial automation applications, process plant automation India, plant automation applications",
     "schema": "schema/application.json"
   },
   {
     "path": "/panel-manufacturer",
     "file": "panel-manufacturer.html",
-    "title": "TTA & Electrical Control Panel Manufacturer in India | ACS",
-    "description": "IEC 61439 TTA panel manufacturer in India (Schneider Prisma SeT, Rittal Ri4Power), plus MCC, PLC, VFD and PCC panels from a 36,000 sq. ft. Ahmedabad facility.",
+    "title": "TTA Panel Manufacturer in India | IEC 61439 Panels | ACS",
+    "description": "TTA panel manufacturer in India for IEC 61439 Schneider Prisma SeT and Rittal Ri4Power panels, plus MCC, PLC and VFD panels from our 36,000 sq. ft. facility.",
     "keywords": "TTA panel manufacturers in India, IEC 61439 TTA panel manufacturers in India, Schneider Prisma SeT TTA panel manufacturer India, Rittal Ri4 Power TTA panel manufacturer India, electrical control panel manufacturer India, PLC panel manufacturer in India, Siemens PLC panel manufacturer in India, panel manufacturing partner for international OEMs",
     "schema": "schema/panel-manufacturer.json"
   },
@@ -50,7 +50,7 @@
   {
     "path": "/imcc-panel-manufacturer",
     "file": "imcc-panel-manufacturer.html",
-    "title": "Intelligent MCC (IMCC) Panel Manufacturer India | ACS",
+    "title": "Intelligent MCC Panel Manufacturer in India (IMCC) | ACS",
     "description": "Intelligent MCC panel manufacturer in India: IMCC panels with Siemens Simocode, Schneider LTMR and ABB UMC relays for protection and remote diagnostics.",
     "keywords": "intelligent MCC panel manufacturer India, IMCC panel manufacturer, Simocode MCC panel, smart MCC panel India",
     "schema": "schema/imcc-panel-manufacturer.json"
@@ -66,8 +66,8 @@
   {
     "path": "/process-automation",
     "file": "process-automation.html",
-    "title": "ETP & ZLD Plant Automation Panel Manufacturer India | ACS",
-    "description": "Automation panels, PLC and SCADA for ETP, ZLD, water treatment, chemical and food plants in India, engineered on Siemens TIA Portal through commissioning.",
+    "title": "ETP Automation Panel Manufacturer in India | ACS Engitech",
+    "description": "ETP automation panel manufacturer in India: PLC, SCADA and MCC panels for ETP, ZLD, water treatment, chemical and food plants, engineered on Siemens TIA Portal.",
     "keywords": "ETP automation panel manufacturer in India, ZLD plant automation panel manufacturer, process automation company India, distillery plant automation panel manufacturer in India, CBG plant automation panel manufacturers in India",
     "schema": "schema/process-automation.json"
   },
@@ -75,15 +75,15 @@
     "path": "/multi-effect-evaporator-plant-automation",
     "file": "multi-effect-evaporator-plant-automation.html",
     "title": "MEE Plant Automation Panel Manufacturer in India | ACS",
-    "description": "MEE and ZLD plant automation panels and SCADA: 150+ multi-effect evaporator plants commissioned in India, from stage control to plant-wide reporting.",
+    "description": "MEE plant automation panel manufacturer in India: automation panels and SCADA for multi-effect evaporator and ZLD plants, with 150+ MEE plants commissioned.",
     "keywords": "MEE plant automation panel manufacturer in India, ZLD plant automation panel manufacturer, multi effect evaporator automation, ATFD automation",
     "schema": "schema/multi-effect-evaporator-plant-automation.json"
   },
   {
     "path": "/machine-plant-automation",
     "file": "machine-plant-automation.html",
-    "title": "Rolling Mill & Machine Automation in India | ACS Engitech",
-    "description": "Aluminium cold rolling mill, skin pass mill, pickling line and tandem cold mill automation in India, plus automation migration for rolling mills.",
+    "title": "Rolling Mill Automation in India | Machine Automation | ACS",
+    "description": "Rolling mill automation in India: aluminium cold rolling, skin pass, pickling line and tandem cold mill automation, plus migration of legacy mill automation.",
     "keywords": "aluminium cold rolling mill automation in India, skin pass mill automation in India, automation migration for rolling mill in India, pickling line and tandem cold mill automation in India, machine automation India",
     "schema": "schema/machine-plant-automation.json"
   },
@@ -91,7 +91,7 @@
     "path": "/centralized-automation",
     "file": "centralized-automation.html",
     "title": "Central Operation Cockpit & Centralized Automation | ACS",
-    "description": "Central operation cockpits and centralized automation: one control room for PLC, SCADA, reporting and plant data across your process lines.",
+    "description": "A central operation cockpit from ACS Engitech brings PLC, SCADA, reporting and plant data into one control room for centralized automation across process lines.",
     "keywords": "central operation cockpit manufacturer in India, centralized automation system, central control room automation, PLC SCADA integration India",
     "schema": "schema/centralized-automation.json"
   },
@@ -107,7 +107,7 @@
     "path": "/scada",
     "file": "scada.html",
     "title": "SCADA System Integrator in India | Siemens WinCC | ACS",
-    "description": "SCADA system integration on Siemens WinCC and TIA Portal: visualization, alarms, historical trends and reports over Profinet, Profibus, Modbus and OPC.",
+    "description": "ACS Engitech is a SCADA system integrator in India on Siemens WinCC and TIA Portal: visualization, alarms, trends and reports over Profinet, Modbus and OPC.",
     "keywords": "SCADA system integrator India, Siemens WinCC SCADA, SCADA programming Ahmedabad",
     "schema": "schema/scada.json"
   },
@@ -115,7 +115,7 @@
     "path": "/software-and-cutting-edge-technologies",
     "file": "software-and-cutting-edge-technologies.html",
     "title": "Industrial Automation Software & Plant Data | ACS Engitech",
-    "description": "Industrial software from ACS Engitech: SCADA reporting, plant data systems, smart logging and connected dashboards for manufacturing and process plants.",
+    "description": "Industrial automation software from ACS Engitech: SCADA reporting, plant data systems, smart logging and connected dashboards for manufacturing plants.",
     "keywords": "industrial automation software, plant data systems, SCADA reporting software India",
     "schema": "schema/software-and-cutting-edge-technologies.json"
   },
@@ -139,7 +139,7 @@
     "path": "/annual-maintenance-contract",
     "file": "annual-maintenance-contract.html",
     "title": "Automation AMC | PLC, SCADA & Panel Maintenance | ACS",
-    "description": "Annual maintenance contracts for PLC, SCADA, control panels and instrumentation: preventive maintenance, troubleshooting and plant support from ACS Engitech.",
+    "description": "Automation AMC from ACS Engitech: annual maintenance contracts for PLC, SCADA, control panels and instrumentation, with preventive maintenance.",
     "keywords": "automation AMC India, PLC SCADA maintenance contract, control panel maintenance",
     "schema": "schema/annual-maintenance-contract.json"
   },
@@ -155,7 +155,7 @@
     "path": "/siemens-s7-1200",
     "file": "siemens-s7-1200.html",
     "title": "Siemens S7-1200 Supplier in India | ACS Engitech",
-    "description": "Siemens S7-1200 PLC supply in India from a Siemens Authorized System Integrator: CPUs, signal and communication modules, programming and panel integration.",
+    "description": "Siemens S7-1200 supplier in India: CPUs, signal and communication modules, programming and panel integration from a Siemens Authorized System Integrator.",
     "keywords": "Siemens S7-1200 supplier India, Siemens S7-1200 dealer Ahmedabad, Siemens PLC supplier in India, Siemens authorized system integrator India",
     "schema": "schema/siemens-s7-1200.json"
   },
@@ -163,7 +163,7 @@
     "path": "/siemens-s7-1500",
     "file": "siemens-s7-1500.html",
     "title": "Siemens S7-1500 Supplier in India | ACS Engitech",
-    "description": "Siemens S7-1500 PLC supply in India from a Siemens Authorized System Integrator: CPUs and I/O for advanced controllers, programming and panel integration.",
+    "description": "Siemens S7-1500 supplier in India: CPUs and I/O for advanced automation, programming and panel integration from a Siemens Authorized System Integrator.",
     "keywords": "Siemens S7-1500 supplier India, Siemens S7-1500 dealer Ahmedabad, Siemens PLC supplier in India, Siemens authorized system integrator India",
     "schema": "schema/siemens-s7-1500.json"
   },
@@ -171,7 +171,7 @@
     "path": "/siemens-s7-200-smart-plc",
     "file": "siemens-s7-200-smart-plc.html",
     "title": "Siemens S7-200 SMART Supplier in India | ACS Engitech",
-    "description": "Siemens S7-200 SMART PLC supply in India from a Siemens Authorized System Integrator: compact CPUs and expansion modules, programming and panel integration.",
+    "description": "Siemens S7-200 SMART supplier in India: compact CPUs and expansion modules, programming and panel integration from a Siemens Authorized System Integrator.",
     "keywords": "Siemens S7-200 SMART supplier India, Siemens S7-200 SMART dealer Ahmedabad, Siemens PLC supplier in India, Siemens authorized system integrator India",
     "schema": "schema/siemens-s7-200-smart-plc.json"
   },
@@ -179,7 +179,7 @@
     "path": "/siemens-s7-300-plc",
     "file": "siemens-s7-300-plc.html",
     "title": "Siemens S7-300 Supplier in India | ACS Engitech",
-    "description": "Siemens S7-300 PLC supply in India from a Siemens Authorized System Integrator: support, spares and migration to S7-1500, programming and panel integration.",
+    "description": "Siemens S7-300 supplier in India: spares, support and migration to S7-1500, programming and panel integration from a Siemens Authorized System Integrator.",
     "keywords": "Siemens S7-300 supplier India, Siemens S7-300 dealer Ahmedabad, Siemens PLC supplier in India, Siemens authorized system integrator India",
     "schema": "schema/siemens-s7-300-plc.json"
   },
@@ -187,7 +187,7 @@
     "path": "/siemens-s7-400-plc",
     "file": "siemens-s7-400-plc.html",
     "title": "Siemens S7-400 Supplier in India | ACS Engitech",
-    "description": "Siemens S7-400 PLC supply in India from a Siemens Authorized System Integrator: support, spares and migration to S7-1500, programming and panel integration.",
+    "description": "Siemens S7-400 supplier in India: spares, support and migration to S7-1500, programming and panel integration from a Siemens Authorized System Integrator.",
     "keywords": "Siemens S7-400 supplier India, Siemens S7-400 dealer Ahmedabad, Siemens PLC supplier in India, Siemens authorized system integrator India",
     "schema": "schema/siemens-s7-400-plc.json"
   },
@@ -195,7 +195,7 @@
     "path": "/siemens-logo",
     "file": "siemens-logo.html",
     "title": "Siemens LOGO! Supplier in India | ACS Engitech",
-    "description": "Siemens LOGO! logic module supply in India from a Siemens Authorized System Integrator: base modules and expansions, programming and panel integration.",
+    "description": "Siemens LOGO! supplier in India: logic modules and expansions, programming and panel integration from a Siemens Authorized System Integrator.",
     "keywords": "Siemens LOGO! supplier India, Siemens LOGO! dealer Ahmedabad, Siemens PLC supplier in India, Siemens authorized system integrator India",
     "schema": "schema/siemens-logo.json"
   },
@@ -203,7 +203,7 @@
     "path": "/siemens-et-200sp",
     "file": "siemens-et-200sp.html",
     "title": "Siemens ET 200SP Supplier in India | ACS Engitech",
-    "description": "Siemens ET 200SP distributed I/O supply in India from a Siemens Authorized System Integrator: interface and I/O modules, programming and panel integration.",
+    "description": "Siemens ET 200SP supplier in India: distributed I/O interface and I/O modules, programming and panel integration from a Siemens Authorized System Integrator.",
     "keywords": "Siemens ET 200SP supplier India, Siemens ET 200SP dealer Ahmedabad, Siemens PLC supplier in India, Siemens authorized system integrator India",
     "schema": "schema/siemens-et-200sp.json"
   },
@@ -211,7 +211,7 @@
     "path": "/siemens-ktp700-hmi",
     "file": "siemens-ktp700-hmi.html",
     "title": "Siemens KTP700 Supplier in India | ACS Engitech",
-    "description": "Siemens KTP700 HMI supply in India from a Siemens Authorized System Integrator: Basic panels, programming and panel integration.",
+    "description": "Siemens KTP700 supplier in India: Basic HMI touch panels, programming and panel integration from a Siemens Authorized System Integrator.",
     "keywords": "Siemens KTP700 supplier India, Siemens KTP700 dealer Ahmedabad, Siemens PLC supplier in India, Siemens authorized system integrator India",
     "schema": "schema/siemens-ktp700-hmi.json"
   },
@@ -219,7 +219,7 @@
     "path": "/siemens-v-20",
     "file": "siemens-v-20.html",
     "title": "Siemens SINAMICS V20 Supplier in India | ACS Engitech",
-    "description": "Siemens SINAMICS V20 drive supply in India from a Siemens Authorized System Integrator: basic AC drives, programming and panel integration.",
+    "description": "Siemens SINAMICS V20 supplier in India: basic AC drives, programming and panel integration from a Siemens Authorized System Integrator.",
     "keywords": "Siemens SINAMICS V20 supplier India, Siemens SINAMICS V20 dealer Ahmedabad, Siemens PLC supplier in India, Siemens authorized system integrator India",
     "schema": "schema/siemens-v-20.json"
   },
@@ -227,7 +227,7 @@
     "path": "/siemens-g120-ac-drives",
     "file": "siemens-g120-ac-drives.html",
     "title": "Siemens SINAMICS G120 Supplier in India | ACS Engitech",
-    "description": "Siemens SINAMICS G120 AC drive supply in India from a Siemens Authorized System Integrator: modular AC drives, programming and panel integration.",
+    "description": "Siemens SINAMICS G120 supplier in India: modular AC drives, programming and panel integration from a Siemens Authorized System Integrator.",
     "keywords": "Siemens SINAMICS G120 supplier India, Siemens SINAMICS G120 dealer Ahmedabad, Siemens PLC supplier in India, Siemens authorized system integrator India",
     "schema": "schema/siemens-g120-ac-drives.json"
   },
@@ -235,7 +235,7 @@
     "path": "/siemens-v-90-servo-drive",
     "file": "siemens-v-90-servo-drive.html",
     "title": "Siemens SINAMICS V90 Supplier in India | ACS Engitech",
-    "description": "Siemens SINAMICS V90 servo drive supply in India from a Siemens Authorized System Integrator: servo drives and motors, programming and panel integration.",
+    "description": "Siemens SINAMICS V90 supplier in India: servo drives and servo motors, programming and panel integration from a Siemens Authorized System Integrator.",
     "keywords": "Siemens SINAMICS V90 supplier India, Siemens SINAMICS V90 dealer Ahmedabad, Siemens PLC supplier in India, Siemens authorized system integrator India",
     "schema": "schema/siemens-v-90-servo-drive.json"
   },
@@ -243,14 +243,14 @@
     "path": "/accessories",
     "file": "accessories.html",
     "title": "Siemens Industrial Ethernet Accessories | ACS Engitech",
-    "description": "Siemens Industrial Ethernet cables, connectors and switches supplied by ACS Engitech, Siemens Authorized System Integrator in Ahmedabad, India.",
+    "description": "Siemens Industrial Ethernet accessories from ACS Engitech: cables, connectors and switches supplied by a Siemens Authorized System Integrator in India.",
     "keywords": "Siemens industrial ethernet accessories, Siemens Scalance switch supplier India, Siemens PLC supplier in India",
     "schema": "schema/accessories.json"
   },
   {
     "path": "/certificates",
     "file": "certificates.html",
-    "title": "Certificates & Approvals | Siemens, CPRI, ISO | ACS Engitech",
+    "title": "ACS Engitech Certificates | Siemens, CPRI & ISO 9001",
     "description": "ACS Engitech certificates and approvals: Siemens Authorized System Integrator, CPRI tested IEC 61439 panels, ISO 9001:2015 and partner credentials.",
     "keywords": "ACS Engitech certificates, Siemens authorized system integrator certificate, CPRI tested panels, IEC 61439 certified panel manufacturer",
     "schema": "schema/certificates.json"
@@ -259,7 +259,7 @@
     "path": "/photo-gallery",
     "file": "photo-gallery.html",
     "title": "Photo Gallery | Control Panels & Automation Projects | ACS",
-    "description": "Photos of ACS Engitech control panel manufacturing, MCC and PLC panels, automation installations and plant projects across India.",
+    "description": "ACS Engitech photo gallery: control panel manufacturing, MCC and PLC panels, automation installations and plant projects for industrial clients across India.",
     "keywords": "control panel photos, MCC panel gallery, automation project gallery India",
     "schema": "schema/photo-gallery.json"
   },
@@ -267,7 +267,7 @@
     "path": "/blog",
     "file": "blog.html",
     "title": "ACS Engitech Blog | Control Panels, PLC & SCADA Insights",
-    "description": "Articles from ACS Engitech on control panels, IEC 61439, PLC and SCADA engineering, process automation and plant data systems.",
+    "description": "The ACS Engitech blog: articles on control panels, IEC 61439, PLC and SCADA engineering, process automation and plant data systems for industry in India.",
     "keywords": "industrial automation blog, control panel blog India, PLC SCADA articles",
     "schema": "schema/blog.json"
   },
@@ -275,7 +275,7 @@
     "path": "/career",
     "file": "career.html",
     "title": "Careers at ACS Engitech | Automation Jobs in Ahmedabad",
-    "description": "Automation engineer and sales engineer jobs at ACS Engitech, Ahmedabad: PLC, SCADA, control panel and industrial automation projects across India.",
+    "description": "Find automation jobs in Ahmedabad at ACS Engitech: automation engineer and sales engineer roles on PLC, SCADA and control panel projects across India.",
     "keywords": "automation engineer jobs Ahmedabad, PLC SCADA jobs Gujarat, control panel engineer jobs",
     "schema": "schema/career.json"
   },
@@ -283,7 +283,7 @@
     "path": "/partner-with-us",
     "file": "partner-with-us.html",
     "title": "Partner With ACS Engitech | Vendor & Agency Registration",
-    "description": "Register as a vendor or agency partner with ACS Engitech across marketing, design, development, content and consulting.",
+    "description": "Register to partner with ACS Engitech as a vendor or agency across marketing, design, development, content and consulting for an industrial automation company.",
     "keywords": "partner with ACS Engitech, vendor registration, agency partner Ahmedabad",
     "schema": "schema/partner-with-us.json"
   },
@@ -298,8 +298,8 @@
   {
     "path": "/privacy",
     "file": "privacy.html",
-    "title": "Privacy Policy | ACS Engitech",
-    "description": "How ACS Engitech collects, uses and protects information submitted through acsengitech.com, including enquiries, job applications and partner registrations.",
+    "title": "Privacy Policy | ACS Engitech Private Limited",
+    "description": "This privacy policy explains how ACS Engitech collects, uses and protects information submitted through acsengitech.com, including enquiries and applications.",
     "keywords": "ACS Engitech privacy policy",
     "schema": "schema/privacy.json"
   }

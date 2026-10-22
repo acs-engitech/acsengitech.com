@@ -27,6 +27,8 @@ const apiRoutes = {
 const redirects = {
   '/process-automation-2': '/process-automation',
   '/smart-data-logger-2': '/smart-data-logger',
+  '/contact-us': '/contact',
+  '/contact-us-2': '/contact',
 };
 
 // middleware.js is an ES module with no imports; load it the same way the tests do.

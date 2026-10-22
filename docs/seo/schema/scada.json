@@ -6,7 +6,7 @@
       "@id": "https://www.acsengitech.com/scada#webpage",
       "url": "https://www.acsengitech.com/scada",
       "name": "SCADA System Integrator in India | Siemens WinCC | ACS",
-      "description": "SCADA system integration on Siemens WinCC and TIA Portal: visualization, alarms, historical trends and reports over Profinet, Profibus, Modbus and OPC.",
+      "description": "ACS Engitech is a SCADA system integrator in India on Siemens WinCC and TIA Portal: visualization, alarms, trends and reports over Profinet, Modbus and OPC.",
       "inLanguage": "en-IN",
       "isPartOf": {
         "@type": "WebSite",
