@@ -63,6 +63,18 @@ async function createTables() {
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
   )`;
+  await db()`CREATE TABLE IF NOT EXISTS acs_enquiries (
+    id bigserial PRIMARY KEY,
+    first_name text NOT NULL,
+    last_name text NOT NULL,
+    email text NOT NULL,
+    subject text NOT NULL,
+    message text NOT NULL,
+    status text NOT NULL DEFAULT 'new',
+    admin_notes text,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
+  )`;
   await db()`CREATE TABLE IF NOT EXISTS acs_partners (
     id bigserial PRIMARY KEY,
     category text,
@@ -195,6 +207,54 @@ async function deleteApplications(ids) {
   return numericIds;
 }
 
+function rowToEnquiry(row) {
+  return {
+    id: String(row.id),
+    firstName: row.first_name,
+    lastName: row.last_name,
+    name: `${row.first_name} ${row.last_name}`.trim(),
+    email: row.email,
+    subject: row.subject,
+    message: row.message,
+    status: row.status,
+    adminNotes: row.admin_notes,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+async function insertEnquiry(row) {
+  await init();
+  const rows = await db()`INSERT INTO acs_enquiries (first_name, last_name, email, subject, message, status)
+    VALUES (${row.firstName}, ${row.lastName}, ${row.email}, ${row.subject}, ${row.message}, 'new')
+    RETURNING *`;
+  return rowToEnquiry(rows[0]);
+}
+
+async function listEnquiries() {
+  await init();
+  const rows = await db()`SELECT * FROM acs_enquiries ORDER BY created_at DESC`;
+  return rows.map(rowToEnquiry);
+}
+
+async function updateEnquiry(id, patch) {
+  await init();
+  const current = await db()`SELECT * FROM acs_enquiries WHERE id = ${id}`;
+  if (!current[0]) return null;
+  const status = patch.status ?? current[0].status;
+  const notes = patch.adminNotes ?? current[0].admin_notes;
+  const rows = await db()`UPDATE acs_enquiries SET status = ${status}, admin_notes = ${notes}, updated_at = now() WHERE id = ${id} RETURNING *`;
+  return rowToEnquiry(rows[0]);
+}
+
+async function deleteEnquiries(ids) {
+  await init();
+  const numericIds = (ids || []).map(Number).filter((n) => Number.isFinite(n));
+  if (!numericIds.length) return [];
+  await db()`DELETE FROM acs_enquiries WHERE id = ANY(${numericIds})`;
+  return numericIds;
+}
+
 function rowToPartner(row) {
   return {
     id: String(row.id),
@@ -253,12 +313,13 @@ async function deletePartners(ids) {
 async function getAll() {
   const pageSeo = await getPageSeo();
   const settings = await getValue('settings', {});
-  const [positions, positionTypes, partnerCategories, applications, partners] = await Promise.all([
+  const [positions, positionTypes, partnerCategories, applications, partners, enquiries] = await Promise.all([
     getPositions(),
     getPositionTypes(),
     getPartnerCategories(),
     listApplications(),
     listPartners(),
+    listEnquiries(),
   ]);
   return {
     pages: PAGE_DEFAULTS.map((page) => ({
@@ -274,6 +335,7 @@ async function getAll() {
     positionTypes,
     applications,
     partners,
+    enquiries,
     partnerCategories,
     settings: { ...DEFAULT_SETTINGS, ...settings },
   };
@@ -352,6 +414,10 @@ module.exports = {
   listApplications,
   updateApplication,
   deleteApplications,
+  insertEnquiry,
+  listEnquiries,
+  updateEnquiry,
+  deleteEnquiries,
   insertPartner,
   listPartners,
   updatePartner,

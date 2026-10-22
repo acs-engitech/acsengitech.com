@@ -29,6 +29,7 @@ function mockStoreForAdmin() {
   process.env.ACS_ADMIN_PASSWORD_HASH = PASSWORD_HASH;
   const applications = new Map([['1', { id: '1', status: 'new', adminNotes: '' }]]);
   const partners = new Map([['1', { id: '1', status: 'new', adminNotes: '' }]]);
+  const enquiries = new Map([['1', { id: '1', status: 'new', adminNotes: '' }]]);
 
   store.updateApplication = async (id, patch) => {
     const current = applications.get(id);
@@ -46,12 +47,20 @@ function mockStoreForAdmin() {
     return updated;
   };
   store.deletePartners = async (ids) => { ids.forEach((id) => partners.delete(id)); return ids; };
+  store.updateEnquiry = async (id, patch) => {
+    const current = enquiries.get(id);
+    if (!current) return null;
+    const updated = { ...current, ...patch };
+    enquiries.set(id, updated);
+    return updated;
+  };
+  store.deleteEnquiries = async (ids) => { ids.forEach((id) => enquiries.delete(id)); return ids; };
   store.getAll = async () => ({
     pages: [], posts: [], jobs: [], positions: [], positionTypes: [],
     applications: Array.from(applications.values()), partners: Array.from(partners.values()),
-    partnerCategories: [], settings: {},
+    enquiries: Array.from(enquiries.values()), partnerCategories: [], settings: {},
   });
-  return { applications, partners };
+  return { applications, partners, enquiries };
 }
 
 test('application.update changes status via /api/admin action', async () => {
@@ -99,4 +108,26 @@ test('partner.delete removes the row via /api/admin action', async () => {
 
   assert.equal(res.statusCode, 200);
   assert.equal(partners.has('1'), false);
+});
+
+test('enquiry.update changes status and notes via /api/admin action', async () => {
+  const { enquiries } = mockStoreForAdmin();
+  const handler = require('../api/admin');
+  const res = fakeResponse();
+  await handler(fakeRequest({ action: 'enquiry.update', id: '1', patch: { status: 'replied', adminNotes: 'Quoted' } }), res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(enquiries.get('1').status, 'replied');
+  assert.equal(res.body.enquiries[0].adminNotes, 'Quoted');
+});
+
+test('enquiry.delete removes the row via /api/admin action', async () => {
+  const { enquiries } = mockStoreForAdmin();
+  const handler = require('../api/admin');
+  const res = fakeResponse();
+  await handler(fakeRequest({ action: 'enquiry.delete', ids: ['1'] }), res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(enquiries.has('1'), false);
+  assert.equal(res.body.enquiries.length, 0);
 });

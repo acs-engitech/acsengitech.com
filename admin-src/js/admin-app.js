@@ -12,6 +12,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
     posts: [],
     positions: [],
     positionTypes: [],
+    enquiries: [],
     applications: [],
     partners: [],
     partnerCategories: [],
@@ -20,11 +21,14 @@ import acsDefaults from '../../lib/acs-defaults.js';
     selectedPage: '/',
     selectedPost: null,
     selectedPosition: null,
+    selectedEnquiry: null,
     selectedApplication: null,
     selectedPartner: null,
     postFilter: 'all',
+    enquiryFilters: { status: 'all', from: '', to: '', search: '' },
     applicationFilters: { status: 'all', positionId: '', from: '', to: '', search: '' },
     partnerFilters: { status: 'all', category: '', from: '', to: '', search: '' },
+    enquirySelectedIds: new Set(),
     applicationSelectedIds: new Set(),
     partnerSelectedIds: new Set(),
     typeManagerTarget: null, // 'positionTypes' | 'partnerCategories'
@@ -243,6 +247,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
     state.posts = (data.posts || state.posts).map((post) => (post.status === 'scheduled' && new Date(post.publishedAt) <= new Date() ? { ...post, status: 'published' } : post));
     state.positions = data.positions || state.positions;
     state.positionTypes = data.positionTypes || state.positionTypes;
+    state.enquiries = data.enquiries || state.enquiries;
     state.applications = data.applications || state.applications;
     state.partners = data.partners || state.partners;
     state.partnerCategories = data.partnerCategories || state.partnerCategories;
@@ -304,6 +309,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
     const published = state.posts.filter((post) => post.status === 'published').length;
     const scheduled = state.posts.filter((post) => post.status === 'scheduled').length;
     const openPositions = state.positions.filter((position) => position.status !== 'closed').length;
+    const newEnquiries = state.enquiries.filter((enquiry) => enquiry.status === 'new').length;
     const newApplications = state.applications.filter((app) => app.status === 'new').length;
     const newPartners = state.partners.filter((partner) => partner.status === 'new').length;
     $('#overviewMetrics').innerHTML = [
@@ -312,6 +318,8 @@ import acsDefaults from '../../lib/acs-defaults.js';
       metric('Scheduled blogs', scheduled, 'clock', 'warning'),
       metric('SEO pages with JSON-LD', state.pages.filter((page) => (state.pageSeo[page.path]?.jsonLd || page.defaults?.jsonLd)).length, 'grid', 'info'),
       metric('Open positions', openPositions, 'briefcase', 'info'),
+      metric('New enquiries', newEnquiries, 'doc', 'warning'),
+      metric('Total enquiries', state.enquiries.length, 'doc', 'brand'),
       metric('New applications', newApplications, 'user', 'warning'),
       metric('Total applications', state.applications.length, 'user', 'brand'),
       metric('New partner registrations', newPartners, 'briefcase', 'warning'),
@@ -477,6 +485,84 @@ import acsDefaults from '../../lib/acs-defaults.js';
     $('#positionTypeSelect').value = position.type || state.positionTypes[0] || 'Full-time';
     const statusValue = position.status === 'closed' ? 'closed' : 'live';
     $$('#positionForm input[name="status"]').forEach((radio) => { radio.checked = radio.value === statusValue; });
+  }
+
+  // ---------- Enquiries ----------
+
+  const ENQUIRY_STATUSES = ['new', 'replied', 'closed'];
+
+  function filteredEnquiries() {
+    const f = state.enquiryFilters;
+    return state.enquiries.filter((enquiry) => {
+      if (f.status !== 'all' && enquiry.status !== f.status) return false;
+      if (f.from && new Date(enquiry.createdAt) < new Date(f.from)) return false;
+      if (f.to && new Date(enquiry.createdAt) > new Date(f.to + 'T23:59:59')) return false;
+      if (f.search) {
+        const term = f.search.toLowerCase();
+        if (!`${enquiry.name} ${enquiry.email} ${enquiry.subject}`.toLowerCase().includes(term)) return false;
+      }
+      return true;
+    });
+  }
+
+  function renderEnquiryFilterChips() {
+    const counts = { all: state.enquiries.length };
+    ENQUIRY_STATUSES.forEach((status) => { counts[status] = state.enquiries.filter((e) => e.status === status).length; });
+    $('#enquiryWorkflowFilters').innerHTML = ['all', ...ENQUIRY_STATUSES].map((status) => `
+      <button class="filter-chip ${state.enquiryFilters.status === status ? 'active' : ''}" data-enquiry-filter="${status}" type="button">
+        ${status[0].toUpperCase() + status.slice(1)} (${counts[status] || 0})
+      </button>
+    `).join('');
+  }
+
+  function renderEnquiries() {
+    renderEnquiryFilterChips();
+    $('#enquiryFromDate').value = state.enquiryFilters.from;
+    $('#enquiryToDate').value = state.enquiryFilters.to;
+    $('#enquirySearch').value = state.enquiryFilters.search;
+
+    const shown = filteredEnquiries();
+    const shownIds = new Set(shown.map((e) => e.id));
+    for (const id of Array.from(state.enquirySelectedIds)) {
+      if (!shownIds.has(id)) state.enquirySelectedIds.delete(id);
+    }
+
+    $('#enquiryList').innerHTML = shown.map((enquiry) => `
+      <article class="entity-row" data-enquiry-row="${enquiry.id}">
+        <input type="checkbox" class="enquiry-select" data-select-enquiry="${enquiry.id}" ${state.enquirySelectedIds.has(enquiry.id) ? 'checked' : ''}>
+        <div class="entity-main">
+          <div class="entity-title">${escapeHtml(enquiry.name)} <span class="status-pill status-${enquiry.status === 'new' ? 'open' : enquiry.status === 'closed' ? 'closed' : 'scheduled'}">${enquiry.status}</span></div>
+          <div class="entity-sub">${escapeHtml(enquiry.subject)}</div>
+          <div class="entity-sub">${escapeHtml(enquiry.email)} - ${new Date(enquiry.createdAt).toLocaleString()}</div>
+        </div>
+        <div class="entity-actions">
+          <a href="${escapeHtml('mailto:' + encodeURI(enquiry.email) + '?subject=' + encodeURIComponent('Re: ' + enquiry.subject))}" class="btn-secondary">Reply</a>
+          <select class="field-input enquiry-status-select" data-enquiry-status="${enquiry.id}">
+            ${ENQUIRY_STATUSES.map((s) => `<option value="${s}" ${s === enquiry.status ? 'selected' : ''}>${s}</option>`).join('')}
+          </select>
+          <button type="button" class="btn-secondary" data-enquiry-details="${enquiry.id}">Details</button>
+          <button type="button" class="btn-danger danger" data-enquiry-delete="${enquiry.id}">Delete</button>
+        </div>
+      </article>
+    `).join('') || '<p class="empty-state">No enquiries match this view.</p>';
+
+    $('#enquiryShownCount').textContent = `${shown.length} of ${state.enquiries.length} shown`;
+    $('#enquirySelectedCount').textContent = `${state.enquirySelectedIds.size} selected`;
+    $('#enquirySelectAll').checked = shown.length > 0 && shown.every((e) => state.enquirySelectedIds.has(e.id));
+  }
+
+  function openEnquiryDrawer(id) {
+    const enquiry = state.enquiries.find((e) => e.id === id);
+    if (!enquiry) return;
+    state.selectedEnquiry = id;
+    $('#enquiryDrawerBody').innerHTML = [
+      ['Name', enquiry.name], ['Email', enquiry.email], ['Subject', enquiry.subject],
+      ['Status', enquiry.status], ['Submitted', new Date(enquiry.createdAt).toLocaleString()],
+      ['Message', enquiry.message],
+    ].map(([label, value]) => `<div class="drawer-field"><span>${label}</span><strong>${escapeHtml(value)}</strong></div>`).join('');
+    $('#enquiryNotesField').value = enquiry.adminNotes || '';
+    $('#enquiryDrawer').classList.add('is-open');
+    $('#enquiryDrawer').setAttribute('aria-hidden', 'false');
   }
 
   // ---------- Applications ----------
@@ -758,6 +844,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
     renderSeo();
     renderPosts();
     renderPositions();
+    renderEnquiries();
     renderApplications();
     renderPartners();
     renderAnalytics();
@@ -998,6 +1085,114 @@ import acsDefaults from '../../lib/acs-defaults.js';
     });
 
     $$('[data-modal-close]').forEach((el) => el.addEventListener('click', closeTypeManager));
+
+    // ---- Enquiries ----
+
+    $('#enquiryWorkflowFilters').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-enquiry-filter]');
+      if (!button) return;
+      state.enquiryFilters.status = button.dataset.enquiryFilter;
+      renderEnquiries();
+    });
+    $('#enquiryFromDate').addEventListener('change', (event) => { state.enquiryFilters.from = event.target.value; renderEnquiries(); });
+    $('#enquiryToDate').addEventListener('change', (event) => { state.enquiryFilters.to = event.target.value; renderEnquiries(); });
+    $('#enquirySearch').addEventListener('input', (event) => { state.enquiryFilters.search = event.target.value; renderEnquiries(); });
+    $('#clearEnquiryFiltersBtn').addEventListener('click', () => {
+      state.enquiryFilters = { status: 'all', from: '', to: '', search: '' };
+      renderEnquiries();
+    });
+    $('#refreshEnquiriesBtn').addEventListener('click', load);
+    $('#exportEnquiriesBtn').addEventListener('click', () => {
+      exportCsv(filteredEnquiries(), [
+        { label: 'First name', value: (e) => e.firstName }, { label: 'Last name', value: (e) => e.lastName }, { label: 'Email', value: (e) => e.email },
+        { label: 'Subject', value: (e) => e.subject }, { label: 'Message', value: (e) => e.message },
+        { label: 'Status', value: (e) => e.status }, { label: 'Submitted', value: (e) => e.createdAt },
+      ], 'enquiries.csv');
+    });
+
+    $('#enquirySelectAll').addEventListener('change', (event) => {
+      const shown = filteredEnquiries();
+      if (event.target.checked) shown.forEach((e) => state.enquirySelectedIds.add(e.id));
+      else shown.forEach((e) => state.enquirySelectedIds.delete(e.id));
+      renderEnquiries();
+    });
+
+    $('#enquiryList').addEventListener('click', (event) => {
+      const select = event.target.closest('[data-select-enquiry]');
+      if (select) {
+        const id = select.dataset.selectEnquiry;
+        if (select.checked) state.enquirySelectedIds.add(id); else state.enquirySelectedIds.delete(id);
+        renderEnquiries();
+        return;
+      }
+      const details = event.target.closest('[data-enquiry-details]');
+      if (details) { openEnquiryDrawer(details.dataset.enquiryDetails); return; }
+      const del = event.target.closest('[data-enquiry-delete]');
+      if (del) {
+        if (!confirm('Delete this enquiry?')) return;
+        const id = del.dataset.enquiryDelete;
+        const previousEnquiries = state.enquiries;
+        mutate({
+          apply: () => {
+            state.enquiries = state.enquiries.filter((e) => e.id !== id);
+            state.enquirySelectedIds.delete(id);
+          },
+          rerender: renderEnquiries,
+          request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ action: 'enquiry.delete', ids: [id] }) }),
+          successMessage: 'Enquiry deleted.',
+          revert: () => { state.enquiries = previousEnquiries; },
+        });
+      }
+    });
+
+    $('#enquiryList').addEventListener('change', (event) => {
+      const select = event.target.closest('[data-enquiry-status]');
+      if (!select) return;
+      const id = select.dataset.enquiryStatus;
+      const enquiry = state.enquiries.find((e) => e.id === id);
+      if (!enquiry) return;
+      const previousStatus = enquiry.status;
+      const nextStatus = select.value;
+      mutate({
+        apply: () => { enquiry.status = nextStatus; },
+        rerender: renderEnquiries,
+        request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ action: 'enquiry.update', id, patch: { status: nextStatus } }) }),
+        successMessage: 'Status updated.',
+        revert: () => { enquiry.status = previousStatus; },
+      });
+    });
+
+    $('#deleteEnquiriesBtn').addEventListener('click', () => {
+      const ids = Array.from(state.enquirySelectedIds);
+      if (!ids.length || !confirm(`Delete ${ids.length} selected enquiry(s)?`)) return;
+      const previousEnquiries = state.enquiries;
+      const idSet = new Set(ids);
+      mutate({
+        apply: () => {
+          state.enquiries = state.enquiries.filter((e) => !idSet.has(e.id));
+          state.enquirySelectedIds.clear();
+        },
+        rerender: renderEnquiries,
+        request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ action: 'enquiry.delete', ids }) }),
+        successMessage: 'Enquiries deleted.',
+        revert: () => { state.enquiries = previousEnquiries; },
+      });
+    });
+
+    $('#saveEnquiryNotesBtn').addEventListener('click', () => {
+      if (!state.selectedEnquiry) return;
+      const id = state.selectedEnquiry;
+      const enquiry = state.enquiries.find((e) => e.id === id);
+      const notes = $('#enquiryNotesField').value;
+      const previousNotes = enquiry?.adminNotes;
+      mutate({
+        apply: () => { if (enquiry) enquiry.adminNotes = notes; },
+        rerender: () => {},
+        request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ action: 'enquiry.update', id, patch: { adminNotes: notes } }) }),
+        successMessage: 'Notes saved.',
+        revert: () => { if (enquiry) enquiry.adminNotes = previousNotes; },
+      });
+    });
 
     // ---- Applications ----
 

@@ -32,7 +32,7 @@ against the wrong base URL. Do not add a rewrite or redirect targeting bare
 
 Set these on the Vercel project (Project Settings -> Environment Variables):
 
-- `NEON_DATABASE_URL` - Neon Postgres connection string (the `postgresql://...` URL from the Neon console). All admin content, SEO, blog posts, positions, applications and partner registrations are stored here; tables are created on first use. `DATABASE_URL` or `POSTGRES_URL` (the names the Vercel Neon integration creates) are used if `NEON_DATABASE_URL` is not set.
+- `NEON_DATABASE_URL` - Neon Postgres connection string (the `postgresql://...` URL from the Neon console). All admin content, SEO, blog posts, positions, contact form enquiries, applications and partner registrations are stored here; tables are created on first use. `DATABASE_URL` or `POSTGRES_URL` (the names the Vercel Neon integration creates) are used if `NEON_DATABASE_URL` is not set.
 - `BLOB_READ_WRITE_TOKEN` - enables resume/profile file uploads (`/api/apply`, `/api/partner`) via `@vercel/blob`. Enable **Vercel Blob** on the project (Storage tab) and Vercel injects this automatically; no manual value needed. Without it, uploads fall back to a local stub path (`/uploads/...`) and log a warning - fine for local dev, not for production.
 - `ACS_ADMIN_EMAIL` / `ACS_ADMIN_PASSWORD_HASH` - optional overrides for the admin login (`ACS_ADMIN_PASSWORD_HASH` is a sha256 hex digest of the password; `ACS_ADMIN_PASSWORD` in plain text also works). Unset, the login is `acsengitech@gmail.com` with the password ACS was given; only its sha256 hash is in the code.
 - `ACS_ADMIN_SESSION_SECRET` - HMAC secret used to sign the admin session token that keeps you logged in across page refreshes (12h expiry). Recommended to set explicitly in production; if unset it falls back to `ACS_ADMIN_PASSWORD_HASH` (or the built-in default hash) so sessions work with zero extra config.
@@ -52,6 +52,7 @@ record the result in the PR description:
 
 - **SEO** - per page: title, meta description (with length counters), focus keyword, keywords, canonical, robots meta (presets for noindex/nofollow), Open Graph (title, description, image, type), Twitter card, sitemap inclusion/priority/change frequency, and JSON-LD (templates for Organization, LocalBusiness, WebPage, Service, BreadcrumbList, FAQPage, JobPosting and Article, plus a format/validate button). A search-result preview, a social-card preview and a checklist update as you type. Public pages apply these through `acs-runtime.js`.
 - **Blogs** - drafts, publish dates and a publishing schedule. A post with a future publish date is scheduled and goes live on its own at that time (`/api/public`, `/sitemap.xml` and `/llms.txt` all check the time on each request).
+- **Enquiries** (messages from the contact form, stored in the `acs_enquiries` table, with a status workflow, notes, a reply link, filters and CSV export).
 - **Positions** (career listings) and **Applications** (applicant manager with status workflow, notes, filters and CSV export).
 - **Partners** (vendor registrations) and **Analytics** (page views plus GA4 / GTM IDs).
 - **Robots.txt** - served at `/robots.txt`, with checks and a reset to the recommended rules.
