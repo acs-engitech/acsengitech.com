@@ -35,6 +35,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
     partnerSelectedIds: new Set(),
     seoSearch: '',
     seoGroup: 'all',
+    seoEditorTab: 'essentials',
     typeManagerTarget: null, // 'positionTypes' | 'partnerCategories'
     email: '',
     password: '',
@@ -372,6 +373,20 @@ import acsDefaults from '../../lib/acs-defaults.js';
     $('#seoViewPage').href = page ? (page.path === '/' ? '/' : page.path) : '/';
     $('#jsonLdStatus').textContent = '';
     updateSeoInsights();
+    renderSeoEditorTab();
+  }
+
+  function renderSeoEditorTab() {
+    $$('[data-seo-editor-tab]').forEach((tab) => {
+      const active = tab.dataset.seoEditorTab === state.seoEditorTab;
+      tab.classList.toggle('is-active', active);
+      tab.setAttribute('aria-selected', String(active));
+    });
+    $$('[data-seo-editor-panel]').forEach((panel) => {
+      const active = panel.dataset.seoEditorPanel === state.seoEditorTab;
+      panel.classList.toggle('is-active', active);
+      panel.hidden = !active;
+    });
   }
 
   function seoFormValues() {
@@ -960,11 +975,12 @@ import acsDefaults from '../../lib/acs-defaults.js';
       collectSeo();
       state.selectedPage = button.dataset.page;
       renderSeo();
-      if ($('#seoPageDialog').open) $('#seoPageDialog').close();
     });
 
-    $('#openSeoPagePicker').addEventListener('click', () => $('#seoPageDialog').showModal());
-    $$('[data-close-seo-picker]').forEach((button) => button.addEventListener('click', () => $('#seoPageDialog').close()));
+    $$('[data-seo-editor-tab]').forEach((tab) => tab.addEventListener('click', () => {
+      state.seoEditorTab = tab.dataset.seoEditorTab;
+      renderSeoEditorTab();
+    }));
 
     $('#pageSearch').addEventListener('input', (event) => {
       state.seoSearch = event.target.value;

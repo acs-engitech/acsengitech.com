@@ -28,8 +28,11 @@ test('content workspaces expose focused search instead of forcing users to scan 
   assert.match(template, /id="positionShownCount"/);
 });
 
-test('SEO uses an on-demand page picker so the editor remains a single focused canvas', () => {
-  assert.match(template, /id="openSeoPagePicker"/);
-  assert.match(template, /<dialog id="seoPageDialog" class="workbench-picker">/);
-  assert.match(template, /class="seo-editor-canvas card space-y-5" id="seoForm"/);
+test('SEO keeps page selection visible and divides editing into task-sized tabs', () => {
+  assert.match(template, /class="seo-page-nav card" aria-label="Page selection"/);
+  for (const tab of ['essentials', 'social', 'sitemap', 'schema']) {
+    assert.match(template, new RegExp(`data-seo-editor-tab="${tab}"`));
+    assert.match(template, new RegExp(`data-seo-editor-panel="${tab}"`));
+  }
+  assert.doesNotMatch(template, /id="seoPageDialog"/);
 });
