@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const template = fs.readFileSync(path.join(__dirname, '..', 'admin-src', 'index.html'), 'utf8');
+const stylesheet = fs.readFileSync(path.join(__dirname, '..', 'admin-src', 'css', 'style.css'), 'utf8');
 
 test('admin template uses shared workbench structure instead of repeated ungrouped sections', () => {
   for (const label of ['Workspace', 'Content', 'Operations', 'Site intelligence']) {
@@ -41,4 +42,9 @@ test('admin uses the redesigned dashboard frame instead of the legacy flat shell
   assert.match(template, /class="admin-app admin-dashboard-frame"/);
   assert.match(template, /class="tailadmin-topbar admin-topbar dashboard-command-bar/);
   assert.match(template, /class="tailadmin-sidebar admin-nav dashboard-rail/);
+});
+
+test('dashboard shell never traps tall panels in a nested scroll area', () => {
+  assert.doesNotMatch(stylesheet, /body:not\(\.admin-locked\) \{[^}]*overflow: hidden/);
+  assert.doesNotMatch(stylesheet, /\.dashboard-canvas \{[^}]*overflow-y: auto/);
 });
