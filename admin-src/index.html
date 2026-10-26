@@ -151,18 +151,23 @@
               <p class="eyebrow">All pages</p>
               <h2 class="text-xl font-semibold text-gray-800">SEO manager</h2>
             </div>
-            <button id="saveSeoBtn" class="primary btn-primary" type="button">Save SEO</button>
+            <div class="section-actions flex flex-wrap items-center gap-2"><button id="openSeoPagePicker" class="btn-secondary" type="button">Browse pages</button><button id="saveSeoBtn" class="primary btn-primary" type="button">Save SEO</button></div>
           </div>
-          <div class="split seo-workbench grid grid-cols-1 gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
-            <aside class="seo-page-nav card" aria-label="Page selection">
+          <div class="seo-workbench">
+            <dialog id="seoPageDialog" class="workbench-picker">
+              <div class="workbench-picker-shell">
+                <div class="workbench-picker-head"><div><p class="eyebrow">All pages</p><h3>Choose a page</h3></div><button type="button" class="drawer-close" data-close-seo-picker aria-label="Close page picker">&times;</button></div>
+                <aside class="seo-page-nav" aria-label="Page selection">
               <div class="seo-page-nav-head"><strong>Pages</strong><span id="seoPageCount" class="text-xs text-gray-400"></span></div>
               <label class="sr-only" for="pageSearch">Search pages</label>
               <input id="pageSearch" type="search" class="field-input" placeholder="Search pages or URLs">
               <label class="sr-only" for="pageGroup">Filter pages</label>
               <select id="pageGroup" class="field-input"><option value="all">All page groups</option><option value="core">Core website</option><option value="trading">Siemens trading</option><option value="content">Content &amp; company</option></select>
               <div class="list" id="pageList"></div>
-            </aside>
-            <form class="editor card space-y-5" id="seoForm">
+                </aside>
+              </div>
+            </dialog>
+            <form class="seo-editor-canvas card space-y-5" id="seoForm">
               <div class="flex flex-wrap items-center justify-between gap-3">
                 <h3 id="seoFormTitle" class="text-base font-semibold text-gray-800">Select a page</h3>
                 <span class="flex items-center gap-4"><button type="button" id="resetSeoBtn" class="btn-secondary h-9 px-3 text-xs">Reset to defaults</button><a id="seoViewPage" class="text-sm font-medium text-brand-500" href="/" target="_blank" rel="noopener">View page &#8599;</a></span>

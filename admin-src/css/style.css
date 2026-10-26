@@ -378,6 +378,49 @@ body:not(.admin-locked) #adminLogin { display: none; }
   .seo-workbench .editor { min-height: min-content; }
 }
 @media (max-width: 1023px) { .seo-page-nav .list { max-height: 320px; } }
+
+/* ACS workbench: a complete presentation layer for every operational surface.
+   The existing IDs and form fields stay untouched; shared visual rules provide
+   one product rather than a collection of per-tab patches. */
+body:not(.admin-locked) { background: #f4f7fb; }
+.admin-topbar { min-height: 68px; box-shadow: 0 1px 0 rgba(16, 24, 40, .05); }
+.admin-nav { width: 248px !important; background: #fbfcfe; }
+.nav-btn { @apply rounded-xl px-3 py-2.5; }
+.nav-btn small { display: none; }
+.nav-group-label { @apply mt-7 px-3 text-[10px] tracking-[0.16em]; }
+.admin-content { @apply p-5 lg:p-9; }
+.panel.active { animation: workspaceEnter .24s ease-out; }
+@keyframes workspaceEnter { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+.section-head { @apply mb-7 border-0 pb-0; }
+.section-head h1, .section-head h2 { @apply tracking-[-0.025em]; }
+.section-head .eyebrow { @apply mb-1.5; }
+.card { @apply rounded-2xl border-gray-200/80 bg-white shadow-[0_1px_2px_rgba(16,24,40,.025)]; }
+.metric { @apply rounded-2xl border-gray-200/80 bg-white shadow-[0_1px_2px_rgba(16,24,40,.025)]; }
+.metric-grid { @apply gap-4; }
+.field-input { @apply rounded-xl border-gray-200 bg-white px-4 py-3; }
+.btn-primary, .btn-secondary, .btn-danger, .btn-dark { @apply rounded-xl; }
+.filters { @apply rounded-xl border border-gray-200 bg-white p-2; }
+.filter-chip { @apply border-transparent bg-transparent px-3 py-2; }
+.filter-chip.active { @apply bg-brand-50 shadow-sm; }
+.workspace-toolbar, .workspace-bulkbar { @apply rounded-2xl border-gray-200/80 bg-white shadow-[0_1px_2px_rgba(16,24,40,.025)]; }
+.entity-row { @apply rounded-2xl border-gray-200/80 bg-white; }
+.entity-row .entity-actions { @apply gap-1.5; }
+.editor.card, .seo-editor-canvas { @apply rounded-2xl border-gray-200/80 bg-white p-6 md:p-8; }
+.editor-section, .seo-section { @apply rounded-2xl border-gray-200/80; }
+.editor-section > summary, .seo-section > summary { @apply px-5 py-4; }
+
+/* A picker is transient navigation, not a permanent third column. */
+.seo-workbench { display: block; max-width: 1180px; margin: 0 auto; }
+.seo-editor-canvas { display: block; }
+.workbench-picker { width: min(440px, calc(100vw - 2rem)); max-width: none; max-height: min(760px, calc(100vh - 2rem)); margin: auto; overflow: hidden; border: 0; border-radius: 24px; padding: 0; background: transparent; box-shadow: 0 24px 80px rgba(15, 23, 42, .22); }
+.workbench-picker::backdrop { background: rgba(15, 23, 42, .38); backdrop-filter: blur(3px); }
+.workbench-picker-shell { display: flex; max-height: min(760px, calc(100vh - 2rem)); flex-direction: column; gap: 16px; overflow: hidden; background: #fff; padding: 20px; }
+.workbench-picker-head { @apply flex items-start justify-between border-b border-gray-100 pb-4; }
+.workbench-picker-head h3 { @apply mt-1 text-lg font-semibold text-gray-800; }
+.workbench-picker .seo-page-nav { display: flex; min-height: 0; flex: 1; flex-direction: column; gap: 12px; padding: 0; box-shadow: none; }
+.workbench-picker .seo-page-nav .list { max-height: none; flex: 1; overflow-y: auto; }
+@media (min-width: 1024px) { .seo-workbench .seo-editor-canvas { min-height: 720px; } }
+@media (max-width: 1023px) { .admin-nav { width: 290px !important; } .nav-btn small { display: block; } .admin-content { @apply p-4; } }
 .serp-preview { @apply flex flex-col gap-1 rounded-xl border border-gray-200 bg-white p-4; font-family: Arial, sans-serif; }
 .serp-label { @apply mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400; font-family: inherit; }
 .serp-url { color: #202124; font-size: 13px; overflow-wrap: anywhere; }

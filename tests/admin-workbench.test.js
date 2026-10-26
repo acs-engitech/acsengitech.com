@@ -27,3 +27,9 @@ test('content workspaces expose focused search instead of forcing users to scan 
   assert.match(template, /id="positionSearch"/);
   assert.match(template, /id="positionShownCount"/);
 });
+
+test('SEO uses an on-demand page picker so the editor remains a single focused canvas', () => {
+  assert.match(template, /id="openSeoPagePicker"/);
+  assert.match(template, /<dialog id="seoPageDialog" class="workbench-picker">/);
+  assert.match(template, /class="seo-editor-canvas card space-y-5" id="seoForm"/);
+});

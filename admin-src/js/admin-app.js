@@ -960,7 +960,11 @@ import acsDefaults from '../../lib/acs-defaults.js';
       collectSeo();
       state.selectedPage = button.dataset.page;
       renderSeo();
+      if ($('#seoPageDialog').open) $('#seoPageDialog').close();
     });
+
+    $('#openSeoPagePicker').addEventListener('click', () => $('#seoPageDialog').showModal());
+    $$('[data-close-seo-picker]').forEach((button) => button.addEventListener('click', () => $('#seoPageDialog').close()));
 
     $('#pageSearch').addEventListener('input', (event) => {
       state.seoSearch = event.target.value;
