@@ -46,7 +46,11 @@ function headBlock(page) {
 
 function render(html, page) {
   const seo = mergeSeo(page.defaults, {});
-  let out = html.replace(new RegExp(`${START.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\\s\\S]*?${END}\\n`), '');
+  // Source pages may use CRLF while this generator writes LF. Remove every existing
+  // generated block before adding the canonical one so a build remains idempotent.
+  const start = START.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const end = END.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  let out = html.replace(new RegExp(`${start}[\\s\\S]*?${end}\\r?\\n`, 'g'), '');
   if (!/<title>[\s\S]*?<\/title>/.test(out)) throw new Error(`${page.file}: no <title>`);
   out = out.replace(/<title>[\s\S]*?<\/title>/, `<title>${text(seo.title)}</title>`);
   const description = `<meta name="description" content="${attr(seo.description)}">`;
