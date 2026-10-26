@@ -36,3 +36,9 @@ test('SEO keeps page selection visible and divides editing into task-sized tabs'
   }
   assert.doesNotMatch(template, /id="seoPageDialog"/);
 });
+
+test('admin uses the redesigned dashboard frame instead of the legacy flat shell', () => {
+  assert.match(template, /class="admin-app admin-dashboard-frame"/);
+  assert.match(template, /class="tailadmin-topbar admin-topbar dashboard-command-bar/);
+  assert.match(template, /class="tailadmin-sidebar admin-nav dashboard-rail/);
+});
