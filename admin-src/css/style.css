@@ -186,6 +186,7 @@ body:not(.admin-locked) #adminLogin { display: none; }
 /* TailAdmin menu-item pattern, applied to the frozen .nav-btn hooks */
 .nav-btn { @apply menu-item menu-item-inactive w-full; }
 .nav-btn.active { @apply menu-item-active; }
+.nav-group-label { @apply mt-5 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400 first:mt-0; }
 .nav-btn .menu-icon { @apply menu-item-icon-inactive shrink-0; }
 .nav-btn.active .menu-icon { @apply menu-item-icon-active; }
 @utility menu-item {
@@ -280,6 +281,43 @@ body:not(.admin-locked) #adminLogin { display: none; }
 .entity-row .btn-secondary, .entity-row .btn-danger { @apply h-9 px-3 text-xs; }
 .filter-row label.field-label { @apply text-xs; }
 .filter-row input, .filter-row select { @apply mt-1.5 h-10; }
+
+/* Shared operational-workbench primitives. These intentionally style the existing
+   controls and render targets rather than duplicating data or interaction logic. */
+.admin-content { @apply mx-auto w-full max-w-[1680px]; }
+.section-head { @apply border-b border-gray-200 pb-5; }
+.section-head > div:first-child { @apply min-w-0; }
+.section-head .section-actions { @apply sm:justify-end; }
+.content-workbench { align-items: start; }
+.workbench-list { @apply max-h-[calc(100vh-13rem)] overflow-y-auto; }
+.workspace-toolbar { @apply rounded-xl border-gray-200 bg-white shadow-sm; }
+.workspace-toolbar .field-label { @apply min-w-[10rem] flex-1; }
+.workspace-toolbar .field-label:has(input[type="search"]) { @apply min-w-[15rem] grow-[2]; }
+.workspace-bulkbar { @apply border-brand-100 bg-brand-25 py-3 shadow-none; }
+.workspace-bulkbar .btn-danger { @apply h-9 px-3 text-xs; }
+.list-full { @apply gap-3; }
+.entity-row { @apply min-h-[88px] rounded-xl border-gray-200 px-4 py-3.5 shadow-sm transition hover:border-brand-200 hover:shadow-md; }
+.entity-row:has(input:checked) { @apply border-brand-300 bg-brand-25; }
+.entity-row .entity-main { @apply gap-1.5; }
+.entity-row .entity-sub { @apply leading-5; }
+.entity-row .entity-actions { @apply justify-end; }
+.editor-section { @apply overflow-hidden rounded-xl border border-gray-200 bg-gray-50/50; }
+.editor-section > summary { @apply flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold text-gray-700; }
+.editor-section > summary::-webkit-details-marker { display: none; }
+.editor-section > summary::after { content: '+'; @apply text-xl font-normal text-gray-400; }
+.editor-section[open] > summary { @apply border-b border-gray-200 bg-white; }
+.editor-section[open] > summary::after { content: '–'; }
+.editor-section > summary small { @apply ml-auto text-xs font-normal text-gray-400; }
+.editor-section-body { @apply space-y-5 bg-white p-5; }
+@media (min-width: 1024px) {
+  .content-workbench > .workbench-list { position: sticky; top: 6.5rem; }
+  .workspace-bulkbar { position: sticky; top: 5.5rem; z-index: 10; }
+}
+@media (max-width: 640px) {
+  .section-head { @apply pb-4; }
+  .workspace-toolbar .field-label { min-width: 100%; }
+  .entity-row .entity-actions { @apply w-full justify-start border-t border-gray-100 pt-3; }
+}
 
 /* Drawer (slide from right) */
 .drawer { position: fixed; inset: 0; z-index: 70; display: none; }

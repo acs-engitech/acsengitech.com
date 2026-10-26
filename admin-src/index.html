@@ -83,13 +83,14 @@
 
     <main class="tailadmin-shell admin-shell flex items-start">
       <aside class="tailadmin-sidebar admin-nav fixed inset-y-0 left-0 z-30 flex w-[290px] flex-col gap-2 overflow-y-auto border-r border-gray-200 bg-white px-5 pb-6" id="adminSidebar" aria-label="Admin sections" :class="sidebarOpen ? 'is-open' : ''">
-        <div class="nav-title px-1 pb-4 pt-8">
-          <span class="block text-xs font-semibold uppercase leading-[20px] tracking-wide text-gray-400">Menu</span>
+        <div class="nav-title px-1 pb-3 pt-8">
+          <span class="nav-group-label">Workspace</span>
         </div>
         <button class="nav-btn group" data-tab="overview" type="button" :class="{ active: activeTab === 'overview' }" @click="selectTab('overview')">
           <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.5 3.25C4.257 3.25 3.25 4.257 3.25 5.5V9c0 1.243 1.007 2.25 2.25 2.25h3.5c1.243 0 2.25-1.007 2.25-2.25V5.5c0-1.243-1.007-2.25-2.25-2.25h-3.5Zm9 0c-1.243 0-2.25 1.007-2.25 2.25V9c0 1.243 1.007 2.25 2.25 2.25h3.5c1.243 0 2.25-1.007 2.25-2.25V5.5c0-1.243-1.007-2.25-2.25-2.25h-3.5ZM5.5 12.75c-1.243 0-2.25 1.007-2.25 2.25v3.5c0 1.243 1.007 2.25 2.25 2.25h3.5c1.243 0 2.25-1.007 2.25-2.25V15c0-1.243-1.007-2.25-2.25-2.25h-3.5Zm9 0c-1.243 0-2.25 1.007-2.25 2.25v3.5c0 1.243 1.007 2.25 2.25 2.25h3.5c1.243 0 2.25-1.007 2.25-2.25V15c0-1.243-1.007-2.25-2.25-2.25h-3.5Z"/></svg>
           <span class="flex flex-col"><span class="text-sm font-medium">Overview</span><small class="text-xs font-normal text-gray-400">Board summary</small></span>
         </button>
+        <p class="nav-group-label">Content</p>
         <button class="nav-btn group" data-tab="seo" type="button" :class="{ active: activeTab === 'seo' }" @click="selectTab('seo')">
           <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.5 4.75a5.75 5.75 0 1 0 0 11.5 5.75 5.75 0 0 0 0-11.5ZM3.25 10.5a7.25 7.25 0 1 1 12.98 4.44l3.415 3.415a.75.75 0 1 1-1.06 1.06l-3.416-3.414A7.25 7.25 0 0 1 3.25 10.5Z"/></svg>
           <span class="flex flex-col"><span class="text-sm font-medium">SEO</span><small class="text-xs font-normal text-gray-400">All page metadata</small></span>
@@ -102,6 +103,7 @@
           <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M9 3.75c-1.243 0-2.25 1.007-2.25 2.25v.75H5.5c-1.243 0-2.25 1.007-2.25 2.25v8.25c0 1.243 1.007 2.25 2.25 2.25h13c1.243 0 2.25-1.007 2.25-2.25V9c0-1.243-1.007-2.25-2.25-2.25h-1.25V6c0-1.243-1.007-2.25-2.25-2.25H9Zm6.25 3V6a.75.75 0 0 0-.75-.75H9a.75.75 0 0 0-.75.75v.75h6.5ZM4.75 12.5h14.5v4.5a.75.75 0 0 1-.75.75h-13a.75.75 0 0 1-.75-.75v-4.5Z"/></svg>
           <span class="flex flex-col"><span class="text-sm font-medium">Positions</span><small class="text-xs font-normal text-gray-400">Open roles & internships</small></span>
         </button>
+        <p class="nav-group-label">Operations</p>
         <button class="nav-btn group" data-tab="enquiries" type="button" :class="{ active: activeTab === 'enquiries' }" @click="selectTab('enquiries')">
           <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.5 4.75A2.25 2.25 0 0 0 3.25 7v10A2.25 2.25 0 0 0 5.5 19.25h13A2.25 2.25 0 0 0 20.75 17V7A2.25 2.25 0 0 0 18.5 4.75h-13Zm.82 2.9a.75.75 0 0 0-.89 1.2l5.68 4.23a1.5 1.5 0 0 0 1.78 0l5.68-4.23a.75.75 0 0 0-.89-1.2L12 11.88 6.32 7.65Z"/></svg>
           <span class="flex flex-col"><span class="text-sm font-medium">Enquiries</span><small class="text-xs font-normal text-gray-400">Contact form messages</small></span>
@@ -114,6 +116,7 @@
           <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 12.75c1.795 0 3.25-1.455 3.25-3.25S13.795 6.25 12 6.25 8.75 7.705 8.75 9.5s1.455 3.25 3.25 3.25Zm-6.5 6.5c0-2.485 2.91-4.5 6.5-4.5s6.5 2.015 6.5 4.5v.5a.75.75 0 0 1-.75.75h-11.5a.75.75 0 0 1-.75-.75v-.5Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M18.19 5.31a.75.75 0 0 1 1.06 0l1.44 1.44a.75.75 0 0 1 0 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-2-2a.75.75 0 1 1 1.06-1.06l1.47 1.47 3.97-3.97-1.44-1.44Z" opacity="0.55"/></svg>
           <span class="flex flex-col"><span class="text-sm font-medium">Partners</span><small class="text-xs font-normal text-gray-400">Vendor registrations</small></span>
         </button>
+        <p class="nav-group-label">Site intelligence</p>
         <button class="nav-btn group" data-tab="analytics" type="button" :class="{ active: activeTab === 'analytics' }" @click="selectTab('analytics')">
           <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M5 3.25a.75.75 0 0 1 .75.75v14.5H20a.75.75 0 0 1 0 1.5H5A1.75 1.75 0 0 1 3.25 18.25V4A.75.75 0 0 1 5 3.25ZM18.5 8a1 1 0 0 1 1 1v7.25a.75.75 0 0 1-1.5 0V9a1 1 0 0 1 1-1Zm-4.5 3a1 1 0 0 1 1 1v4.25a.75.75 0 0 1-1.5 0V12a1 1 0 0 1 1-1Zm-4.5 2a1 1 0 0 1 1 1v2.25a.75.75 0 0 1-1.5 0V14a1 1 0 0 1 1-1Z"/></svg>
           <span class="flex flex-col"><span class="text-sm font-medium">Analytics</span><small class="text-xs font-normal text-gray-400">Traffic and sources</small></span>
@@ -264,8 +267,12 @@
             <button class="filter-chip" data-post-filter="scheduled" type="button">Scheduled</button>
             <button class="filter-chip" data-post-filter="draft" type="button">Drafts</button>
           </div>
-          <div class="split grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr]">
-            <div class="list card p-2" id="postList"></div>
+          <div class="workspace-toolbar card mb-4 flex flex-wrap items-end gap-3 p-4">
+            <label class="field-label">Search posts <input id="postSearch" type="search" class="field-input mt-1.5" placeholder="Title, slug or tag"></label>
+            <span id="postShownCount" class="pb-2 text-sm text-gray-400"></span>
+          </div>
+          <div class="split content-workbench grid grid-cols-1 gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+            <div class="list workbench-list card p-2" id="postList"></div>
             <form class="editor card space-y-5" id="postForm">
               <h3 class="text-base font-semibold text-gray-800">Post editor</h3>
               <h4 class="form-subhead">Content</h4>
@@ -277,7 +284,9 @@
               </div>
               <label class="field-label">Content HTML <textarea name="content" class="field-input large-field"></textarea></label>
 
-              <h4 class="form-subhead">Publishing</h4>
+              <details class="editor-section" id="postPublishingSection">
+                <summary><span>Publishing</span><small>Slug, author, date and status</small></summary>
+                <div class="editor-section-body">
               <div class="two-col">
                 <label class="field-label">Slug <input name="slug" class="field-input"></label>
                 <label class="field-label">Publish date <input name="publishedAt" type="datetime-local" class="field-input"></label>
@@ -293,10 +302,15 @@
                   <option value="draft">Draft</option>
                 </select>
               </label>
-
-              <h4 class="form-subhead">SEO</h4>
+                </div>
+              </details>
+              <details class="editor-section" id="postSeoSection">
+                <summary><span>Search metadata</span><small>Optional SEO overrides</small></summary>
+                <div class="editor-section-body">
               <label class="field-label">Meta title <input name="metaTitle" class="field-input"></label>
               <label class="field-label">Meta description <textarea name="metaDescription" class="field-input"></textarea></label>
+                </div>
+              </details>
 
               <div class="form-actions">
                 <button class="primary btn-primary" type="submit">Save post</button>
@@ -319,8 +333,12 @@
               <button id="newPositionBtn" class="primary btn-primary" type="button">New position</button>
             </div>
           </div>
-          <div class="split grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr]">
-            <div class="list card p-2" id="positionList"></div>
+          <div class="workspace-toolbar card mb-4 flex flex-wrap items-end gap-3 p-4">
+            <label class="field-label">Search roles <input id="positionSearch" type="search" class="field-input mt-1.5" placeholder="Title, department or location"></label>
+            <span id="positionShownCount" class="pb-2 text-sm text-gray-400"></span>
+          </div>
+          <div class="split content-workbench grid grid-cols-1 gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+            <div class="list workbench-list card p-2" id="positionList"></div>
             <form class="editor card space-y-5" id="positionForm">
               <h3 class="text-base font-semibold text-gray-800">Role editor</h3>
               <h4 class="form-subhead">Basic</h4>
@@ -329,7 +347,9 @@
                 <label class="field-label">Department <input name="department" class="field-input"></label>
                 <label class="field-label">Location <input name="location" class="field-input"></label>
               </div>
-              <h4 class="form-subhead">Details</h4>
+              <details class="editor-section" id="positionDetailsSection">
+                <summary><span>Role details</span><small>Type, qualifications and requirements</small></summary>
+                <div class="editor-section-body">
               <div class="two-col">
                 <label class="field-label">Type
                   <select name="type" id="positionTypeSelect" class="field-input"></select>
@@ -347,7 +367,11 @@
               <h4 class="form-subhead">Description</h4>
               <label class="field-label">Description <textarea name="description" class="field-input"></textarea></label>
               <label class="field-label">Key responsibilities <textarea name="responsibilities" placeholder="One responsibility per line" class="field-input"></textarea></label>
-              <h4 class="form-subhead">Skills</h4>
+                </div>
+              </details>
+              <details class="editor-section" id="positionSkillsSection">
+                <summary><span>Skills and availability</span><small>Skills, application contact and visibility</small></summary>
+                <div class="editor-section-body">
               <label class="field-label">Hard skills <textarea name="hardSkills" class="field-input"></textarea></label>
               <label class="field-label">Soft skills <textarea name="softSkills" class="field-input"></textarea></label>
               <div class="two-col">
@@ -359,6 +383,8 @@
                   </div>
                 </fieldset>
               </div>
+                </div>
+              </details>
               <div class="form-actions flex flex-wrap items-center gap-3">
                 <button class="primary btn-primary" type="submit">Save role</button>
                 <button id="deletePositionBtn" class="danger btn-danger" type="button">Delete</button>
@@ -379,13 +405,13 @@
             </div>
           </div>
           <div class="filters mb-3 flex flex-wrap gap-2" id="enquiryWorkflowFilters"></div>
-          <div class="filter-row card mb-4 flex flex-wrap items-end gap-3 p-4" id="enquiryFilterRow">
+          <div class="workspace-toolbar filter-row card mb-4 flex flex-wrap items-end gap-3 p-4" id="enquiryFilterRow">
             <label class="field-label">From <input type="date" id="enquiryFromDate" class="field-input mt-1.5"></label>
             <label class="field-label">To <input type="date" id="enquiryToDate" class="field-input mt-1.5"></label>
             <label class="field-label">Search <input type="search" id="enquirySearch" placeholder="Name, email or subject" class="field-input mt-1.5"></label>
             <button id="clearEnquiryFiltersBtn" class="btn-secondary" type="button">Clear</button>
           </div>
-          <div class="bulk-row card mb-4 flex flex-wrap items-center gap-3 p-4">
+          <div class="workspace-bulkbar bulk-row card mb-4 flex flex-wrap items-center gap-3 p-4">
             <label class="flex items-center gap-2 text-sm font-medium text-gray-700"><input type="checkbox" id="enquirySelectAll"> Select all shown</label>
             <span class="text-sm text-gray-500" id="enquirySelectedCount">0 selected</span>
             <button id="deleteEnquiriesBtn" class="danger btn-danger" type="button">Delete selected</button>
@@ -406,7 +432,7 @@
             </div>
           </div>
           <div class="filters mb-3 flex flex-wrap gap-2" id="applicationWorkflowFilters"></div>
-          <div class="filter-row card mb-4 flex flex-wrap items-end gap-3 p-4" id="applicationFilterRow">
+          <div class="workspace-toolbar filter-row card mb-4 flex flex-wrap items-end gap-3 p-4" id="applicationFilterRow">
             <label class="field-label">Position
               <select id="applicationPositionFilter" class="field-input mt-1.5"><option value="">All positions</option></select>
             </label>
@@ -415,7 +441,7 @@
             <label class="field-label">Search <input type="search" id="applicationSearch" placeholder="Name or email" class="field-input mt-1.5"></label>
             <button id="clearApplicationFiltersBtn" class="btn-secondary" type="button">Clear</button>
           </div>
-          <div class="bulk-row card mb-4 flex flex-wrap items-center gap-3 p-4">
+          <div class="workspace-bulkbar bulk-row card mb-4 flex flex-wrap items-center gap-3 p-4">
             <label class="flex items-center gap-2 text-sm font-medium text-gray-700"><input type="checkbox" id="applicationSelectAll"> Select all shown</label>
             <span class="text-sm text-gray-500" id="applicationSelectedCount">0 selected</span>
             <button id="deleteApplicationsBtn" class="danger btn-danger" type="button">Delete selected</button>
@@ -437,7 +463,7 @@
             </div>
           </div>
           <div class="filters mb-3 flex flex-wrap gap-2" id="partnerWorkflowFilters"></div>
-          <div class="filter-row card mb-4 flex flex-wrap items-end gap-3 p-4" id="partnerFilterRow">
+          <div class="workspace-toolbar filter-row card mb-4 flex flex-wrap items-end gap-3 p-4" id="partnerFilterRow">
             <label class="field-label">Category
               <select id="partnerCategoryFilter" class="field-input mt-1.5"><option value="">All categories</option></select>
             </label>
@@ -446,7 +472,7 @@
             <label class="field-label">Search <input type="search" id="partnerSearch" placeholder="Name or email" class="field-input mt-1.5"></label>
             <button id="clearPartnerFiltersBtn" class="btn-secondary" type="button">Clear</button>
           </div>
-          <div class="bulk-row card mb-4 flex flex-wrap items-center gap-3 p-4">
+          <div class="workspace-bulkbar bulk-row card mb-4 flex flex-wrap items-center gap-3 p-4">
             <label class="flex items-center gap-2 text-sm font-medium text-gray-700"><input type="checkbox" id="partnerSelectAll"> Select all shown</label>
             <span class="text-sm text-gray-500" id="partnerSelectedCount">0 selected</span>
             <button id="deletePartnersBtn" class="danger btn-danger" type="button">Delete selected</button>

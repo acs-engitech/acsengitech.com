@@ -25,6 +25,8 @@ import acsDefaults from '../../lib/acs-defaults.js';
     selectedApplication: null,
     selectedPartner: null,
     postFilter: 'all',
+    postSearch: '',
+    positionSearch: '',
     enquiryFilters: { status: 'all', from: '', to: '', search: '' },
     applicationFilters: { status: 'all', positionId: '', from: '', to: '', search: '' },
     partnerFilters: { status: 'all', category: '', from: '', to: '', search: '' },
@@ -432,8 +434,14 @@ import acsDefaults from '../../lib/acs-defaults.js';
     return JSON.stringify({ '@context': 'https://schema.org', ...templates[type] }, null, 2);
   }
 
-  function renderPosts() {
-    const posts = state.postFilter === 'all' ? state.posts : state.posts.filter((post) => post.status === state.postFilter);
+  function filteredPosts() {
+    const term = state.postSearch.trim().toLowerCase();
+    return state.posts.filter((post) => (state.postFilter === 'all' || post.status === state.postFilter)
+      && (!term || `${post.title} ${post.slug} ${(post.tags || []).join(' ')}`.toLowerCase().includes(term)));
+  }
+
+  function renderPostList() {
+    const posts = filteredPosts();
     $('#postList').innerHTML = posts.map((post) => `
       <button class="row-card ${post.id === state.selectedPost ? 'active' : ''}" data-post="${post.id}" type="button">
         <strong>${post.title} <span class="status-pill status-${post.status}">${post.status}</span></strong>
@@ -441,6 +449,11 @@ import acsDefaults from '../../lib/acs-defaults.js';
         <span class="row-tags">${(post.tags || []).map((tag) => `<span class="tag-chip">${tag}</span>`).join('')}</span>
       </button>
     `).join('') || '<p class="empty-state">No posts in this view.</p>';
+    $('#postShownCount').textContent = `${posts.length} of ${state.posts.length} shown`;
+  }
+
+  function renderPosts() {
+    renderPostList();
     $$('.filters button[data-post-filter]').forEach((button) => button.classList.toggle('active', button.dataset.postFilter === state.postFilter));
     renderSchedule();
     fillPostForm();
@@ -479,13 +492,24 @@ import acsDefaults from '../../lib/acs-defaults.js';
 
   // ---------- Positions ----------
 
-  function renderPositions() {
-    $('#positionList').innerHTML = state.positions.map((position) => `
+  function filteredPositions() {
+    const term = state.positionSearch.trim().toLowerCase();
+    return state.positions.filter((position) => !term || `${position.title} ${position.department} ${position.location} ${position.type}`.toLowerCase().includes(term));
+  }
+
+  function renderPositionList() {
+    const positions = filteredPositions();
+    $('#positionList').innerHTML = positions.map((position) => `
       <button class="row-card ${position.id === state.selectedPosition ? 'active' : ''}" data-position="${position.id}" type="button">
         <strong>${escapeHtml(position.title)} <span class="status-pill status-${position.status === 'closed' ? 'closed' : 'open'}">${position.status === 'closed' ? 'closed' : 'live'}</span></strong>
         <span class="row-path">${escapeHtml(position.type || 'Full-time')} - ${escapeHtml(position.department || '')} - ${escapeHtml(position.location || '')}</span>
       </button>
     `).join('') || '<p class="empty-state">No positions yet.</p>';
+    $('#positionShownCount').textContent = `${positions.length} of ${state.positions.length} shown`;
+  }
+
+  function renderPositions() {
+    renderPositionList();
     fillPositionTypeSelect();
     fillPositionForm();
   }
@@ -959,6 +983,11 @@ import acsDefaults from '../../lib/acs-defaults.js';
       renderPosts();
     }));
 
+    $('#postSearch').addEventListener('input', (event) => {
+      state.postSearch = event.target.value;
+      renderPostList();
+    });
+
     $('#newPostBtn').addEventListener('click', () => {
       const post = normalizePost({ id: crypto.randomUUID(), title: 'New ACS Engitech blog post', status: 'draft', publishedAt: new Date().toISOString() });
       state.posts.unshift(post);
@@ -1021,6 +1050,11 @@ import acsDefaults from '../../lib/acs-defaults.js';
       if (!button) return;
       state.selectedPosition = button.dataset.position;
       renderPositions();
+    });
+
+    $('#positionSearch').addEventListener('input', (event) => {
+      state.positionSearch = event.target.value;
+      renderPositionList();
     });
 
     $('#newPositionBtn').addEventListener('click', () => {
