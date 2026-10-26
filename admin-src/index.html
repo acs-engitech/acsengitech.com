@@ -150,8 +150,15 @@
             </div>
             <button id="saveSeoBtn" class="primary btn-primary" type="button">Save SEO</button>
           </div>
-          <div class="split grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr]">
-            <div class="list card p-2" id="pageList"></div>
+          <div class="split seo-workbench grid grid-cols-1 gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+            <aside class="seo-page-nav card" aria-label="Page selection">
+              <div class="seo-page-nav-head"><strong>Pages</strong><span id="seoPageCount" class="text-xs text-gray-400"></span></div>
+              <label class="sr-only" for="pageSearch">Search pages</label>
+              <input id="pageSearch" type="search" class="field-input" placeholder="Search pages or URLs">
+              <label class="sr-only" for="pageGroup">Filter pages</label>
+              <select id="pageGroup" class="field-input"><option value="all">All page groups</option><option value="core">Core website</option><option value="trading">Siemens trading</option><option value="content">Content &amp; company</option></select>
+              <div class="list" id="pageList"></div>
+            </aside>
             <form class="editor card space-y-5" id="seoForm">
               <div class="flex flex-wrap items-center justify-between gap-3">
                 <h3 id="seoFormTitle" class="text-base font-semibold text-gray-800">Select a page</h3>
@@ -180,7 +187,9 @@
                   <span class="input-with-select"><input name="robots" placeholder="index, follow" class="field-input"><select id="robotsPreset" class="field-input" aria-label="Robots presets"><option value="">Presets</option><option>index, follow, max-image-preview:large</option><option>index, follow</option><option>noindex, follow</option><option>noindex, nofollow</option></select></span>
                 </label>
               </div>
-              <h4 class="form-subhead">Open Graph / Social</h4>
+              <details class="seo-section" id="seoSocialSection">
+                <summary><span>Social sharing</span><small>Open Graph, Twitter and preview</small></summary>
+                <div class="seo-section-body">
               <div class="two-col">
                 <label class="field-label">OG title <input name="ogTitle" class="field-input"></label>
                 <label class="field-label">OG type <select name="ogType" class="field-input"><option value="">website (default)</option><option value="website">website</option><option value="article">article</option><option value="product">product</option><option value="profile">profile</option></select></label>
@@ -199,13 +208,21 @@
                 <div class="social-image" id="socialImage"></div>
                 <div class="social-body"><span id="socialHost">acsengitech.com</span><strong id="socialTitle"></strong><span id="socialDesc"></span></div>
               </div>
-              <h4 class="form-subhead">Sitemap</h4>
+                </div>
+              </details>
+              <details class="seo-section" id="seoSitemapSection">
+                <summary><span>Sitemap controls</span><small>Priority and crawl frequency</small></summary>
+                <div class="seo-section-body">
               <div class="three-col">
                 <label class="field-label">Include in sitemap.xml <select name="sitemapExclude" class="field-input"><option value="">Yes</option><option value="yes">No, leave out</option></select></label>
                 <label class="field-label">Priority <select name="sitemapPriority" class="field-input"><option value="">Auto</option><option>1.0</option><option>0.9</option><option>0.8</option><option>0.7</option><option>0.6</option><option>0.5</option><option>0.3</option></select></label>
                 <label class="field-label">Change frequency <select name="sitemapChangefreq" class="field-input"><option value="">Auto</option><option>daily</option><option>weekly</option><option>monthly</option><option>yearly</option></select></label>
               </div>
-              <h4 class="form-subhead">Structured data (JSON-LD)</h4>
+                </div>
+              </details>
+              <details class="seo-section" id="seoJsonLdSection">
+                <summary><span>Structured data (JSON-LD)</span><small>Advanced schema editing</small></summary>
+                <div class="seo-section-body">
               <div class="jsonld-tools">
                 <select id="jsonLdTemplate" class="field-input" aria-label="JSON-LD template">
                   <option value="">Insert a template&hellip;</option>
@@ -223,6 +240,8 @@
                 <span id="jsonLdStatus" class="jsonld-status" role="status"></span>
               </div>
               <label class="field-label">JSON-LD <textarea name="jsonLd" class="field-input code-field tall"></textarea></label>
+                </div>
+              </details>
             </form>
           </div>
         </section>

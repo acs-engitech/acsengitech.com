@@ -34,3 +34,21 @@ test('SEO tab saves only fields that differ from the page defaults, and reset cl
   await expect.poll(() => posts.length).toBe(2);
   expect(posts[1].pageSeo['/about']).toEqual({});
 });
+
+test('SEO manager filters pages and keeps advanced controls out of the default editing flow', async ({ page }) => {
+  await page.route('**/api/admin*', (route) => route.fulfill({ json: MOCK }));
+  await page.goto('/admin');
+  await page.fill('#loginForm [name="email"]', 'acsengitech@gmail.com');
+  await page.fill('#loginForm [name="password"]', 'x');
+  await page.click('#loginForm button[type="submit"]');
+  await page.locator('[data-tab="seo"]').click();
+
+  const titleBeforeFiltering = await page.locator('#seoForm [name="title"]').inputValue();
+  await page.fill('#pageSearch', 'siemens s7-300');
+  await expect(page.locator('#pageList [data-page="/siemens-s7-300-plc"]')).toBeVisible();
+  await expect(page.locator('#pageList [data-page="/about"]')).toHaveCount(0);
+  await expect(page.locator('#seoForm [name="title"]')).toHaveValue(titleBeforeFiltering);
+  await expect(page.locator('#seoSocialSection')).not.toHaveAttribute('open', '');
+  await page.locator('#seoSocialSection summary').click();
+  await expect(page.locator('#seoSocialSection')).toHaveAttribute('open', '');
+});

@@ -205,16 +205,15 @@ body:not(.admin-locked) #adminLogin { display: none; }
 }
 
 /* Logic-rendered components (built by admin-app.js — not present in static HTML) */
-#statusBar { @apply fixed right-6 bottom-6 z-50 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-500 shadow-lg transition-opacity duration-500 max-w-sm; animation: toastSlideUp .25s ease-out; }
+#statusBar { @apply fixed right-6 bottom-6 z-50 max-w-sm rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-500 shadow-lg transition-all duration-200; opacity: 0; pointer-events: none; transform: translateY(12px); }
+#statusBar.is-visible { opacity: 1; pointer-events: auto; transform: translateY(0); animation: toastSlideUp .25s ease-out; }
 @media (max-width: 640px) {
   #statusBar { left: 16px; right: 16px; bottom: 16px; max-width: none; }
 }
-.status-bar.ok { @apply border-success-200 bg-success-50 text-success-700; animation: toastSlideUp .25s ease-out, statusBarFadeOut 0.6s 2.4s ease-out forwards; }
+.status-bar.ok { @apply border-success-200 bg-success-50 text-success-700; }
 .status-bar.error { @apply border-error-200 bg-error-50 text-error-700; }
 .status-bar.is-loading { @apply border-brand-200 bg-brand-50 text-brand-700; }
-.status-bar.is-faded { @apply opacity-0 pointer-events-none; }
 @keyframes toastSlideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes statusBarFadeOut { to { opacity: 0; pointer-events: none; } }
 
 /* Metric card — icon bubble + label + big value + optional trend pill */
 .metric { @apply rounded-2xl border border-gray-200 bg-white p-6 transition; }
@@ -320,6 +319,27 @@ body:not(.admin-locked) #adminLogin { display: none; }
 .input-with-select .field-input { margin-top: 0; }
 .input-with-select select { max-width: 9.5rem; }
 .seo-overview { @apply grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr]; }
+.seo-workbench { align-items: start; }
+.seo-page-nav { @apply flex flex-col gap-3 p-4; }
+.seo-page-nav-head { @apply flex items-center justify-between px-1 text-sm text-gray-700; }
+.seo-page-nav .field-input { @apply mt-0 py-2; }
+.seo-page-nav .list { @apply -mx-1 max-h-[calc(100vh-22rem)] min-h-0 overflow-y-auto px-1; }
+.seo-page-nav .row-card { @apply py-2.5; }
+.seo-page-nav .row-card .row-path { @apply text-[11px]; }
+.seo-section { @apply overflow-hidden rounded-xl border border-gray-200 bg-gray-50/60; }
+.seo-section > summary { @apply flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold text-gray-700; }
+.seo-section > summary::-webkit-details-marker { display: none; }
+.seo-section > summary::after { content: '+'; @apply text-xl font-normal text-gray-400; }
+.seo-section[open] > summary { @apply border-b border-gray-200 bg-white; }
+.seo-section[open] > summary::after { content: '–'; }
+.seo-section > summary small { @apply ml-auto text-xs font-normal text-gray-400; }
+.seo-section-body { @apply space-y-5 bg-white p-5; }
+.seo-section .social-preview { @apply max-w-none; }
+@media (min-width: 1024px) {
+  .seo-page-nav { position: sticky; top: 1.5rem; }
+  .seo-workbench .editor { min-height: min-content; }
+}
+@media (max-width: 1023px) { .seo-page-nav .list { max-height: 320px; } }
 .serp-preview { @apply flex flex-col gap-1 rounded-xl border border-gray-200 bg-white p-4; font-family: Arial, sans-serif; }
 .serp-label { @apply mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400; font-family: inherit; }
 .serp-url { color: #202124; font-size: 13px; overflow-wrap: anywhere; }

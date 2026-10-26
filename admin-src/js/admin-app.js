@@ -31,6 +31,8 @@ import acsDefaults from '../../lib/acs-defaults.js';
     enquirySelectedIds: new Set(),
     applicationSelectedIds: new Set(),
     partnerSelectedIds: new Set(),
+    seoSearch: '',
+    seoGroup: 'all',
     typeManagerTarget: null, // 'positionTypes' | 'partnerCategories'
     email: '',
     password: '',
@@ -43,10 +45,16 @@ import acsDefaults from '../../lib/acs-defaults.js';
   const loginForm = $('#loginForm');
   const loginError = $('#loginError');
   const adminLoading = $('#adminLoading');
+  let statusTimer;
 
   function setStatus(message, type) {
+    clearTimeout(statusTimer);
     statusBar.textContent = message;
-    statusBar.className = `status-bar ${type || ''}`;
+    statusBar.className = `status-bar is-visible ${type || ''}`;
+    // Reflow restarts the entry animation for consecutive saves instead of silently
+    // leaving the previous success toast hidden or half-faded.
+    void statusBar.offsetWidth;
+    if (type === 'ok') statusTimer = setTimeout(() => statusBar.classList.remove('is-visible'), 4200);
   }
 
   // ---------- Session persistence (survives page refresh; never stores the raw password) ----------
@@ -277,6 +285,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
   async function mutate({ apply, rerender, request, successMessage, revert }) {
     apply();
     rerender();
+    setStatus('Saving changes…', 'loading');
     try {
       const data = await request();
       applyData(data);
@@ -327,14 +336,30 @@ import acsDefaults from '../../lib/acs-defaults.js';
     ].join('');
   }
 
-  function renderSeo() {
-    $('#pageList').innerHTML = state.pages.map((page) => `
+  function seoPageGroup(page) {
+    if (page.path === '/trading' || page.path.startsWith('/siemens-') || page.path === '/accessories') return 'trading';
+    if (['/blog', '/career', '/partner-with-us', '/contact', '/privacy', '/certificates', '/photo-gallery'].includes(page.path)) return 'content';
+    return 'core';
+  }
+
+  function renderSeoPageList() {
+    const query = state.seoSearch.trim().toLowerCase();
+    const pages = state.pages.filter((page) => {
+      const searchable = `${page.label} ${page.path} ${page.defaults?.title || ''}`.toLowerCase();
+      return (state.seoGroup === 'all' || seoPageGroup(page) === state.seoGroup) && (!query || searchable.includes(query));
+    });
+    $('#seoPageCount').textContent = `${pages.length} of ${state.pages.length}`;
+    $('#pageList').innerHTML = pages.map((page) => `
       <button class="row-card ${page.path === state.selectedPage ? 'active' : ''}" data-page="${page.path}" type="button">
         <strong>${page.label}</strong>
         <span class="row-path">${displayPath(page.path)}</span>
         <span class="block truncate text-gray-500">${(state.pageSeo[page.path]?.title || page.defaults.title || '').slice(0, 90)}</span>
       </button>
-    `).join('');
+    `).join('') || '<p class="empty-state">No pages match this filter.</p>';
+  }
+
+  function renderSeo() {
+    renderSeoPageList();
 
     const page = state.pages.find((item) => item.path === state.selectedPage) || state.pages[0];
     const seo = { ...(page?.defaults || {}), ...(state.pageSeo[page?.path] || {}) };
@@ -911,6 +936,15 @@ import acsDefaults from '../../lib/acs-defaults.js';
       collectSeo();
       state.selectedPage = button.dataset.page;
       renderSeo();
+    });
+
+    $('#pageSearch').addEventListener('input', (event) => {
+      state.seoSearch = event.target.value;
+      renderSeoPageList();
+    });
+    $('#pageGroup').addEventListener('change', (event) => {
+      state.seoGroup = event.target.value;
+      renderSeoPageList();
     });
 
     $('#postList').addEventListener('click', (event) => {
