@@ -20,6 +20,8 @@ test('Alpine tab switch toggles the active panel', async ({ page }) => {
 });
 
 test('sidebar toggle applies is-open', async ({ page }) => {
+  // The toggle only exists below the 1024px desktop breakpoint, so pin a mobile viewport.
+  await page.setViewportSize({ width: 430, height: 900 });
   await page.goto('/admin');
   await page.evaluate(() => document.body.classList.remove('admin-locked'));
   await page.locator('#adminMenuToggle').click();

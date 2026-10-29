@@ -293,7 +293,8 @@
       noscript.innerHTML = `<iframe src="https://www.googletagmanager.com/ns.html?id=${gtmId}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`;
       document.body.insertBefore(noscript, document.body.firstChild);
     }
-    if (gaId && !document.querySelector('[data-acs-ga]')) {
+    // When a GTM container is set, GA4 is configured inside it; a direct gtag config on top would count every page view twice.
+    if (gaId && !gtmId && !document.querySelector('[data-acs-ga]')) {
       const script = document.createElement('script');
       script.async = true;
       script.dataset.acsGa = 'true';

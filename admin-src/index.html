@@ -62,6 +62,7 @@
   </section>
 
   <div class="admin-app admin-dashboard-frame" x-data="adminShell()">
+    <div class="admin-scrim" :class="sidebarOpen ? 'is-open' : ''" @click="sidebarOpen = false" aria-hidden="true"></div>
     <header class="tailadmin-topbar admin-topbar dashboard-command-bar sticky top-0 z-40 flex items-center gap-4 border-b border-gray-200 bg-white px-4 py-3 lg:px-6">
       <button id="adminMenuToggle" type="button" class="admin-menu-toggle flex h-11 w-11 flex-col items-center justify-center gap-1.5 rounded-lg border border-gray-200 text-gray-600" aria-controls="adminSidebar" aria-label="Open admin navigation" :class="sidebarOpen ? 'is-open' : ''" @click="sidebarOpen = !sidebarOpen" :aria-expanded="sidebarOpen.toString()">
         <span class="block h-0.5 w-5 bg-current transition-transform"></span>
@@ -153,7 +154,7 @@
             </div>
             <button id="saveSeoBtn" class="primary btn-primary" type="button">Save SEO</button>
           </div>
-          <div class="split seo-workbench grid grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+          <div class="split seo-workbench grid grid-cols-1 gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
             <aside class="seo-page-nav card" aria-label="Page selection">
               <div class="seo-page-nav-head"><strong>Pages</strong><span id="seoPageCount" class="text-xs text-gray-400"></span></div>
               <label class="sr-only" for="pageSearch">Search pages</label>
@@ -273,7 +274,7 @@
             <label class="field-label">Search posts <input id="postSearch" type="search" class="field-input mt-1.5" placeholder="Title, slug or tag"></label>
             <span id="postShownCount" class="pb-2 text-sm text-gray-400"></span>
           </div>
-          <div class="split content-workbench grid grid-cols-1 gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+          <div class="split content-workbench grid grid-cols-1 gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
             <div class="list workbench-list card p-2" id="postList"></div>
             <form class="editor card space-y-5" id="postForm">
               <h3 class="text-base font-semibold text-gray-800">Post editor</h3>
@@ -339,7 +340,7 @@
             <label class="field-label">Search roles <input id="positionSearch" type="search" class="field-input mt-1.5" placeholder="Title, department or location"></label>
             <span id="positionShownCount" class="pb-2 text-sm text-gray-400"></span>
           </div>
-          <div class="split content-workbench grid grid-cols-1 gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+          <div class="split content-workbench grid grid-cols-1 gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
             <div class="list workbench-list card p-2" id="positionList"></div>
             <form class="editor card space-y-5" id="positionForm">
               <h3 class="text-base font-semibold text-gray-800">Role editor</h3>
