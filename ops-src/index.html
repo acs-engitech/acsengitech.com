@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en-IN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>ACS Operations</title>
+  <link rel="icon" href="/logo-1.svg">
+</head>
+<body x-data="ops" x-cloak>
+  <div class="loading-line" x-show="loading" aria-hidden="true"></div>
+  <div class="toast" :class="toast?.error && 'error'" x-show="toast" x-transition.opacity role="status" aria-live="polite">
+    <span x-text="toast?.text"></span>
+    <button class="btn sm ghost" style="color:inherit" @click="toast = null" aria-label="Dismiss">✕</button>
+  </div>
+
+  <!-- ============ Sign in ============ -->
+  <template x-if="!me">
+    <main class="signin">
+      <aside class="signin-side" aria-hidden="true">
+        <img src="/logo-white.svg" alt="" style="height:26px;align-self:flex-start">
+        <div>
+          <h2>One connected record from enquiry to delivery.</h2>
+          <ol>
+            <li><span>01</span>Trading quotes from live stock and supplier cost.</li>
+            <li><span>02</span>Purchasing compares landed cost, lead time and reliability.</li>
+            <li><span>03</span>Production stock is only released with a director’s approval.</li>
+            <li><span>04</span>Dispatch ships what is reserved; directors see it all, live.</li>
+          </ol>
+        </div>
+        <p class="small" style="color:#6b7480">ACS Engitech · Operations</p>
+      </aside>
+      <section class="signin-form">
+        <form @submit.prevent="signIn()" aria-labelledby="signinTitle">
+          <img src="/logo-1.svg" alt="ACS Engitech" style="height:24px;align-self:flex-start">
+          <div>
+            <h1 id="signinTitle" x-text="route.ws === 'portal' ? 'Customer portal' : 'Sign in to operations'"></h1>
+            <p class="muted small" x-text="route.ws === 'portal' ? 'Track your enquiries, quotations and deliveries with ACS.' : 'Directors use their admin login. Staff use the account a director created for them.'"></p>
+          </div>
+          <p class="err" x-show="loginError" x-text="loginError" role="alert"></p>
+          <label class="lbl">Email<input class="field" type="email" autocomplete="username" required x-model="login.email"></label>
+          <label class="lbl">Password<input class="field" type="password" autocomplete="current-password" required x-model="login.password"></label>
+          <button class="btn primary" type="submit" style="height:38px" :disabled="signingIn" x-text="signingIn ? 'Signing in…' : 'Sign in'"></button>
+        </form>
+      </section>
+    </main>
+  </template>
+
+  <!-- ============ Customer portal ============ -->
+  <template x-if="me && me.role === 'customer'">
+    <div>
+      <header class="topbar" style="background:var(--surface)">
+        <img src="/logo-1.svg" alt="ACS Engitech" style="height:22px">
+        <span class="muted small" x-text="portal?.customer.company || portal?.customer.name"></span>
+        <span class="spacer"></span>
+        <button class="btn sm" @click="portalNewEnquiry()">New enquiry</button>
+        <button class="btn sm ghost" @click="signOut()">Sign out</button>
+      </header>
+      <main class="page" style="max-width:1080px;margin:0 auto">
+        <template x-if="!route.id">
+          <section class="panel">
+            <div class="panel-head"><h2>Your enquiries</h2><span class="sub">Quotations, orders and deliveries with ACS Engitech</span></div>
+            <div class="table-wrap">
+              <table class="data">
+                <thead><tr><th>Reference</th><th>Subject</th><th>Status</th><th class="r">Value (excl. GST)</th><th>Updated</th></tr></thead>
+                <tbody>
+                  <template x-for="d in portal?.enquiries || []" :key="d.id">
+                    <tr class="clickable" @click="go(`/portal/${portal.customer.portalSlug}/${d.id}`)">
+                      <td class="mono" x-text="d.number"></td>
+                      <td x-text="d.title"></td>
+                      <td><span class="pill" :class="d.stage === 'awaiting_customer' ? 'signal' : stageTone(d.stage)" x-text="portalStage(d.stage)"></span></td>
+                      <td class="r num" x-text="d.quotation || d.order ? inr(d.value) : '—'"></td>
+                      <td class="muted small" x-text="ago(d.lastActivityAt)"></td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+              <div class="empty" x-show="portal && !portal.enquiries.length"><strong>No enquiries yet</strong>Use “New enquiry” to ask ACS for a quotation.</div>
+            </div>
+          </section>
+        </template>
+        <template x-if="route.id && portalEnquiry">
+          <div class="stack" style="gap:20px">
+            <div class="row">
+              <a class="btn sm ghost" :href="`/portal/${portal.customer.portalSlug}`" @click.prevent="go(`/portal/${portal.customer.portalSlug}`)">← All enquiries</a>
+            </div>
+            <div>
+              <div class="mono muted small" x-text="portalEnquiry.enquiry.number"></div>
+              <h1 style="margin:2px 0 0;font-size:22px;font-weight:600" x-text="portalEnquiry.enquiry.title"></h1>
+            </div>
+            <template x-for="q in portalEnquiry.quotations.slice(0, 1)" :key="q.id">
+              <section class="panel">
+                <div class="panel-head">
+                  <h2 x-text="`Quotation ${q.number}`"></h2>
+                  <span class="pill" :class="tone(q.status)" x-text="q.status === 'sent' ? 'awaiting your decision' : label(q.status)"></span>
+                  <span class="sub" x-text="`Valid until ${date(q.validUntil)}`"></span>
+                  <div class="actions" x-show="q.status === 'sent'">
+                    <button class="btn sm" @click="portalDecision(q, 'revise')">Request changes</button>
+                    <button class="btn sm danger" @click="portalDecision(q, 'reject')">Decline</button>
+                    <button class="btn sm primary" @click="portalDecision(q, 'accept')">Accept</button>
+                  </div>
+                </div>
+                <div class="table-wrap">
+                  <table class="data">
+                    <thead><tr><th>Item</th><th class="r">Qty</th><th class="r">Unit price</th><th class="r">GST</th><th class="r">Amount</th></tr></thead>
+                    <tbody>
+                      <template x-for="l in q.lines" :key="l.id">
+                        <tr><td><span class="mono small" x-text="l.item.sku"></span> <span x-text="l.item.name"></span></td><td class="r num" x-text="qty(l.qty)"></td><td class="r num" x-text="inr(l.unitPrice)"></td><td class="r num" x-text="`${l.taxRate}%`"></td><td class="r num" x-text="inr(l.amount)"></td></tr>
+                      </template>
+                    </tbody>
+                    <tfoot>
+                      <tr><td colspan="4" class="r muted">Subtotal</td><td class="r num" x-text="inr(q.totals.subtotal)"></td></tr>
+                      <tr><td colspan="4" class="r muted">GST</td><td class="r num" x-text="inr(q.totals.tax)"></td></tr>
+                      <tr><td colspan="4" class="r"><strong>Total</strong></td><td class="r num"><strong x-text="inr(q.totals.total)"></strong></td></tr>
+                    </tfoot>
+                  </table>
+                </div>
+                <div class="panel-body small muted" x-show="q.notes" x-text="q.notes"></div>
+              </section>
+            </template>
+            <div class="empty panel" x-show="!portalEnquiry.quotations.length"><strong>We are preparing your quotation</strong>You will see it here as soon as it is ready.</div>
+            <template x-if="portalEnquiry.order">
+              <section class="panel">
+                <div class="panel-head"><h2 x-text="`Order ${portalEnquiry.order.number}`"></h2><span class="pill" :class="tone(portalEnquiry.order.status)" x-text="label(portalEnquiry.order.status)"></span></div>
+                <div class="table-wrap">
+                  <table class="data">
+                    <thead><tr><th>Item</th><th class="r">Ordered</th><th class="r">Dispatched</th><th class="r">Delivered</th></tr></thead>
+                    <tbody><template x-for="l in portalEnquiry.order.lines" :key="l.id"><tr><td x-text="`${l.item.sku} — ${l.item.name}`"></td><td class="r num" x-text="qty(l.qty - l.cancelled)"></td><td class="r num" x-text="qty(l.dispatched)"></td><td class="r num" x-text="qty(l.delivered)"></td></tr></template></tbody>
+                  </table>
+                </div>
+                <div class="panel-body stack" x-show="portalEnquiry.order.shipments.length">
+                  <template x-for="s in portalEnquiry.order.shipments.filter((s) => s.status !== 'cancelled')" :key="s.id">
+                    <div class="row small"><span class="mono" x-text="s.number"></span><span class="pill" :class="tone(s.status)" x-text="label(s.status)"></span><span x-show="s.carrier" x-text="`${s.carrier}${s.trackingNo ? ' · ' + s.trackingNo : ''}`"></span><span class="muted" x-text="s.deliveredAt ? `delivered ${date(s.deliveredAt)}` : s.shippedAt ? `shipped ${date(s.shippedAt)}` : `planned ${date(s.plannedAt)}`"></span></div>
+                  </template>
+                </div>
+              </section>
+            </template>
+            <section class="panel">
+              <div class="panel-head"><h2>History</h2><div class="actions"><button class="btn sm" @click="addComment(portalEnquiry.enquiry.id, false)">Message ACS</button></div></div>
+              <ul class="feed">
+                <template x-for="c in portalEnquiry.comments" :key="'c' + c.id"><li><time x-text="time(c.at)"></time><div><span x-text="c.body"></span><div class="who" x-text="c.author"></div></div></li></template>
+                <template x-for="e in portalEnquiry.timeline" :key="e.id"><li><time x-text="time(e.at)"></time><div x-text="e.message || label(e.to)"></div></li></template>
+              </ul>
+            </section>
+          </div>
+        </template>
+      </main>
+    </div>
+  </template>
+
+  <!-- ============ Staff shell ============ -->
+  <template x-if="me && me.role !== 'customer'">
+    <div class="shell">
+      <nav class="rail" :class="railOpen && 'open'" aria-label="Workspaces">
+        <a class="rail-brand" href="/admin/" title="Website admin"><img src="/logo-white.svg" alt="ACS Engitech"><span>Ops</span></a>
+        <p class="rail-label">Workspaces</p>
+        <template x-for="n in nav()" :key="n.key">
+          <a :href="n.href" :class="route.ws === n.key && 'active'" @click.prevent="go(n.href)" :aria-current="route.ws === n.key ? 'page' : null">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path :d="n.icon"/></svg>
+            <span x-text="n.label"></span>
+            <span class="count" x-show="n.key === 'sales'">reserved</span>
+          </a>
+        </template>
+        <template x-if="approvals.length">
+          <div>
+            <p class="rail-label">Waiting on you</p>
+            <a href="/admin/command" @click.prevent="tab.command = 'pipeline'; go('/admin/command')"><span>Approvals</span><span class="count hot" x-text="approvals.length"></span></a>
+          </div>
+        </template>
+        <template x-if="['director','hr','content','purchase'].includes(me.role)">
+          <div><p class="rail-label">Website</p><a href="/admin/"><span>Site admin</span></a></div>
+        </template>
+        <div class="rail-foot">
+          <strong x-text="me.name"></strong>
+          <span x-text="`${me.roleLabel} · ${me.email}`"></span>
+          <button type="button" @click="signOut()">Sign out</button>
+        </div>
+      </nav>
+      <div class="scrim" x-show="railOpen" @click="railOpen = false" style="z-index:44"></div>
+
+      <div class="main">
+        <!-- ===== Command center ===== -->
+        <template x-if="route.ws === 'command'">
+          <div>
+            <header class="topbar">
+              <button class="btn sm menu-toggle" @click="railOpen = true" aria-label="Open navigation">☰</button>
+              <div><h1>Command center</h1><div class="crumbs">Live operations across trading, purchasing, inventory and dispatch</div></div>
+              <span class="spacer"></span>
+              <span class="freshness" :class="stale() && 'stale'" :title="`Pipeline, alerts and approvals refresh every 30 s. KPIs and charts cover ${range.from} → ${range.to}.`"><span class="lamp"></span><span x-text="`Live · updated ${ago(lastRefreshed)}`"></span></span>
+              <div class="row" role="group" aria-label="Date range">
+                <button class="btn sm" @click="setRange(30)">30d</button>
+                <button class="btn sm" @click="setRange(90)">90d</button>
+                <button class="btn sm" @click="setRange(365)">12m</button>
+                <input class="field sm" type="date" x-model="range.from" @change="load()" style="width:132px" aria-label="From">
+                <input class="field sm" type="date" x-model="range.to" @change="load()" style="width:132px" aria-label="To">
+              </div>
+            </header>
+            <div class="page" x-show="command">
+              <section class="kpis" aria-label="Key figures for the selected range">
+                <template x-for="k in [['enquiries','Enquiries received',false],['quotedValue','Quoted (sent)',true],['wonValue','Won (accepted)',true],['conversionPct','Quote conversion',false],['procurementSpend','Procurement spend',true],['deliveries','Shipments delivered',false]]" :key="k[0]">
+                  <div class="kpi">
+                    <div class="label" x-text="k[1]"></div>
+                    <div class="value" x-text="k[0] === 'conversionPct' ? (command.kpis.conversionPct.basis ? `${command.kpis.conversionPct.value}%` : '—') : k[2] ? short(command.kpis[k[0]].value) : command.kpis[k[0]].value"></div>
+                    <div class="delta" :class="delta(command.kpis[k[0]]).cls" x-text="k[0] === 'conversionPct' ? `${command.kpis.conversionPct.basis} decided quotes` : delta(command.kpis[k[0]]).text"></div>
+                  </div>
+                </template>
+              </section>
+              <p class="tiny faint" style="margin:-12px 0 0">Figures cover <span class="mono" x-text="`${range.from} → ${range.to}`"></span>, compared with the previous period of the same length. Pipeline, alerts and approvals below are live.</p>
+
+              <nav class="tabs" role="tablist">
+                <template x-for="t in [['pipeline','Pipeline'],['trading','Trading'],['purchase','Purchasing'],['inventory','Inventory'],['dispatch','Dispatch'],['hr','HR'],['sales','Sales']]" :key="t[0]">
+                  <button class="tab" role="tab" :class="tab.command === t[0] && 'active'" :aria-selected="tab.command === t[0]" @click="tab.command = t[0]">
+                    <span x-text="t[1]"></span>
+                    <span class="num" x-show="t[0] === 'pipeline'" x-text="command.stages.filter((s) => !['delivered','closed'].includes(s.key)).reduce((a, s) => a + s.count, 0)"></span>
+                    <span class="num" x-show="t[0] === 'purchase' && command.modules.purchase.late" x-text="`${command.modules.purchase.late} late`"></span>
+                    <span class="num" x-show="t[0] === 'inventory' && command.modules.inventory.low" x-text="`${command.modules.inventory.low} low`"></span>
+                    <span class="num" x-show="t[0] === 'dispatch' && command.modules.dispatch.exceptions" x-text="`${command.modules.dispatch.exceptions} exc.`"></span>
+                  </button>
+                </template>
+              </nav>
+
+              <!-- Pipeline -->
+              <template x-if="tab.command === 'pipeline'">
+                <div class="stack" style="gap:20px">
+                  <div class="board" aria-label="Enquiry-to-delivery pipeline">
+                    <template x-for="s in command.stages" :key="s.key">
+                      <section class="lane" :aria-label="s.label">
+                        <div class="lane-head">
+                          <div class="mod" x-text="s.module"></div>
+                          <div class="t"><span x-text="s.label"></span><span class="n" x-text="s.count"></span></div>
+                          <div class="v" x-text="s.value ? short(s.value) : '—'"></div>
+                        </div>
+                        <div class="lane-body">
+                          <template x-for="c in s.cards.slice(0, 40)" :key="c.id">
+                            <button class="card" :class="c.pendingApprovals ? 'blocked' : (c.idleDays >= 3 && !['delivered','closed'].includes(c.stage)) ? 'stuck' : ''" @click="openDrawer(c.id)">
+                              <span class="top"><span class="id" x-text="c.number"></span><span class="val" x-text="c.value ? short(c.value) : ''"></span></span>
+                              <span class="who" x-text="c.customer.label"></span>
+                              <span class="meta">
+                                <span x-text="c.order ? c.order.number : c.quotation ? c.quotation.number : c.title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+                                <span style="margin-left:auto" x-text="c.pendingApprovals ? 'approval' : `${c.idleDays}d`" :title="c.pendingApprovals ? 'Waiting for an approval' : 'Days since last activity'"></span>
+                              </span>
+                            </button>
+                          </template>
+                          <div class="lane-empty" x-show="!s.cards.length">Nothing here</div>
+                        </div>
+                      </section>
+                    </template>
+                  </div>
+                  <div class="legend"><span><i style="background:var(--bad)"></i>waiting for approval</span><span><i style="background:var(--wait)"></i>idle 3+ days</span><span>Click any card for its full lifecycle.</span></div>
+
+                  <div class="grid-2">
+                    <section class="panel" id="approvals">
+                      <div class="panel-head"><h2>Approvals</h2><span class="sub" x-text="`${command.approvals.length} waiting`"></span></div>
+                      <div class="panel-body tight">
+                        <template x-for="a in command.approvals" :key="a.id">
+                          <div class="alert" :class="a.ageHours >= 72 ? 'high' : a.ageHours >= 24 ? 'medium' : 'low'">
+                            <span class="sev"></span>
+                            <div><div class="mod" x-text="`${label(a.kind)} · requested by ${a.requestedBy} · ${ago(a.requestedAt)}`"></div><div x-text="a.summary"></div></div>
+                            <div class="row"><button class="btn sm" @click="decide(a, 'reject')">Reject</button><button class="btn sm dark" @click="decide(a, 'approve')">Approve</button></div>
+                          </div>
+                        </template>
+                        <div class="empty" x-show="!command.approvals.length"><strong>Nothing waiting</strong>Quotation reviews, production reallocations and purchase orders appear here.</div>
+                      </div>
+                    </section>
+                    <section class="panel">
+                      <div class="panel-head"><h2>Exceptions</h2><span class="sub">Things that need a person</span><div class="actions"><span class="pill bad plain" x-show="command.alerts.filter((a) => a.severity === 'high').length" x-text="`${command.alerts.filter((a) => a.severity === 'high').length} high`"></span></div></div>
+                      <div class="panel-body tight" style="max-height:360px;overflow-y:auto">
+                        <template x-for="(a, i) in command.alerts" :key="i">
+                          <div class="alert" :class="a.severity">
+                            <span class="sev"></span>
+                            <div><div class="mod" x-text="`${a.module} · ${label(a.type)}`"></div><div x-text="a.message"></div></div>
+                            <button class="btn sm ghost" @click="alertTarget(a)">Open</button>
+                          </div>
+                        </template>
+                        <div class="empty" x-show="!command.alerts.length"><strong>No exceptions</strong>Late suppliers, stock shortfalls, stalled enquiries and dispatch problems show up here.</div>
+                      </div>
+                    </section>
+                  </div>
+
+                  <div class="grid-2">
+                    <section class="panel">
+                      <div class="panel-head"><h2>Where work waits</h2><span class="sub">Average idle days per open stage</span></div>
+                      <div class="panel-body">
+                        <template x-for="b in command.bottlenecks" :key="b.key">
+                          <div class="hbar"><span x-text="b.label"></span><span class="bar"><span :class="b.avgIdleDays >= 3 ? 'wait' : ''" :style="`width:${(b.avgIdleDays / maxOf(command.bottlenecks, 'avgIdleDays')) * 100}%`"></span></span><span class="num small r" x-text="`${b.avgIdleDays}d · ${b.count}`"></span></div>
+                        </template>
+                        <div class="empty" x-show="!command.bottlenecks.length">No open work.</div>
+                      </div>
+                    </section>
+                    <section class="panel">
+                      <div class="panel-head"><h2>Activity</h2><span class="sub">Latest changes, live</span></div>
+                      <ul class="feed" style="max-height:330px;overflow-y:auto">
+                        <template x-for="e in command.activity" :key="e.id">
+                          <li><time x-text="ago(e.at)"></time><div><a href="#" @click.prevent="e.enquiryId && openDrawer(e.enquiryId)" x-text="e.message || `${e.entityType} ${label(e.to)}`" style="text-decoration:none"></a><div class="who" x-text="e.actor"></div></div></li>
+                        </template>
+                      </ul>
+                    </section>
+                  </div>
+                </div>
+              </template>
+
+              <!-- Trading analytics -->
+              <template x-if="tab.command === 'trading'">
+                <div class="grid-2">
+                  <section class="panel">
+                    <div class="panel-head"><h2>Conversion funnel</h2><span class="sub">Enquiries created in range, by furthest stage reached</span></div>
+                    <div class="panel-body">
+                      <template x-for="f in command.funnel" :key="f.key">
+                        <div class="hbar"><span x-text="f.label"></span><span class="bar"><span class="signal" :style="`width:${(f.count / maxOf(command.funnel, 'count')) * 100}%`"></span></span><span class="num small r" x-text="f.count"></span></div>
+                      </template>
+                    </div>
+                  </section>
+                  <section class="panel">
+                    <div class="panel-head"><h2>Quoted vs won</h2><span class="sub">Value excl. GST, by week</span><div class="actions legend"><span><i style="background:var(--ink-4)"></i>quoted</span><span><i style="background:var(--signal)"></i>won</span></div></div>
+                    <div class="panel-body chart" x-html="groupedBars(command.series, [{ key: 'quoted', label: 'Quoted', color: 'var(--ink-4)' }, { key: 'won', label: 'Won', color: 'var(--signal)' }])"></div>
+                  </section>
+                  <section class="panel">
+                    <div class="panel-head"><h2>Enquiries per week</h2></div>
+                    <div class="panel-body chart" x-html="lineChart(command.series, 'enquiries')"></div>
+                  </section>
+                  <section class="panel">
+                    <div class="panel-head"><h2>Trading now</h2><span class="sub">Live</span></div>
+                    <div class="panel-body grid-3">
+                      <div><div class="upper">Open enquiries</div><div class="num" style="font-size:22px" x-text="command.modules.trading.open"></div></div>
+                      <div><div class="upper">With customer</div><div class="num" style="font-size:22px" x-text="command.modules.trading.awaitingCustomer"></div></div>
+                      <div><div class="upper">Orders to confirm</div><div class="num" style="font-size:22px" x-text="command.modules.trading.toConfirm"></div></div>
+                    </div>
+                  </section>
+                </div>
+              </template>
+
+              <!-- Purchasing analytics -->
+              <template x-if="tab.command === 'purchase'">
+                <div class="grid-2">
+                  <section class="panel">
+                    <div class="panel-head"><h2>Procurement spend</h2><span class="sub">Approved purchase orders, landed value by week</span></div>
+                    <div class="panel-body chart" x-html="groupedBars(command.series, [{ key: 'spend', label: 'Spend', color: 'var(--c-prod)' }])"></div>
+                  </section>
+                  <section class="panel">
+                    <div class="panel-head"><h2>Supplier performance</h2><span class="sub">From received purchase orders</span></div>
+                    <div class="table-wrap">
+                      <table class="data">
+                        <thead><tr><th>Supplier</th><th class="r">POs received</th><th class="r">On time</th><th class="r">Avg days</th><th class="r">Spend</th></tr></thead>
+                        <tbody><template x-for="p in command.supplierPerf" :key="p.supplierId"><tr><td x-text="p.supplier"></td><td class="r num" x-text="p.received"></td><td class="r num" x-text="pct(p.onTime)"></td><td class="r num" x-text="p.avgDays ?? '—'"></td><td class="r num" x-text="short(p.spend)"></td></tr></template></tbody>
+                      </table>
+                      <div class="empty" x-show="!command.supplierPerf.length">No purchase orders yet.</div>
+                    </div>
+                  </section>
+                  <section class="panel">
+                    <div class="panel-head"><h2>Purchasing now</h2><span class="sub">Live</span></div>
+                    <div class="panel-body grid-3">
+                      <div><div class="upper">Open requests</div><div class="num" style="font-size:22px" x-text="command.modules.purchase.openRequests"></div></div>
+                      <div><div class="upper">Open POs</div><div class="num" style="font-size:22px" x-text="command.modules.purchase.openOrders"></div></div>
+                      <div><div class="upper">Late deliveries</div><div class="num" style="font-size:22px" :style="command.modules.purchase.late && 'color:var(--bad)'" x-text="command.modules.purchase.late"></div></div>
+                    </div>
+                  </section>
+                </div>
+              </template>
+
+              <!-- Inventory analytics -->
+              <template x-if="tab.command === 'inventory'">
+                <div class="grid-2">
+                  <section class="panel">
+                    <div class="panel-head"><h2>Stock allocation</h2><span class="sub">Live</span></div>
+                    <div class="panel-body stack">
+                      <div class="legend"><span><i style="background:var(--c-prod)"></i>production</span><span><i style="background:var(--c-cust)"></i>customer orders</span><span><i style="background:var(--c-free)"></i>free to promise</span><span><i style="background:var(--c-incoming)"></i>incoming</span></div>
+                      <template x-for="i in command.stockHealth.items" :key="i.id">
+                        <div class="hbar"><span class="mono small" x-text="i.sku"></span><span x-html="stockBar(i.stock)"></span><span class="num small r" x-text="`${qty(i.stock.atp)} free`"></span></div>
+                      </template>
+                      <div class="empty" x-show="!command.stockHealth.items.length">No stock recorded yet.</div>
+                    </div>
+                  </section>
+                  <section class="panel">
+                    <div class="panel-head"><h2>Needs replenishment</h2></div>
+                    <div class="table-wrap">
+                      <table class="data">
+                        <thead><tr><th>Item</th><th class="r">Free</th><th class="r">Incoming</th><th class="r">Prod. short</th><th class="r">Reorder req.</th></tr></thead>
+                        <tbody><template x-for="i in command.stockHealth.low" :key="i.id"><tr><td><span class="mono small" x-text="i.sku"></span></td><td class="r num" x-text="qty(i.stock.atp)"></td><td class="r num" x-text="qty(i.stock.incoming)"></td><td class="r num" x-text="qty(i.stock.productionShortfall)"></td><td class="r num" x-text="qty(i.stock.reorderRequirement)"></td></tr></template></tbody>
+                      </table>
+                      <div class="empty" x-show="!command.stockHealth.low.length">Nothing below reorder level.</div>
+                    </div>
+                  </section>
+                </div>
+              </template>
+
+              <!-- Dispatch analytics -->
+              <template x-if="tab.command === 'dispatch'">
+                <div class="grid-2">
+                  <section class="panel">
+                    <div class="panel-head"><h2>Orders by status</h2><span class="sub" x-text="command.fulfilment.fillRatePct === null ? 'Live' : `Live · ${command.fulfilment.fillRatePct}% of open order quantity reserved or shipped`"></span></div>
+                    <div class="panel-body">
+                      <template x-for="s in command.fulfilment.byStatus" :key="s.status">
+                        <div class="hbar"><span x-text="label(s.status)"></span><span class="bar"><span :style="`width:${(s.count / maxOf(command.fulfilment.byStatus, 'count')) * 100}%`"></span></span><span class="num small r" x-text="s.count"></span></div>
+                      </template>
+                    </div>
+                  </section>
+                  <section class="panel">
+                    <div class="panel-head"><h2>Dispatch exceptions & delays</h2></div>
+                    <div class="panel-body tight">
+                      <template x-for="(a, i) in command.alerts.filter((a) => a.module === 'dispatch')" :key="i">
+                        <div class="alert" :class="a.severity"><span class="sev"></span><div x-text="a.message"></div><button class="btn sm ghost" @click="alertTarget(a)">Open</button></div>
+                      </template>
+                      <div class="empty" x-show="!command.alerts.some((a) => a.module === 'dispatch')">No dispatch problems.</div>
+                    </div>
+                  </section>
+                </div>
+              </template>
+
+              <template x-if="tab.command === 'hr'">
+                <section class="panel">
+                  <div class="panel-head"><h2>HR</h2><span class="sub">Positions and applications are managed in the website admin</span><div class="actions"><a class="btn sm" href="/admin/">Open site admin</a></div></div>
+                  <div class="panel-body" x-show="command.hr">
+                    <div class="grid-3">
+                      <div><div class="upper">Open positions</div><div class="num" style="font-size:22px" x-text="command.hr?.openPositions"></div></div>
+                      <div><div class="upper">Applications in range</div><div class="num" style="font-size:22px" x-text="command.hr?.applicationsInRange"></div></div>
+                      <div><div class="upper">By status</div><template x-for="s in command.hr?.applicationsByStatus || []" :key="s.status"><div class="small"><span x-text="label(s.status)"></span> · <span class="num" x-text="s.count"></span></div></template></div>
+                    </div>
+                  </div>
+                  <div class="empty" x-show="!command.hr">No HR records in this database yet.</div>
+                </section>
+              </template>
+
+              <template x-if="tab.command === 'sales'">
+                <section class="panel reserved">
+                  <h2>Sales — reserved</h2>
+                  <p class="muted">This module is held back until its workflow is defined. Nothing is tracked here yet, so there are no figures to show. Trading currently covers customer enquiries through to accepted orders.</p>
+                </section>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <!-- ===== Trading list ===== -->
+        <template x-if="route.ws === 'trading' && !route.id">
+          <div>
+            <header class="topbar">
+              <button class="btn sm menu-toggle" @click="railOpen = true" aria-label="Open navigation">☰</button>
+              <div><h1>Trading</h1><div class="crumbs">Customer enquiries, quotations and orders</div></div>
+              <span class="spacer"></span>
+              <button class="btn" @click="editCustomer()">New customer</button>
+              <button class="btn primary" @click="newEnquiry()">New enquiry</button>
+            </header>
+            <div class="page" x-show="trading">
+              <nav class="tabs">
+                <button class="tab" :class="tab.trading === 'enquiries' && 'active'" @click="tab.trading = 'enquiries'">Enquiries<span class="num" x-text="trading?.enquiries.length"></span></button>
+                <button class="tab" :class="tab.trading === 'inbox' && 'active'" @click="tab.trading = 'inbox'">Website inbox<span class="num" x-text="trading?.inbox.length"></span></button>
+                <button class="tab" :class="tab.trading === 'customers' && 'active'" @click="tab.trading = 'customers'">Customers<span class="num" x-text="trading?.customers.length"></span></button>
+              </nav>
+              <template x-if="tab.trading === 'enquiries'">
+                <section class="panel">
+                  <div class="panel-head">
+                    <input class="field sm" type="search" placeholder="Search number, customer, subject" x-model="filter.search" style="max-width:280px" aria-label="Search enquiries">
+                    <select class="field sm" x-model="filter.stage" style="max-width:220px" aria-label="Stage">
+                      <option value="">All stages</option>
+                      <template x-for="(n, k) in stageCounts()" :key="k"><option :value="k" x-text="`${label(k)} (${n})`"></option></template>
+                    </select>
+                    <div class="actions"><button class="btn sm" @click="exportCsv('enquiries', filteredDeals(), [['Number', (d) => d.number], ['Customer', (d) => d.customer.label], ['Subject', (d) => d.title], ['Stage', (d) => d.stage], ['Quotation', (d) => d.quotation?.number], ['Order', (d) => d.order?.number], ['Value', (d) => d.value], ['Created', (d) => d.createdAt]])">Export CSV</button></div>
+                  </div>
+                  <div class="table-wrap">
+                    <table class="data">
+                      <thead><tr><th>Enquiry</th><th>Customer</th><th>Subject</th><th>Stage</th><th>Latest record</th><th class="r">Value</th><th>Last activity</th></tr></thead>
+                      <tbody>
+                        <template x-for="d in filteredDeals()" :key="d.id">
+                          <tr class="clickable" @click="go(`/ops/trading/${d.id}`)">
+                            <td class="mono" x-text="d.number"></td>
+                            <td x-text="d.customer.label"></td>
+                            <td x-text="d.title"></td>
+                            <td><span class="pill" :class="stageTone(d.stage)" x-text="label(d.stage)"></span></td>
+                            <td class="small"><span class="mono" x-text="d.order?.number || d.quotation?.number || '—'"></span> <span class="muted" x-text="d.order ? label(d.order.status) : d.quotation ? label(d.quotation.status) : ''"></span></td>
+                            <td class="r num" x-text="d.value === null ? '—' : inr(d.value)"></td>
+                            <td class="small" :class="d.idleDays >= 3 && !['delivered','closed'].includes(d.stage) ? '' : 'muted'" :style="d.idleDays >= 3 && !['delivered','closed'].includes(d.stage) ? 'color:var(--wait)' : ''" x-text="ago(d.lastActivityAt)"></td>
+                          </tr>
+                        </template>
+                      </tbody>
+                    </table>
+                    <div class="empty" x-show="!filteredDeals().length"><strong>No enquiries</strong>Create one, or move a website message in from the inbox.</div>
+                  </div>
+                </section>
+              </template>
+              <template x-if="tab.trading === 'inbox'">
+                <section class="panel">
+                  <div class="panel-head"><h2>Website contact form</h2><span class="sub">Messages not yet moved into trading. HR still sees them in the site admin.</span></div>
+                  <div class="table-wrap">
+                    <table class="data">
+                      <thead><tr><th>Received</th><th>From</th><th>Subject</th><th>Message</th><th></th></tr></thead>
+                      <tbody>
+                        <template x-for="w in trading.inbox" :key="w.id">
+                          <tr><td class="small muted" x-text="date(w.createdAt)"></td><td><div x-text="w.name"></div><div class="small muted" x-text="w.email"></div></td><td x-text="w.subject"></td><td class="small" style="max-width:420px" x-text="w.message.slice(0, 220)"></td><td class="r"><button class="btn sm" @click="importWeb(w)">Move to trading</button></td></tr>
+                        </template>
+                      </tbody>
+                    </table>
+                    <div class="empty" x-show="!trading.inbox.length">Inbox clear.</div>
+                  </div>
+                </section>
+              </template>
+              <template x-if="tab.trading === 'customers'">
+                <section class="panel">
+                  <div class="table-wrap">
+                    <table class="data">
+                      <thead><tr><th>Customer</th><th>Contact</th><th>City</th><th class="r">Enquiries</th><th>Portal</th><th></th></tr></thead>
+                      <tbody>
+                        <template x-for="c in trading.customers" :key="c.id">
+                          <tr><td x-text="c.label"></td><td class="small"><div x-text="c.name"></div><div class="muted" x-text="c.email || c.phone || ''"></div></td><td x-text="c.city || '—'"></td><td class="r num" x-text="c.enquiries"></td><td><span class="pill" :class="c.portalUsers ? 'ok' : ''" x-text="c.portalUsers ? `${c.portalUsers} login` : 'no access'"></span></td><td class="r"><div class="row" style="justify-content:flex-end"><button class="btn sm" @click="invite(c)">Portal access</button><button class="btn sm" @click="newEnquiry(c.id)">Enquiry</button><button class="btn sm ghost" @click="editCustomer(c)">Edit</button></div></td></tr>
+                        </template>
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <!-- ===== Enquiry detail ===== -->
+        <template x-if="route.ws === 'trading' && route.id && enquiry">
+          <div>
+            <header class="topbar">
+              <button class="btn sm menu-toggle" @click="railOpen = true" aria-label="Open navigation">☰</button>
+              <div>
+                <div class="crumbs"><a href="/ops/trading" @click.prevent="go('/ops/trading')">Trading</a> / <span class="mono" x-text="enquiry.enquiry.number"></span></div>
+                <h1 x-text="enquiry.enquiry.title"></h1>
+              </div>
+              <span class="pill" :class="tone(enquiry.enquiry.status)" x-text="label(enquiry.enquiry.status)"></span>
+              <span class="spacer"></span>
+              <template x-if="enquiry.enquiry.status === 'open'">
+                <div class="row">
+                  <button class="btn" @click="editLines()">Edit lines</button>
+                  <button class="btn" @click="requestSourcing()" x-show="can('procurement.request') && enquiry.lines.length">Request sourcing</button>
+                  <button class="btn primary" @click="startQuote(enquiry.quotations[0])" x-show="!quote && enquiry.lines.length && !['in_review','approved','sent'].includes(enquiry.quotations[0]?.status)" x-text="enquiry.quotations[0]?.status === 'draft' ? 'Edit draft' : enquiry.quotations.length ? 'New revision' : 'Draft quotation'"></button>
+                  <button class="btn ghost danger" @click="markLost(enquiry.enquiry)">Mark lost</button>
+                </div>
+              </template>
+            </header>
+            <div class="page">
+              <div class="row small muted">
+                <span>Customer <strong style="color:var(--ink)" x-text="enquiry.customer.label"></strong></span>
+                <span x-show="enquiry.customer.email" x-text="enquiry.customer.email"></span>
+                <span x-text="`via ${enquiry.enquiry.source}`"></span>
+                <span x-show="enquiry.enquiry.dueAt" x-text="`reply due ${date(enquiry.enquiry.dueAt)}`"></span>
+                <span x-show="enquiry.enquiry.owner" x-text="`owner ${enquiry.enquiry.owner}`"></span>
+              </div>
+              <div class="stepper" aria-label="Lifecycle"><template x-for="s in lifecycle(enquiry)" :key="s.label"><div class="step" :class="s.state"><span x-text="s.label"></span><span class="ref" x-text="s.ref"></span></div></template></div>
+              <div class="www" x-data="{ get g() { return guide(enquiry) } }"><div><div class="k">What</div><div class="v" x-text="g.what"></div></div><div><div class="k">Why</div><div class="v" x-text="g.why"></div></div><div><div class="k">How</div><div class="v" x-text="g.how"></div></div></div>
+              <p class="small muted" x-show="enquiry.enquiry.notes" x-text="enquiry.enquiry.notes" style="white-space:pre-wrap;margin:0"></p>
+
+              <!-- Lines + options -->
+              <section class="panel">
+                <div class="panel-head"><h2>Requested items</h2><span class="sub">Live stock position and the ways to serve each line</span><div class="actions legend"><span><i style="background:var(--c-prod)"></i>production</span><span><i style="background:var(--c-cust)"></i>customers</span><span><i style="background:var(--c-free)"></i>free</span><span><i style="background:var(--c-incoming)"></i>incoming</span></div></div>
+                <div class="table-wrap">
+                  <table class="data">
+                    <thead><tr><th>Item</th><th class="r">Qty</th><th class="r">On hand</th><th class="r">Production</th><th class="r">Customers</th><th class="r">Free</th><th class="r">Incoming</th><th>Allocation</th><th x-show="can('cost.view')">Cost basis</th><th></th></tr></thead>
+                    <tbody>
+                      <template x-for="l in enquiry.lines" :key="l.id">
+                        <tr class="clickable" :class="expanded === l.id && 'selected'" @click="expanded = expanded === l.id ? null : l.id">
+                          <td><span class="mono small" x-text="l.item.sku"></span><div class="small muted" x-text="l.item.name"></div></td>
+                          <td class="r num" x-text="qty(l.qty)"></td>
+                          <td class="r num" x-text="qty(l.stock.onHand)"></td>
+                          <td class="r num" x-text="`${qty(l.stock.productionReserved)}/${qty(l.stock.productionRequired)}`" title="allocated / required"></td>
+                          <td class="r num" x-text="qty(l.stock.customerReserved)"></td>
+                          <td class="r num" :style="l.stock.atp < l.qty && 'color:var(--bad)'" x-text="qty(l.stock.atp)"></td>
+                          <td class="r num" x-text="qty(l.stock.incoming)"></td>
+                          <td x-html="stockBar(l.stock)"></td>
+                          <td class="small" x-show="can('cost.view')" x-text="l.costHint ? `${inr(l.costHint.unitCost)} · ${l.costHint.source}${l.costHint.leadTimeDays != null ? ' · ' + l.costHint.leadTimeDays + 'd' : ''}` : 'no cost yet'"></td>
+                          <td class="r small muted" x-text="expanded === l.id ? 'hide' : 'options'"></td>
+                        </tr>
+                      </template>
+                    </tbody>
+                  </table>
+                  <div class="empty" x-show="!enquiry.lines.length"><strong>No items yet</strong>Add the requested part numbers with “Edit lines”.</div>
+                </div>
+                <template x-for="l in enquiry.lines.filter((l) => l.id === expanded)" :key="'o' + l.id">
+                  <div class="panel-body" style="border-top:1px solid var(--rule)">
+                    <div class="upper" style="margin-bottom:8px" x-text="`Ways to serve ${qty(l.qty)} × ${l.item.sku}`"></div>
+                    <div class="options">
+                      <template x-for="o in l.options" :key="o.key">
+                        <div class="option" :class="!o.feasible && 'no'">
+                          <div class="h"><span class="pill" :class="o.feasible ? 'ok' : ''" x-text="o.feasible ? 'possible' : 'not enough'"></span><span x-text="o.label"></span></div>
+                          <div x-text="o.effect"></div>
+                          <div class="small muted" x-show="o.leadTimeDays != null" x-text="`Supplier lead time ${o.leadTimeDays} days`"></div>
+                          <div class="who" x-text="o.approval"></div>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </template>
+              </section>
+
+              <!-- Quotation editor -->
+              <template x-if="quote">
+                <section class="panel" style="border-color:var(--signal)">
+                  <div class="panel-head"><h2 x-text="quote.id ? 'Edit draft quotation' : 'New quotation'"></h2><span class="sub">Supplier cost stays internal; the customer sees prices and totals only.</span></div>
+                  <div class="panel-body stack">
+                    <div class="form-grid">
+                      <label class="lbl">Valid until<input class="field" type="date" x-model="quote.validUntil" required></label>
+                    </div>
+                    <div class="table-wrap">
+                      <table class="data">
+                        <thead><tr><th>Item</th><th class="r">Qty</th><th class="r">Unit price ₹</th><th class="r">Unit cost ₹</th><th class="r">GST %</th><th>Fulfil by</th><th class="r">Margin</th><th></th></tr></thead>
+                        <tbody>
+                          <template x-for="(l, i) in quote.lines" :key="i">
+                            <tr>
+                              <td><select class="field sm" x-model.number="l.itemId" style="min-width:220px"><template x-for="it in catalog.items" :key="it.id"><option :value="it.id" :selected="it.id === l.itemId" x-text="`${it.sku} — ${it.name}`"></option></template></select></td>
+                              <td><input class="field sm num" type="number" min="0" step="any" x-model.number="l.qty" style="width:80px"></td>
+                              <td><input class="field sm num" type="number" min="0" step="any" x-model.number="l.unitPrice" style="width:110px"></td>
+                              <td><input class="field sm num" type="number" min="0" step="any" x-model="l.unitCost" style="width:110px" placeholder="unknown"></td>
+                              <td><input class="field sm num" type="number" min="0" step="any" x-model.number="l.taxRate" style="width:64px"></td>
+                              <td><select class="field sm" x-model="l.source"><option value="stock">Free stock</option><option value="reallocate">Reallocate from production</option><option value="procure">Procure</option></select></td>
+                              <td class="r num small" x-text="l.unitCost === '' || !l.unitPrice ? '—' : `${Math.round(((l.unitPrice - l.unitCost) / l.unitPrice) * 1000) / 10}%`" :style="l.unitCost !== '' && l.unitPrice && l.unitPrice < l.unitCost ? 'color:var(--bad)' : ''"></td>
+                              <td><button class="btn sm ghost" @click="quote.lines.splice(i, 1)" aria-label="Remove line">✕</button></td>
+                            </tr>
+                          </template>
+                        </tbody>
+                      </table>
+                    </div>
+                    <div class="row"><button class="btn sm" @click="quote.lines.push({ itemId: catalog.items[0]?.id, qty: 1, unitPrice: '', unitCost: '', taxRate: 18, source: 'stock' })">Add line</button></div>
+                    <label class="lbl">Terms shown to the customer<textarea class="field" x-model="quote.notes" placeholder="Delivery, payment terms, warranty…"></textarea></label>
+                    <div class="row" style="justify-content:space-between">
+                      <div class="row small" x-data="{ get t() { return quoteTotals() } }">
+                        <span>Subtotal <strong class="num" x-text="inr(t.sub)"></strong></span>
+                        <span>GST <span class="num" x-text="inr(t.tax)"></span></span>
+                        <span>Total <strong class="num" x-text="inr(t.total)"></strong></span>
+                        <span :style="t.marginPct !== null && t.marginPct < 10 ? 'color:var(--bad)' : ''">Margin <strong class="num" x-text="t.marginPct === null ? 'cost incomplete' : `${inr(t.margin)} · ${Math.round(t.marginPct * 10) / 10}%`"></strong></span>
+                      </div>
+                      <div class="row">
+                        <button class="btn ghost" @click="quote = null">Discard</button>
+                        <button class="btn" @click="saveQuote(false)">Save draft</button>
+                        <button class="btn primary" @click="saveQuote(true)">Save & submit for review</button>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </template>
+
+              <!-- Quotations -->
+              <section class="panel" x-show="enquiry.quotations.length">
+                <div class="panel-head"><h2>Quotations</h2><span class="sub" x-text="`${enquiry.quotations.length} version(s)`"></span></div>
+                <template x-for="(q, qi) in enquiry.quotations" :key="q.id">
+                  <div :style="qi && 'border-top:1px solid var(--rule)'">
+                    <div class="panel-body row">
+                      <span class="mono" x-text="q.number"></span>
+                      <span class="pill" :class="tone(q.status)" x-text="label(q.status)"></span>
+                      <span class="small muted" x-text="`valid until ${date(q.validUntil)}`"></span>
+                      <span class="small"><span class="num" x-text="inr(q.totals.total)"></span> incl. GST</span>
+                      <span class="small" x-show="q.totals.marginPct !== undefined" :style="q.totals.marginPct !== null && q.totals.marginPct < 10 ? 'color:var(--bad)' : 'color:var(--ink-3)'" x-text="q.totals.marginPct === null ? 'cost incomplete' : `margin ${q.totals.marginPct}%`"></span>
+                      <span class="small muted" x-show="q.reviewNote" x-text="`review: ${q.reviewNote}`"></span>
+                      <span class="small" x-show="q.customerComment" style="color:var(--signal)" x-text="`customer: ${q.customerComment}`"></span>
+                      <span class="spacer" style="flex:1"></span>
+                      <template x-if="qi === 0 && enquiry.enquiry.status === 'open'">
+                        <div class="row">
+                          <button class="btn sm" x-show="q.status === 'draft' && !quote" @click="startQuote(q)">Edit</button>
+                          <button class="btn sm primary" x-show="q.status === 'draft'" @click="act('quotation.submit', { id: q.id }, 'Submitted for review.')">Submit for review</button>
+                          <button class="btn sm primary" x-show="q.status === 'approved'" @click="act('quotation.send', { id: q.id }, 'Sent to the customer portal.')">Send to customer</button>
+                          <button class="btn sm" x-show="q.status === 'sent'" @click="customerDecision(q)">Record customer decision</button>
+                        </div>
+                      </template>
+                    </div>
+                    <div class="table-wrap" x-show="qi === 0">
+                      <table class="data">
+                        <thead><tr><th>Item</th><th class="r">Qty</th><th class="r">Unit price</th><th class="r" x-show="can('cost.view')">Unit cost</th><th class="r">GST</th><th>Fulfil by</th><th class="r">Amount</th></tr></thead>
+                        <tbody><template x-for="l in q.lines" :key="l.id"><tr><td><span class="mono small" x-text="l.item.sku"></span> <span class="small" x-text="l.item.name"></span></td><td class="r num" x-text="qty(l.qty)"></td><td class="r num" x-text="inr(l.unitPrice)"></td><td class="r num muted" x-show="can('cost.view')" x-text="inr(l.unitCost)"></td><td class="r num" x-text="`${l.taxRate}%`"></td><td class="small" x-text="label(l.source)"></td><td class="r num" x-text="inr(l.amount)"></td></tr></template></tbody>
+                      </table>
+                    </div>
+                  </div>
+                </template>
+              </section>
+
+              <!-- Sourcing -->
+              <section class="panel" x-show="enquiry.sourcing.length">
+                <div class="panel-head"><h2>Sourcing</h2><span class="sub">Requests handled by Purchasing</span><div class="actions"><a class="btn sm" href="/ops/purchase" @click.prevent="go('/ops/purchase')" x-show="can('view.purchase')">Open purchasing</a></div></div>
+                <div class="table-wrap">
+                  <table class="data">
+                    <thead><tr><th>Request</th><th>Item</th><th class="r">Qty</th><th>Reason</th><th>Status</th><th>Best / selected offer</th></tr></thead>
+                    <tbody><template x-for="s in enquiry.sourcing" :key="s.id"><tr>
+                      <td class="mono" x-text="s.number"></td><td class="mono small" x-text="s.item.sku"></td><td class="r num" x-text="qty(s.qty)"></td><td class="small" x-text="label(s.reason)"></td><td><span class="pill" :class="tone(s.status)" x-text="label(s.status)"></span></td>
+                      <td class="small" x-text="(() => { const o = s.offers.find((x) => x.selected) || s.offers[0]; return o ? `${o.supplier} · ${inr(o.landedUnitCost)}/unit landed · ${o.leadTimeDays}d${o.selected ? ' · selected' : ''}` : 'no offers yet'; })()"></td>
+                    </tr></template></tbody>
+                  </table>
+                </div>
+              </section>
+
+              <!-- Order -->
+              <template x-if="enquiry.order">
+                <section class="panel">
+                  <div class="panel-head">
+                    <h2 x-text="`Order ${enquiry.order.number}`"></h2>
+                    <span class="pill" :class="tone(enquiry.order.status)" x-text="label(enquiry.order.status)"></span>
+                    <span class="sub" x-show="enquiry.order.confirmationNote" x-text="enquiry.order.confirmationNote"></span>
+                    <div class="actions">
+                      <button class="btn sm primary" x-show="enquiry.order.status === 'pending_confirmation' && can('order.confirm')" @click="confirmOrder(enquiry.order)">Confirm order</button>
+                      <button class="btn sm ghost danger" x-show="!['cancelled','delivered','dispatched'].includes(enquiry.order.status) && can('order.confirm')" @click="cancelOrder(enquiry.order)">Cancel</button>
+                    </div>
+                  </div>
+                  <div class="table-wrap">
+                    <table class="data">
+                      <thead><tr><th>Item</th><th>Fulfil by</th><th class="r">Ordered</th><th class="r">Reserved</th><th class="r">Shipped</th><th class="r">Delivered</th><th class="r">Not yet in stock</th><th></th></tr></thead>
+                      <tbody><template x-for="l in enquiry.order.lines" :key="l.id"><tr>
+                        <td><span class="mono small" x-text="l.item.sku"></span> <span class="small" x-text="l.item.name"></span></td><td class="small" x-text="label(l.source)"></td>
+                        <td class="r num" x-text="qty(l.qty)"></td><td class="r num" x-text="qty(l.reserved)"></td><td class="r num" x-text="qty(l.dispatched)"></td><td class="r num" x-text="qty(l.delivered)"></td>
+                        <td class="r num" :style="l.outstanding > 0 && 'color:var(--wait)'" x-text="qty(Math.max(0, l.outstanding))"></td>
+                        <td class="r"><span class="small muted" x-show="l.outstanding > 0 && l.uncovered <= 0">on its way</span><div class="row" style="justify-content:flex-end" x-show="l.uncovered > 0 && !['pending_confirmation','cancelled'].includes(enquiry.order.status) && can('order.confirm')"><button class="btn sm" @click="act('order.sourceLine', { lineId: l.id, mode: 'procure' }, (r) => `${r.number || 'Request'} raised.`)" title="Raise a purchase request for whatever is not yet covered">Procure rest</button><button class="btn sm" @click="act('order.sourceLine', { lineId: l.id, mode: 'reallocate' }, 'Reallocation sent for director approval.')" title="Ask a director to release production stock">Ask reallocation</button></div></td>
+                      </tr></template></tbody>
+                    </table>
+                  </div>
+                  <div class="panel-body stack" x-show="enquiry.order.shipments.length" style="border-top:1px solid var(--rule)">
+                    <template x-for="s in enquiry.order.shipments" :key="s.id"><div class="row small"><span class="mono" x-text="s.number"></span><span class="pill" :class="tone(s.status)" x-text="label(s.status)"></span><span x-text="s.lines.map((l) => `${qty(l.qty)} × ${l.item.sku}`).join(', ')"></span><span class="muted" x-text="[s.carrier, s.trackingNo].filter(Boolean).join(' · ')"></span><span class="muted" x-show="s.exceptionNote" x-text="s.exceptionNote"></span></div></template>
+                  </div>
+                </section>
+              </template>
+
+              <div class="grid-2">
+                <section class="panel">
+                  <div class="panel-head"><h2>Approvals</h2></div>
+                  <div class="panel-body tight">
+                    <template x-for="a in enquiry.approvals" :key="a.id"><div class="alert" :class="a.status === 'pending' ? 'medium' : ''"><span class="sev"></span><div><div class="mod" x-text="`${label(a.kind)} · ${label(a.status)}${a.decidedBy ? ' by ' + a.decidedBy : ''}`"></div><div x-text="a.summary"></div><div class="small muted" x-show="a.note" x-text="a.note"></div></div><div class="row" x-show="a.status === 'pending' && can(a.kind === 'purchase_order' ? 'po.approve' : a.kind === 'reallocation' ? 'reallocation.approve' : 'quotation.approve')"><button class="btn sm" @click="decide(a, 'reject')">Reject</button><button class="btn sm dark" @click="decide(a, 'approve')">Approve</button></div></div></template>
+                    <div class="empty" x-show="!enquiry.approvals.length">No approvals yet.</div>
+                  </div>
+                </section>
+                <section class="panel">
+                  <div class="panel-head"><h2>History</h2><div class="actions"><button class="btn sm" @click="addComment(enquiry.enquiry.id)">Add note</button></div></div>
+                  <ul class="feed" style="max-height:420px;overflow-y:auto">
+                    <template x-for="c in enquiry.comments" :key="'c' + c.id"><li><time x-text="time(c.at)"></time><div><span x-text="c.body"></span><div class="who" x-text="`${c.author}${c.internal ? ' · internal' : ' · from customer'}`"></div></div></li></template>
+                    <template x-for="e in enquiry.timeline" :key="e.id"><li><time x-text="time(e.at)"></time><div><span x-text="e.message || `${e.entityType} ${label(e.to)}`"></span><div class="who" x-text="e.actor"></div></div></li></template>
+                  </ul>
+                </section>
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <!-- ===== Purchasing ===== -->
+        <template x-if="route.ws === 'purchase'">
+          <div>
+            <header class="topbar">
+              <button class="btn sm menu-toggle" @click="railOpen = true" aria-label="Open navigation">☰</button>
+              <div><h1>Purchasing</h1><div class="crumbs">Requests, supplier offers, purchase orders and receipts</div></div>
+              <span class="spacer"></span>
+              <button class="btn" @click="editSupplier()">New supplier</button>
+            </header>
+            <div class="page" x-show="purchase">
+              <nav class="tabs">
+                <button class="tab" :class="tab.purchase === 'requests' && 'active'" @click="tab.purchase = 'requests'">Requests<span class="num" x-text="purchase?.requests.filter((r) => !['received','cancelled'].includes(r.status)).length"></span></button>
+                <button class="tab" :class="tab.purchase === 'orders' && 'active'" @click="tab.purchase = 'orders'">Purchase orders<span class="num" x-text="purchase?.orders.filter((o) => ['pending_approval','approved','partially_received'].includes(o.status)).length"></span></button>
+                <button class="tab" :class="tab.purchase === 'suppliers' && 'active'" @click="tab.purchase = 'suppliers'">Suppliers<span class="num" x-text="purchase?.suppliers.length"></span></button>
+              </nav>
+              <template x-if="tab.purchase === 'requests'">
+                <section class="panel">
+                  <div class="panel-head">
+                    <select class="field sm" x-model="filter.status" style="max-width:200px" aria-label="Status"><option value="">All requests</option><option value="active">Open only</option><template x-for="s in ['open','rfq','quoted','selected','ordered','received','cancelled']" :key="s"><option :value="s" x-text="label(s)"></option></template></select>
+                    <span class="sub">Offers are ranked on landed cost (50%), lead time (25%), quantity availability (15%) and on-time record (10%).</span>
+                  </div>
+                  <div class="table-wrap">
+                    <table class="data">
+                      <thead><tr><th>Request</th><th>Item</th><th class="r">Qty</th><th>For</th><th>Status</th><th class="r">Offers</th><th class="r">Best landed</th><th>Needed by</th></tr></thead>
+                      <tbody>
+                        <template x-for="r in filteredRequests()" :key="r.id">
+                          <tr class="clickable" :class="expanded === r.id && 'selected'" @click="expanded = expanded === r.id ? null : r.id">
+                            <td class="mono" x-text="r.number"></td>
+                            <td><span class="mono small" x-text="r.item.sku"></span><div class="small muted" x-text="r.item.name"></div></td>
+                            <td class="r num" x-text="qty(r.qty)"></td>
+                            <td class="small" x-text="r.reason === 'replenish_production' ? 'Production replenishment' : [r.orderNumber, r.enquiryNumber].filter(Boolean).join(' · ') || label(r.reason)"></td>
+                            <td><span class="pill" :class="tone(r.status)" x-text="label(r.status)"></span></td>
+                            <td class="r num" x-text="r.offers.length"></td>
+                            <td class="r num" x-text="r.offers[0] ? inr(r.offers[0].landedUnitCost) : '—'"></td>
+                            <td class="small" x-text="date(r.neededBy)"></td>
+                          </tr>
+                        </template>
+                      </tbody>
+                    </table>
+                    <div class="empty" x-show="!filteredRequests().length"><strong>No requests</strong>Trading and production replenishment raise requests here.</div>
+                  </div>
+                  <template x-for="r in filteredRequests().filter((r) => r.id === expanded)" :key="'x' + r.id">
+                    <div class="panel-body stack" style="border-top:1px solid var(--rule);background:var(--surface-2)">
+                      <div class="row">
+                        <strong class="mono" x-text="r.number"></strong>
+                        <span class="small">Stock now:<span class="num" x-text="`${qty(r.stock.onHand)} on hand · ${qty(r.stock.atp)} free · ${qty(r.stock.incoming)} incoming`"></span></span>
+                        <span class="small muted" x-show="r.rfqs.length" x-text="`RFQ sent to ${r.rfqs.map((x) => x.supplier).join(', ')}`"></span>
+                        <span style="flex:1"></span>
+                        <template x-if="!['ordered','received','cancelled'].includes(r.status)">
+                          <div class="row">
+                            <button class="btn sm" @click="sendRfq(r)">Record RFQ</button>
+                            <button class="btn sm" @click="recordOffer(r)">Record offer</button>
+                            <button class="btn sm primary" x-show="r.status === 'selected'" @click="createPo(r)">Create purchase order</button>
+                          </div>
+                        </template>
+                      </div>
+                      <p class="small muted" x-show="r.selectionNote" x-text="`Selection reason: ${r.selectionNote}`" style="margin:0"></p>
+                      <div class="table-wrap panel" x-show="r.offers.length">
+                        <table class="data">
+                          <thead><tr><th>#</th><th>Supplier</th><th class="r">Unit</th><th class="r">Freight</th><th class="r">Landed / unit</th><th class="r">Landed total</th><th class="r">Lead</th><th class="r">Can supply</th><th>Score</th><th>Notes</th><th></th></tr></thead>
+                          <tbody><template x-for="o in r.offers" :key="o.id"><tr :class="o.selected && 'selected'">
+                            <td class="num" x-text="o.rank"></td><td x-text="o.supplier"></td><td class="r num" x-text="inr(o.unitPrice)"></td><td class="r num" x-text="inr(o.freight)"></td><td class="r num"><strong x-text="inr(o.landedUnitCost)"></strong></td><td class="r num" x-text="inr(o.landedTotal)"></td><td class="r num" x-text="`${o.leadTimeDays}d`"></td><td class="r num" x-text="o.availableQty === null ? '?' : qty(o.availableQty)"></td>
+                            <td><span class="score" :class="o.rank === 1 && 'top'"><span class="track"><span class="fill" :style="`width:${o.score}%`"></span></span><span class="num small" x-text="o.score"></span></span></td>
+                            <td class="small muted" x-text="[...(o.flags || []), o.remarks].filter(Boolean).join(' · ')"></td>
+                            <td class="r"><span class="pill ok" x-show="o.selected">selected</span><button class="btn sm" x-show="!o.selected && ['quoted','selected'].includes(r.status)" @click="selectOffer(r, o)">Select</button></td>
+                          </tr></template></tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </template>
+                </section>
+              </template>
+              <template x-if="tab.purchase === 'orders'">
+                <section class="panel">
+                  <div class="panel-head"><div class="actions"><button class="btn sm" @click="exportCsv('purchase-orders', purchase.orders, [['PO', (o) => o.number], ['Supplier', (o) => o.supplier], ['Item', (o) => o.item.sku], ['Qty', (o) => o.qty], ['Received', (o) => o.received], ['Landed value', (o) => o.value], ['Status', (o) => o.status], ['Expected', (o) => o.expectedAt]])">Export CSV</button></div></div>
+                  <div class="table-wrap">
+                    <table class="data">
+                      <thead><tr><th>PO</th><th>Supplier</th><th>Item</th><th class="r">Received</th><th class="r">Landed value</th><th>Expected</th><th>Status</th><th></th></tr></thead>
+                      <tbody><template x-for="o in purchase.orders" :key="o.id"><tr>
+                        <td class="mono" x-text="o.number"></td><td x-text="o.supplier"></td><td><span class="mono small" x-text="o.item.sku"></span></td>
+                        <td class="r num" x-text="`${qty(o.received)} / ${qty(o.qty)}`"></td><td class="r num" x-text="inr(o.value)"></td>
+                        <td class="small"><span x-text="date(o.expectedAt)" :style="o.overdue && 'color:var(--bad);font-weight:600'"></span><div class="muted" x-show="o.delayNote" x-text="`was ${date(o.originalExpectedAt)}: ${o.delayNote}`"></div></td>
+                        <td><span class="pill" :class="o.overdue ? 'bad' : tone(o.status)" x-text="o.overdue ? 'late' : label(o.status)"></span></td>
+                        <td class="r"><div class="row" style="justify-content:flex-end">
+                          <button class="btn sm primary" x-show="['approved','partially_received'].includes(o.status) && can('po.receive')" @click="receivePo(o)">Receive</button>
+                          <button class="btn sm" x-show="['approved','partially_received','pending_approval'].includes(o.status)" @click="delayPo(o)">Delay</button>
+                          <button class="btn sm ghost danger" x-show="['approved','pending_approval'].includes(o.status) && !o.received" @click="cancelPo(o)">Cancel</button>
+                        </div></td>
+                      </tr></template></tbody>
+                    </table>
+                    <div class="empty" x-show="!purchase.orders.length">No purchase orders yet.</div>
+                  </div>
+                </section>
+              </template>
+              <template x-if="tab.purchase === 'suppliers'">
+                <section class="panel">
+                  <div class="table-wrap">
+                    <table class="data">
+                      <thead><tr><th>Supplier</th><th>Brands</th><th>Terms</th><th class="r">Usual lead</th><th class="r">On time</th><th class="r">Actual avg</th><th class="r">Spend</th><th></th></tr></thead>
+                      <tbody><template x-for="s in purchase.suppliers" :key="s.id"><tr :style="!s.active && 'opacity:.55'">
+                        <td><div x-text="s.name"></div><div class="small muted" x-text="[s.contact, s.email, s.phone].filter(Boolean).join(' · ')"></div></td><td class="small" x-text="s.brands || '—'"></td><td class="small" x-text="s.paymentTerms || '—'"></td>
+                        <td class="r num" x-text="s.leadTimeDays != null ? `${s.leadTimeDays}d` : '—'"></td><td class="r num" x-text="s.stats.received ? pct(s.stats.onTime) : '—'"></td><td class="r num" x-text="s.stats.avgDays != null ? `${s.stats.avgDays}d` : '—'"></td><td class="r num" x-text="short(s.stats.spend)"></td>
+                        <td class="r"><button class="btn sm ghost" @click="editSupplier(s)">Edit</button></td>
+                      </tr></template></tbody>
+                    </table>
+                    <div class="empty" x-show="!purchase.suppliers.length">Add suppliers to start comparing offers.</div>
+                  </div>
+                </section>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <!-- ===== Inventory ===== -->
+        <template x-if="route.ws === 'inventory'">
+          <div>
+            <header class="topbar">
+              <button class="btn sm menu-toggle" @click="railOpen = true" aria-label="Open navigation">☰</button>
+              <div><h1>Inventory</h1><div class="crumbs">One stock pool shared by production and trading</div></div>
+              <span class="spacer"></span>
+              <button class="btn" x-show="can('item.manage')" @click="editItem()">New item</button>
+            </header>
+            <div class="page" x-show="inventory">
+              <nav class="tabs">
+                <button class="tab" :class="tab.inventory === 'stock' && 'active'" @click="tab.inventory = 'stock'">Stock<span class="num" x-text="inventory?.items.length"></span></button>
+                <button class="tab" :class="tab.inventory === 'moves' && 'active'" @click="tab.inventory = 'moves'">Movements ledger</button>
+              </nav>
+              <template x-if="tab.inventory === 'stock'">
+                <section class="panel">
+                  <div class="panel-head">
+                    <input class="field sm" type="search" placeholder="Search SKU, name, brand" x-model="filter.search" style="max-width:260px" aria-label="Search stock">
+                    <select class="field sm" x-model="filter.status" style="max-width:180px" aria-label="Filter"><option value="">All items</option><option value="low">Needs attention</option></select>
+                    <div class="actions legend"><span><i style="background:var(--c-prod)"></i>production</span><span><i style="background:var(--c-cust)"></i>customers</span><span><i style="background:var(--c-free)"></i>free</span><span><i style="background:var(--c-incoming)"></i>incoming</span>
+                      <button class="btn sm" @click="exportCsv('stock', filteredStock(), [['SKU', (i) => i.sku], ['Name', (i) => i.name], ['On hand', (i) => i.stock.onHand], ['Production required', (i) => i.stock.productionRequired], ['Production allocated', (i) => i.stock.productionReserved], ['Customer reserved', (i) => i.stock.customerReserved], ['Free', (i) => i.stock.atp], ['Incoming', (i) => i.stock.incoming], ['Reorder requirement', (i) => i.stock.reorderRequirement]])">Export CSV</button></div>
+                  </div>
+                  <div class="table-wrap">
+                    <table class="data">
+                      <thead><tr><th>Item</th><th class="r">On hand</th><th class="r">Production alloc / req</th><th class="r">Customer reserved</th><th class="r">Free to promise</th><th class="r">Incoming</th><th class="r">Reorder req.</th><th>Allocation</th><th></th></tr></thead>
+                      <tbody><template x-for="i in filteredStock()" :key="i.id"><tr>
+                        <td><span class="mono small" x-text="i.sku"></span><div class="small muted" x-text="[i.name, i.brand].filter(Boolean).join(' · ')"></div></td>
+                        <td class="r num" x-text="`${qty(i.stock.onHand)} ${i.uom}`"></td>
+                        <td class="r num"><span x-text="`${qty(i.stock.productionReserved)} / ${qty(i.stock.productionRequired)}`"></span><div class="small" style="color:var(--bad)" x-show="i.stock.productionShortfall > 0" x-text="`short ${qty(i.stock.productionShortfall)}`"></div></td>
+                        <td class="r num" x-text="qty(i.stock.customerReserved)"></td>
+                        <td class="r num" :style="i.stock.atp <= 0 && 'color:var(--ink-4)'"><strong x-text="qty(i.stock.atp)"></strong></td>
+                        <td class="r num" x-text="qty(i.stock.incoming)"></td>
+                        <td class="r num" :style="i.stock.reorderRequirement > 0 && 'color:var(--wait)'" x-text="qty(i.stock.reorderRequirement)"></td>
+                        <td x-html="stockBar(i.stock)"></td>
+                        <td class="r"><div class="row" style="justify-content:flex-end">
+                          <button class="btn sm" x-show="can('stock.adjust')" @click="countStock(i)">Count</button>
+                          <button class="btn sm" x-show="can('production.plan')" @click="planProduction(i)">Production</button>
+                          <button class="btn sm" x-show="can('production.plan') && i.stock.productionShortfall > 0" @click="act('production.replenish', { itemId: i.id }, (r) => `${r.number} raised for production.`)">Replenish</button>
+                          <button class="btn sm ghost" x-show="can('item.manage')" @click="editItem(i)">Edit</button>
+                        </div></td>
+                      </tr></template></tbody>
+                    </table>
+                    <div class="empty" x-show="!filteredStock().length"><strong>No items</strong>Add catalogue items, then record an opening count.</div>
+                  </div>
+                </section>
+              </template>
+              <template x-if="tab.inventory === 'moves'">
+                <section class="panel">
+                  <div class="panel-head"><h2>Every stock change</h2><span class="sub">Latest 200. Nothing changes stock without a line here.</span></div>
+                  <div class="table-wrap">
+                    <table class="data">
+                      <thead><tr><th>When</th><th>Item</th><th>Movement</th><th class="r">On hand</th><th class="r">Production</th><th class="r">Customer</th><th class="r">Incoming</th><th>Reference</th><th>By</th></tr></thead>
+                      <tbody><template x-for="m in inventory.moves" :key="m.id"><tr>
+                        <td class="small muted" x-text="time(m.at)"></td><td class="mono small" x-text="m.sku"></td><td class="small" x-text="label(m.kind)"></td>
+                        <template x-for="k in ['onHand','production','customer','incoming']" :key="k"><td class="r num" :style="m[k] < 0 ? 'color:var(--bad)' : m[k] > 0 ? 'color:var(--ok)' : 'color:var(--ink-4)'" x-text="m[k] ? (m[k] > 0 ? '+' : '') + qty(m[k]) : '·'"></td></template>
+                        <td class="small muted" x-text="[m.refType && `${label(m.refType)} #${m.refId}`, m.note].filter(Boolean).join(' · ')"></td><td class="small muted" x-text="m.actor"></td>
+                      </tr></template></tbody>
+                    </table>
+                  </div>
+                </section>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <!-- ===== Dispatch ===== -->
+        <template x-if="route.ws === 'dispatch'">
+          <div>
+            <header class="topbar">
+              <button class="btn sm menu-toggle" @click="railOpen = true" aria-label="Open navigation">☰</button>
+              <div><h1>Dispatch</h1><div class="crumbs">Reserved stock → shipment → delivery</div></div>
+            </header>
+            <div class="page" x-show="dispatch">
+              <nav class="tabs">
+                <button class="tab" :class="tab.dispatch === 'ready' && 'active'" @click="tab.dispatch = 'ready'">Ready to plan<span class="num" x-text="readyOrders().length"></span></button>
+                <button class="tab" :class="tab.dispatch === 'moving' && 'active'" @click="tab.dispatch = 'moving'">In progress<span class="num" x-text="shipmentsBy(['planned','packed','shipped','exception']).length"></span></button>
+                <button class="tab" :class="tab.dispatch === 'done' && 'active'" @click="tab.dispatch = 'done'">Delivered<span class="num" x-text="shipmentsBy('delivered').length"></span></button>
+                <button class="tab" :class="tab.dispatch === 'waiting' && 'active'" @click="tab.dispatch = 'waiting'">Waiting for stock<span class="num" x-text="(dispatch?.orders || []).filter((o) => o.lines.some((l) => l.outstanding > 0) && !['cancelled','delivered'].includes(o.status)).length"></span></button>
+              </nav>
+              <template x-if="tab.dispatch === 'ready'">
+                <div class="stack">
+                  <template x-for="o in readyOrders()" :key="o.id">
+                    <section class="panel">
+                      <div class="panel-head"><h3 class="mono" x-text="o.number"></h3><span x-text="o.customer.label"></span><span class="sub" x-text="o.customer.city || ''"></span><span class="pill" :class="tone(o.status)" x-text="label(o.status)"></span><div class="actions"><button class="btn sm primary" @click="planShipment(o)">Plan shipment</button></div></div>
+                      <div class="table-wrap"><table class="data"><thead><tr><th>Item</th><th class="r">Ordered</th><th class="r">Reserved, free to ship</th><th class="r">Shipped</th><th class="r">Not yet in stock</th></tr></thead>
+                        <tbody><template x-for="l in o.lines" :key="l.id"><tr><td><span class="mono small" x-text="l.item.sku"></span> <span class="small" x-text="l.item.name"></span></td><td class="r num" x-text="qty(l.qty - l.cancelled)"></td><td class="r num"><strong x-text="qty(l.freeToDispatch)"></strong></td><td class="r num" x-text="qty(l.dispatched)"></td><td class="r num" :style="l.outstanding > 0 && 'color:var(--wait)'" x-text="qty(Math.max(0, l.outstanding))"></td></tr></template></tbody></table></div>
+                    </section>
+                  </template>
+                  <div class="empty panel" x-show="!readyOrders().length"><strong>Nothing to plan</strong>Orders appear here once their stock is reserved.</div>
+                </div>
+              </template>
+              <template x-if="tab.dispatch === 'moving' || tab.dispatch === 'done'">
+                <section class="panel">
+                  <div class="table-wrap">
+                    <table class="data">
+                      <thead><tr><th>Shipment</th><th>Order / customer</th><th>Items</th><th>Status</th><th>Carrier · tracking</th><th>Dates</th><th></th></tr></thead>
+                      <tbody><template x-for="s in shipmentsBy(tab.dispatch === 'done' ? 'delivered' : ['planned','packed','shipped','exception'])" :key="s.id"><tr>
+                        <td class="mono" x-text="s.number"></td>
+                        <td><span class="mono small" x-text="s.order.number"></span><div class="small" x-text="s.order.customer.label"></div></td>
+                        <td class="small" x-text="s.lines.map((l) => `${qty(l.qty)} × ${l.item.sku}`).join(', ')"></td>
+                        <td><span class="pill" :class="tone(s.status)" x-text="label(s.status)"></span><div class="small" style="color:var(--bad)" x-show="s.exceptionNote && s.status === 'exception'" x-text="s.exceptionNote"></div></td>
+                        <td class="small" x-text="[s.carrier, s.trackingNo].filter(Boolean).join(' · ') || '—'"></td>
+                        <td class="small muted" x-text="s.deliveredAt ? `delivered ${date(s.deliveredAt)}` : s.shippedAt ? `shipped ${date(s.shippedAt)}` : `planned ${date(s.plannedAt)}`"></td>
+                        <td class="r"><div class="row" style="justify-content:flex-end">
+                          <button class="btn sm" x-show="s.status === 'planned'" @click="act('shipment.pack', { id: s.id }, 'Packed.')">Packed</button>
+                          <button class="btn sm primary" x-show="['planned','packed'].includes(s.status)" @click="ship(s)">Ship</button>
+                          <button class="btn sm primary" x-show="s.status === 'shipped' || (s.status === 'exception' && s.exceptionFrom === 'shipped')" @click="deliver(s)">Delivered</button>
+                          <button class="btn sm" x-show="s.status === 'exception'" @click="act('shipment.resolve', { id: s.id }, 'Exception resolved.')">Resolve</button>
+                          <button class="btn sm ghost danger" x-show="['planned','packed','shipped'].includes(s.status)" @click="exception(s)">Exception</button>
+                          <button class="btn sm ghost" x-show="['planned','packed'].includes(s.status)" @click="act('shipment.cancel', { id: s.id }, 'Shipment cancelled.')">Cancel</button>
+                        </div></td>
+                      </tr></template></tbody>
+                    </table>
+                    <div class="empty" x-show="!shipmentsBy(tab.dispatch === 'done' ? 'delivered' : ['planned','packed','shipped','exception']).length">Nothing here.</div>
+                  </div>
+                </section>
+              </template>
+              <template x-if="tab.dispatch === 'waiting'">
+                <section class="panel">
+                  <div class="panel-head"><h2>Confirmed orders still waiting for stock</h2><span class="sub">Purchasing receipts and reallocation approvals fill these automatically.</span></div>
+                  <div class="table-wrap"><table class="data"><thead><tr><th>Order</th><th>Customer</th><th>Item</th><th class="r">Still needed</th></tr></thead>
+                    <tbody><template x-for="row in (dispatch?.orders || []).filter((o) => !['cancelled','delivered'].includes(o.status)).flatMap((o) => o.lines.filter((l) => l.outstanding > 0).map((l) => ({ o, l })))" :key="row.l.id"><tr><td class="mono" x-text="row.o.number"></td><td x-text="row.o.customer.label"></td><td><span class="mono small" x-text="row.l.item.sku"></span></td><td class="r num" x-text="qty(row.l.outstanding)"></td></tr></template></tbody></table></div>
+                </section>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <!-- ===== Sales (reserved) ===== -->
+        <template x-if="route.ws === 'sales'">
+          <div>
+            <header class="topbar"><button class="btn sm menu-toggle" @click="railOpen = true" aria-label="Open navigation">☰</button><div><h1>Sales</h1><div class="crumbs">Reserved</div></div></header>
+            <div class="page"><section class="panel reserved"><h2>Not built yet — on purpose</h2><p class="muted">The sales module is reserved until ACS defines what it should own (for example: key-account planning, project/panel sales, targets). Customer enquiries, quotations and orders already run end to end in Trading.</p></section></div>
+          </div>
+        </template>
+
+        <!-- ===== People ===== -->
+        <template x-if="route.ws === 'people'">
+          <div>
+            <header class="topbar"><button class="btn sm menu-toggle" @click="railOpen = true" aria-label="Open navigation">☰</button><div><h1>People & access</h1><div class="crumbs">One role per person; the server checks every action against it</div></div><span class="spacer"></span><button class="btn primary" @click="editUser()">New person</button></header>
+            <div class="page" x-show="people">
+              <section class="panel">
+                <div class="table-wrap">
+                  <table class="data">
+                    <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Customer</th><th>Last sign-in</th><th>Status</th><th></th></tr></thead>
+                    <tbody>
+                      <tr><td>Director (site admin login)</td><td class="small" x-text="me.id === 0 ? me.email : 'configured in Vercel'"></td><td><span class="pill info">Director</span></td><td>—</td><td class="small muted">—</td><td><span class="pill ok">active</span></td><td class="small muted r">set via environment</td></tr>
+                      <template x-for="u in people.users" :key="u.id"><tr :style="!u.active && 'opacity:.55'"><td x-text="u.name"></td><td class="small" x-text="u.email"></td><td><span class="pill" x-text="people.roles[u.role]?.label || u.role"></span></td><td class="small" x-text="u.customer || '—'"></td><td class="small muted" x-text="u.lastLoginAt ? ago(u.lastLoginAt) : 'never'"></td><td><span class="pill" :class="u.active ? 'ok' : ''" x-text="u.active ? 'active' : 'disabled'"></span></td><td class="r"><button class="btn sm ghost" @click="editUser(u)">Edit</button></td></tr></template>
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+              <section class="panel">
+                <div class="panel-head"><h2>What each role can do</h2></div>
+                <div class="panel-body small grid-3">
+                  <div><strong>Director</strong><p class="muted">Everything. Approves quotations, purchase orders and production reallocations; plans production stock; manages people.</p></div>
+                  <div><strong>Trading</strong><p class="muted">Enquiries, quotations, customer records and portal access; confirms orders; requests sourcing. Sees costs.</p></div>
+                  <div><strong>Purchasing</strong><p class="muted">Suppliers, RFQs, offers, purchase orders, goods receipt and stock counts. Partner registrations in site admin.</p></div>
+                  <div><strong>Dispatch</strong><p class="muted">Plans, ships and delivers reserved stock. Never sees supplier costs.</p></div>
+                  <div><strong>HR / Content & SEO</strong><p class="muted">Website admin only: positions, applications and contact messages / page SEO, blogs, analytics, robots and llms.txt.</p></div>
+                  <div><strong>Customer</strong><p class="muted">Own enquiries, sent quotations, orders and deliveries in the portal. Never sees costs or other customers.</p></div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- ===== Lifecycle drawer ===== -->
+      <template x-if="drawer">
+        <div>
+          <div class="scrim" @click="drawer = null"></div>
+          <aside class="drawer" role="dialog" aria-modal="true" :aria-label="drawer.detail.enquiry.number" @keydown.escape.window="drawer = null">
+            <div class="drawer-head">
+              <div><div class="mono small muted" x-text="`${drawer.detail.enquiry.number} · ${drawer.detail.customer.label}`"></div><strong x-text="drawer.detail.enquiry.title"></strong></div>
+              <span class="spacer" style="flex:1"></span>
+              <a class="btn sm" :href="`/ops/trading/${drawer.id}`" @click.prevent="go(`/ops/trading/${drawer.id}`)" x-show="can('view.trading')">Open record</a>
+              <button class="btn sm ghost" @click="drawer = null" aria-label="Close">✕</button>
+            </div>
+            <div class="drawer-body">
+              <div class="stepper"><template x-for="s in lifecycle(drawer.detail)" :key="s.label"><div class="step" :class="s.state"><span x-text="s.label"></span><span class="ref" x-text="s.ref"></span></div></template></div>
+              <div class="www" x-data="{ get g() { return guide(drawer.detail) } }" style="grid-template-columns:1fr"><div><div class="k">What</div><div class="v" x-text="g.what"></div></div><div><div class="k">Why</div><div class="v" x-text="g.why"></div></div><div><div class="k">How</div><div class="v" x-text="g.how"></div></div></div>
+              <section class="panel">
+                <div class="panel-head"><h3>Items</h3></div>
+                <div class="table-wrap"><table class="data"><thead><tr><th>Item</th><th class="r">Qty</th><th class="r">Free</th><th>Allocation</th></tr></thead>
+                  <tbody><template x-for="l in drawer.detail.lines" :key="l.id"><tr><td><span class="mono small" x-text="l.item.sku"></span></td><td class="r num" x-text="qty(l.qty)"></td><td class="r num" x-text="qty(l.stock.atp)"></td><td x-html="stockBar(l.stock)"></td></tr></template></tbody></table></div>
+              </section>
+              <template x-if="drawer.detail.order">
+                <section class="panel">
+                  <div class="panel-head"><h3 x-text="drawer.detail.order.number"></h3><span class="pill" :class="tone(drawer.detail.order.status)" x-text="label(drawer.detail.order.status)"></span><span class="sub num" x-text="inr(drawer.detail.order.totals.subtotal)"></span></div>
+                  <div class="table-wrap"><table class="data"><thead><tr><th>Item</th><th class="r">Ordered</th><th class="r">Reserved</th><th class="r">Shipped</th><th class="r">Delivered</th></tr></thead>
+                    <tbody><template x-for="l in drawer.detail.order.lines" :key="l.id"><tr><td class="mono small" x-text="l.item.sku"></td><td class="r num" x-text="qty(l.qty)"></td><td class="r num" x-text="qty(l.reserved)"></td><td class="r num" x-text="qty(l.dispatched)"></td><td class="r num" x-text="qty(l.delivered)"></td></tr></template></tbody></table></div>
+                </section>
+              </template>
+              <section class="panel" x-show="drawer.detail.sourcing.length">
+                <div class="panel-head"><h3>Purchasing</h3></div>
+                <div class="panel-body stack small"><template x-for="s in drawer.detail.sourcing" :key="s.id"><div class="row"><span class="mono" x-text="s.number"></span><span class="pill" :class="tone(s.status)" x-text="label(s.status)"></span><span x-text="`${qty(s.qty)} × ${s.item.sku}`"></span><span class="muted" x-text="(s.offers.find((o) => o.selected) || {}).supplier || `${s.offers.length} offer(s)`"></span></div></template></div>
+              </section>
+              <section class="panel" x-show="drawer.detail.approvals.some((a) => a.status === 'pending')">
+                <div class="panel-head"><h3>Waiting for approval</h3></div>
+                <template x-for="a in drawer.detail.approvals.filter((a) => a.status === 'pending')" :key="a.id"><div class="alert medium"><span class="sev"></span><div x-text="a.summary"></div><div class="row"><button class="btn sm" @click="decide(a, 'reject')">Reject</button><button class="btn sm dark" @click="decide(a, 'approve')">Approve</button></div></div></template>
+              </section>
+              <section class="panel">
+                <div class="panel-head"><h3>Full history</h3></div>
+                <ul class="feed"><template x-for="e in drawer.detail.timeline" :key="e.id"><li><time x-text="time(e.at)"></time><div><span x-text="e.message || `${e.entityType} ${label(e.to)}`"></span><div class="who" x-text="e.actor"></div></div></li></template></ul>
+              </section>
+            </div>
+          </aside>
+        </div>
+      </template>
+    </div>
+  </template>
+
+  <!-- ============ Modals ============ -->
+  <template x-if="modal">
+    <div @keydown.escape.window="modal = null">
+      <div class="scrim" style="z-index:51" @click="modal = null"></div>
+
+      <template x-if="modal.kind === 'form'">
+        <form class="modal" role="dialog" aria-modal="true" :aria-label="modal.title" @submit.prevent="submitForm()">
+          <div class="modal-head"><h2 x-text="modal.title"></h2><p class="small muted" x-show="modal.intro" x-text="modal.intro" style="margin:6px 0 0"></p></div>
+          <div class="modal-body">
+            <template x-for="f in modal.fields" :key="f.name">
+              <div>
+                <template x-if="f.type === 'textarea'"><label class="lbl"><span x-text="f.label + (f.required ? ' *' : '')"></span><textarea class="field" x-model="modal.values[f.name]" :placeholder="f.placeholder || ''"></textarea></label></template>
+                <template x-if="f.type === 'select'"><label class="lbl"><span x-text="f.label + (f.required ? ' *' : '')"></span><select class="field" x-model="modal.values[f.name]"><template x-for="o in f.options" :key="o[0]"><option :value="o[0]" :selected="String(o[0]) === String(modal.values[f.name])" x-text="o[1]"></option></template></select></label></template>
+                <template x-if="f.type === 'checkbox'"><label class="row small"><input type="checkbox" x-model="modal.values[f.name]"><span x-text="f.label"></span></label></template>
+                <template x-if="f.type === 'checks'"><fieldset class="stack" style="border:0;padding:0;margin:0;gap:6px"><legend class="lbl" style="margin-bottom:6px" x-text="f.label + (f.required ? ' *' : '')"></legend><template x-for="o in f.options" :key="o[0]"><label class="row small"><input type="checkbox" :checked="modal.values[f.name].includes(o[0])" @change="toggleCheck(f.name, o[0])"><span x-text="o[1]"></span></label></template><span class="hint" x-show="!f.options.length">None set up yet.</span></fieldset></template>
+                <template x-if="!['textarea','select','checkbox','checks'].includes(f.type)"><label class="lbl"><span x-text="f.label + (f.required ? ' *' : '')"></span><input class="field" :type="f.type || 'text'" :step="f.type === 'number' ? 'any' : null" x-model="modal.values[f.name]" :placeholder="f.placeholder || ''"></label></template>
+              </div>
+            </template>
+            <p class="err" x-show="modal.error" x-text="modal.error" role="alert"></p>
+          </div>
+          <div class="modal-foot"><button type="button" class="btn ghost" @click="modal = null">Cancel</button><button type="submit" class="btn" :class="modal.danger ? 'dark' : 'primary'" :disabled="modal.busy" x-text="modal.busy ? 'Working…' : modal.submit"></button></div>
+        </form>
+      </template>
+
+      <template x-if="modal.kind === 'enquiry' || modal.kind === 'lines'">
+        <form class="modal" role="dialog" aria-modal="true" @submit.prevent="modal.kind === 'enquiry' ? saveEnquiry() : saveLines()">
+          <div class="modal-head"><h2 x-text="modal.kind === 'enquiry' ? 'New enquiry' : 'Requested items'"></h2></div>
+          <div class="modal-body">
+            <template x-if="modal.kind === 'enquiry'">
+              <div class="stack">
+                <label class="lbl">Customer *<select class="field" x-model.number="modal.data.customerId" required><option value="">Choose…</option><template x-for="c in catalog.customers" :key="c.id"><option :value="c.id" :selected="c.id === modal.data.customerId" x-text="c.label"></option></template></select></label>
+                <span class="hint">Not listed? Close this and use “New customer”.</span>
+                <label class="lbl">Subject *<input class="field" x-model="modal.data.title" required placeholder="e.g. PLC + HMI for MEE plant"></label>
+                <div class="form-grid">
+                  <label class="lbl">Received via<select class="field" x-model="modal.data.source"><option value="manual">Direct</option><option value="email">Email</option><option value="phone">Phone</option><option value="website">Website</option></select></label>
+                  <label class="lbl">Reply due<input class="field" type="date" x-model="modal.data.dueAt"></label>
+                </div>
+                <label class="lbl">Notes<textarea class="field" x-model="modal.data.notes"></textarea></label>
+              </div>
+            </template>
+            <div class="upper">Items</div>
+            <template x-for="(l, i) in modal.data.lines" :key="i">
+              <div class="row" style="flex-wrap:nowrap">
+                <select class="field sm" x-model.number="l.itemId" aria-label="Item"><option value="">Choose item…</option><template x-for="it in catalog.items" :key="it.id"><option :value="it.id" :selected="it.id === l.itemId" x-text="`${it.sku} — ${it.name}`"></option></template></select>
+                <input class="field sm num" type="number" min="0" step="any" x-model.number="l.qty" style="width:90px" aria-label="Quantity">
+                <button type="button" class="btn sm ghost" @click="modal.data.lines.splice(i, 1)" aria-label="Remove">✕</button>
+              </div>
+            </template>
+            <div class="row"><button type="button" class="btn sm" @click="modal.data.lines.push({ itemId: '', qty: 1 })">Add item</button><span class="hint" x-show="!catalog.items.length">The catalogue is empty — add items in Inventory first.</span></div>
+          </div>
+          <div class="modal-foot"><button type="button" class="btn ghost" @click="modal = null">Cancel</button><button class="btn primary" type="submit" :disabled="loading">Save</button></div>
+        </form>
+      </template>
+
+      <template x-if="modal.kind === 'sourcing'">
+        <form class="modal" role="dialog" aria-modal="true" @submit.prevent="saveSourcing()">
+          <div class="modal-head"><h2>Request sourcing</h2><p class="small muted" style="margin:6px 0 0">Purchasing collects supplier offers; the selected landed cost and lead time come back to this enquiry.</p></div>
+          <div class="modal-body">
+            <div class="form-grid">
+              <label class="lbl">Why<select class="field" x-model="modal.data.reason"><option value="shortfall">Not enough free stock</option><option value="pricing">Need supplier price only</option></select></label>
+              <label class="lbl">Needed by<input class="field" type="date" x-model="modal.data.neededBy"></label>
+            </div>
+            <template x-for="l in modal.data.lines" :key="l.itemId"><label class="row" style="flex-wrap:nowrap"><input type="checkbox" x-model="l.pick"><span style="flex:1" class="small" x-text="l.label"></span><input class="field sm num" type="number" min="0" step="any" x-model.number="l.qty" style="width:90px" aria-label="Quantity"></label></template>
+          </div>
+          <div class="modal-foot"><button type="button" class="btn ghost" @click="modal = null">Cancel</button><button class="btn primary" type="submit" :disabled="loading || !modal.data.lines.some((l) => l.pick)">Send to Purchasing</button></div>
+        </form>
+      </template>
+
+      <template x-if="modal.kind === 'shipment'">
+        <form class="modal" role="dialog" aria-modal="true" @submit.prevent="saveShipment()">
+          <div class="modal-head"><h2 x-text="`Plan shipment · ${modal.data.number}`"></h2><p class="small muted" style="margin:6px 0 0" x-text="modal.data.customer.label"></p></div>
+          <div class="modal-body">
+            <template x-for="l in modal.data.lines" :key="l.orderLineId"><div class="row" style="flex-wrap:nowrap"><span style="flex:1" class="small" x-text="l.label"></span><span class="small muted" x-text="`max ${qty(l.max)}`"></span><input class="field sm num" type="number" min="0" :max="l.max" step="any" x-model.number="l.qty" style="width:90px" aria-label="Quantity"></div></template>
+            <div class="form-grid">
+              <label class="lbl">Ship from<input class="field" x-model="modal.data.warehouse"></label>
+              <label class="lbl">Carrier (if known)<input class="field" x-model="modal.data.carrier"></label>
+              <label class="lbl">Planned date<input class="field" type="date" x-model="modal.data.plannedAt"></label>
+            </div>
+          </div>
+          <div class="modal-foot"><button type="button" class="btn ghost" @click="modal = null">Cancel</button><button class="btn primary" type="submit" :disabled="loading">Plan shipment</button></div>
+        </form>
+      </template>
+
+      <template x-if="modal.kind === 'secret'">
+        <div class="modal" role="dialog" aria-modal="true">
+          <div class="modal-head"><h2 x-text="modal.data.title"></h2><p class="small muted" style="margin:6px 0 0">Shown once. Copy it now and share it privately; only a hash is stored.</p></div>
+          <div class="modal-body"><template x-for="row in modal.data.lines" :key="row[0]"><label class="lbl"><span x-text="row[0]"></span><div class="secret" x-text="row[1]"></div></label></template></div>
+          <div class="modal-foot"><button class="btn primary" @click="modal = null">Done</button></div>
+        </div>
+      </template>
+    </div>
+  </template>
+</body>
+</html>

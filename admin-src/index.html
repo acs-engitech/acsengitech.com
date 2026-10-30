@@ -91,6 +91,17 @@
           <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.5 3.25C4.257 3.25 3.25 4.257 3.25 5.5V9c0 1.243 1.007 2.25 2.25 2.25h3.5c1.243 0 2.25-1.007 2.25-2.25V5.5c0-1.243-1.007-2.25-2.25-2.25h-3.5Zm9 0c-1.243 0-2.25 1.007-2.25 2.25V9c0 1.243 1.007 2.25 2.25 2.25h3.5c1.243 0 2.25-1.007 2.25-2.25V5.5c0-1.243-1.007-2.25-2.25-2.25h-3.5ZM5.5 12.75c-1.243 0-2.25 1.007-2.25 2.25v3.5c0 1.243 1.007 2.25 2.25 2.25h3.5c1.243 0 2.25-1.007 2.25-2.25V15c0-1.243-1.007-2.25-2.25-2.25h-3.5Zm9 0c-1.243 0-2.25 1.007-2.25 2.25v3.5c0 1.243 1.007 2.25 2.25 2.25h3.5c1.243 0 2.25-1.007 2.25-2.25V15c0-1.243-1.007-2.25-2.25-2.25h-3.5Z"/></svg>
           <span class="flex flex-col"><span class="text-sm font-medium">Overview</span><small class="text-xs font-normal text-gray-400">Board summary</small></span>
         </button>
+        <div class="ops-nav" data-ops-nav hidden>
+          <p class="nav-group-label">Business operations</p>
+          <a class="nav-btn group" href="/admin/command">
+            <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M4 4.75A.75.75 0 0 1 4.75 4h3.5a.75.75 0 0 1 .75.75v14.5a.75.75 0 0 1-.75.75h-3.5a.75.75 0 0 1-.75-.75V4.75Zm6.25 0a.75.75 0 0 1 .75-.75h3.5a.75.75 0 0 1 .75.75v9.5a.75.75 0 0 1-.75.75H11a.75.75 0 0 1-.75-.75v-9.5Zm6.25 0a.75.75 0 0 1 .75-.75h1.5a1.25 1.25 0 0 1 1.25 1.25v6a.75.75 0 0 1-.75.75h-2a.75.75 0 0 1-.75-.75V4.75Z"/></svg>
+            <span class="flex flex-col"><span class="text-sm font-medium">Command center</span><small class="text-xs font-normal text-gray-400">Pipeline, stock, approvals</small></span>
+          </a>
+          <a class="nav-btn group" href="/ops/trading">
+            <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M4.25 7A2.75 2.75 0 0 1 7 4.25h10A2.75 2.75 0 0 1 19.75 7v10A2.75 2.75 0 0 1 17 19.75H7A2.75 2.75 0 0 1 4.25 17V7Zm4 2a.75.75 0 0 0 0 1.5h7.5a.75.75 0 0 0 0-1.5h-7.5Zm0 4a.75.75 0 0 0 0 1.5h4.5a.75.75 0 0 0 0-1.5h-4.5Z"/></svg>
+            <span class="flex flex-col"><span class="text-sm font-medium">Trading · Purchase · Dispatch</span><small class="text-xs font-normal text-gray-400">Operational workspaces</small></span>
+          </a>
+        </div>
         <p class="nav-group-label">Content</p>
         <button class="nav-btn group" data-tab="seo" type="button" :class="{ active: activeTab === 'seo' }" @click="selectTab('seo')">
           <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.5 4.75a5.75 5.75 0 1 0 0 11.5 5.75 5.75 0 0 0 0-11.5ZM3.25 10.5a7.25 7.25 0 1 1 12.98 4.44l3.415 3.415a.75.75 0 1 1-1.06 1.06l-3.416-3.414A7.25 7.25 0 0 1 3.25 10.5Z"/></svg>

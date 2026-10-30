@@ -4,7 +4,7 @@
 // Kept dependency-free so it can also be loaded directly by the tests.
 
 export const config = {
-  matcher: ['/((?!api/|assets/|admin/|_vercel/|.*\\.(?:css|js|mjs|json|xml|txt|md|png|jpe?g|gif|svg|webp|avif|ico|ttf|otf|woff2?|mp4|webm|pdf|glb|gltf|bin|map)$).*)'],
+  matcher: ['/((?!api/|assets/|admin/|ops/|portal/|_vercel/|.*\\.(?:css|js|mjs|json|xml|txt|md|png|jpe?g|gif|svg|webp|avif|ico|ttf|otf|woff2?|mp4|webm|pdf|glb|gltf|bin|map)$).*)'],
 };
 
 const MARKDOWN = new Set(['text/markdown', 'text/x-markdown']);

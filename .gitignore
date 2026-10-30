@@ -18,3 +18,7 @@ Obsidian/
 .admin-*-report.md
 .frontend-*-report.md
 .scratch/
+
+# Local embedded database for the operations platform
+.data/
+/ops/
