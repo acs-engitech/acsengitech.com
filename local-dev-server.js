@@ -8,6 +8,9 @@ const port = Number(process.env.PORT || 3000);
 loadEnv('.env');
 loadEnv('.env.local');
 
+// Without a Neon URL the operations platform runs on an embedded Postgres under .data/ (see lib/ops/db.js).
+if (!['NEON_DATABASE_URL', 'DATABASE_URL', 'POSTGRES_URL'].some((name) => process.env[name])) process.env.ACS_OPS_PGLITE_DIR ||= path.join(root, '.data', 'ops-pglite');
+
 const apiRoutes = {
   '/api/admin': './api/admin',
   '/api/public': './api/public',
@@ -21,6 +24,7 @@ const apiRoutes = {
   '/api/sitemap': './api/sitemap',
   '/sitemap.xml': './api/sitemap',
   '/api/markdown': './api/markdown',
+  '/api/ops': './api/ops',
 };
 
 // Mirrors vercel.json redirects and middleware.js so local runs match production routing.
@@ -92,8 +96,17 @@ async function handleApi(route, req, res, parsedUrl) {
   }
 }
 
+// Operations platform routes (vercel.json): any /ops, /portal or /admin/command path that is not a built file.
+function opsRewrite(pathname) {
+  if (pathname === '/admin/command' || /^\/(ops|portal)(\/|$)/.test(pathname)) {
+    const file = safePath(pathname);
+    if (!file || !fs.existsSync(file) || fs.statSync(file).isDirectory()) return '/ops/index.html';
+  }
+  return null;
+}
+
 function serveStatic(req, res, parsedUrl) {
-  const pathname = rewrites[parsedUrl.pathname] || parsedUrl.pathname;
+  const pathname = rewrites[parsedUrl.pathname] || opsRewrite(parsedUrl.pathname) || parsedUrl.pathname;
   let fullPath = safePath(pathname);
   if (fullPath && !fs.existsSync(fullPath) && fs.existsSync(fullPath + ".html")) {
     fullPath = fullPath + ".html";

@@ -1,11 +1,21 @@
 const store = require('./_store');
 const { summarizeAnalytics } = require('../lib/admin-core');
-const crypto = require('node:crypto');
+const { hashPassword, safeEqual, configuredEmail, configuredHash, signSession, verifySession } = require('../lib/admin-credentials');
+const { can } = require('../lib/ops/rbac');
+const opsDb = require('../lib/ops/db');
+const opsAuth = require('../lib/ops/auth');
 
-// Default sign-in (ACS_ADMIN_EMAIL / ACS_ADMIN_PASSWORD_HASH or ACS_ADMIN_PASSWORD override it). Only the SHA-256 hash is stored.
-const DEFAULT_ADMIN_EMAIL = 'acsengitech@gmail.com';
-const DEFAULT_ADMIN_PASSWORD_HASH = '06b61aecf910f8007c9a0d7e0b0fcd7f6be95b29fb5a5fea8f158d5cc6e69598';
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
+
+// Which /admin sections each permission opens. The superadmin (directors) sees everything; HR, Content
+// and Purchasing staff signing in with their own accounts see only their sections, and the server
+// filters data and rejects writes outside them.
+const SECTIONS = {
+  'admin.content': ['seo', 'blogs', 'analytics', 'settings', 'llms'],
+  'admin.hr': ['positions', 'enquiries', 'applications'],
+  'admin.partners': ['partners'],
+};
+const ADMIN_ROLES = ['director', 'hr', 'content', 'purchase'];
 
 function send(res, status, payload) {
   res.statusCode = status;
@@ -13,68 +23,62 @@ function send(res, status, payload) {
   res.end(JSON.stringify(payload));
 }
 
-function configuredHash() {
-  return process.env.ACS_ADMIN_PASSWORD_HASH || hashPassword(process.env.ACS_ADMIN_PASSWORD || '') || DEFAULT_ADMIN_PASSWORD_HASH;
-}
-
-// Session secret: dedicated ACS_ADMIN_SESSION_SECRET is recommended (see admin-src/README.md),
-// but falls back to the configured password hash so session signing works with zero new config.
-function sessionSecret() {
-  return process.env.ACS_ADMIN_SESSION_SECRET || configuredHash();
-}
-
-function signSession(email, expiresAt) {
-  const payload = Buffer.from(JSON.stringify({ email, expiresAt })).toString('base64url');
-  const sig = crypto.createHmac('sha256', sessionSecret()).update(payload).digest('base64url');
-  return `${payload}.${sig}`;
-}
-
-function verifySession(token) {
-  if (!token || typeof token !== 'string') return null;
-  const [payload, sig] = token.split('.');
-  if (!payload || !sig) return null;
-  const expectedSig = crypto.createHmac('sha256', sessionSecret()).update(payload).digest('base64url');
-  if (!safeEqual(sig, expectedSig)) return null;
+// Staff accounts live in the operations database; it is only consulted when one is configured.
+async function opsUser(fn) {
+  if (!opsDb.isConfigured()) return null;
   try {
-    const { email, expiresAt } = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
-    if (!email || !expiresAt || Date.now() >= expiresAt) return null;
-    return email;
-  } catch {
-    return null;
+    const user = await fn(await opsDb.getDb());
+    return user && ADMIN_ROLES.includes(user.role) ? user : null;
+  } catch (error) {
+    if (error.status === 401) return null;
+    throw error;
   }
 }
 
-// Returns { ok, viaPassword, email } instead of a plain boolean so the caller knows whether a
-// fresh session token should be minted (a real login via the password path).
-function authorized(req) {
-  const configuredEmail = process.env.ACS_ADMIN_EMAIL || DEFAULT_ADMIN_EMAIL;
-
+// Returns { ok, user, legacy } so the caller knows which kind of session token to mint.
+async function authorized(req) {
   const sessionToken = String(req.headers['x-admin-session'] || '');
-  if (sessionToken) {
+  if (sessionToken.startsWith(opsAuth.TOKEN_PREFIX)) {
+    const user = await opsUser((db) => opsAuth.userFromToken(db, sessionToken));
+    if (user) return { ok: true, user };
+  } else if (sessionToken) {
     const email = verifySession(sessionToken);
-    if (email && email === configuredEmail.toLowerCase()) return { ok: true, viaPassword: false, email };
+    if (email && email === configuredEmail()) return { ok: true, legacy: true, user: opsAuth.superadminUser() };
   }
 
   const email = String(req.headers['x-admin-email'] || '').trim().toLowerCase();
   const password = String(req.headers['x-admin-password'] || '');
-  if (email === configuredEmail.toLowerCase() && safeEqual(hashPassword(password), configuredHash())) {
-    return { ok: true, viaPassword: true, email };
+  if (!email || !password) return { ok: false };
+  if (email === configuredEmail() && safeEqual(hashPassword(password), configuredHash())) {
+    return { ok: true, legacy: true, user: opsAuth.superadminUser() };
   }
-
-  return { ok: false };
+  const user = await opsUser((db) => opsAuth.login(db, email, password));
+  return user ? { ok: true, user } : { ok: false };
 }
 
-function hashPassword(password) {
-  if (!password) return '';
-  return crypto.createHash('sha256').update(password).digest('hex');
+function sectionsFor(user) {
+  return Object.entries(SECTIONS).filter(([permission]) => can(user, permission)).flatMap(([, sections]) => sections);
 }
 
-function safeEqual(left, right) {
-  if (!left || !right || left.length !== right.length) return false;
-  return crypto.timingSafeEqual(Buffer.from(left), Buffer.from(right));
+function scopeData(data, user) {
+  if (user.role === 'director') return data;
+  const scoped = { settings: data.settings };
+  if (can(user, 'admin.content')) Object.assign(scoped, { pages: data.pages, posts: data.posts });
+  if (can(user, 'admin.hr')) Object.assign(scoped, { positions: data.positions, positionTypes: data.positionTypes, jobs: data.jobs, applications: data.applications, enquiries: data.enquiries });
+  if (can(user, 'admin.partners')) Object.assign(scoped, { partners: data.partners, partnerCategories: data.partnerCategories });
+  return scoped;
 }
 
-async function runAction(payload) {
+const SAVE_PERMISSION = { pageSeo: 'admin.content', posts: 'admin.content', settings: 'admin.content', jobs: 'admin.hr', positions: 'admin.hr', positionTypes: 'admin.hr', partnerCategories: 'admin.partners' };
+const ACTION_PERMISSION = { application: 'admin.hr', enquiry: 'admin.hr', partner: 'admin.partners' };
+
+function forbidden(message) {
+  return Object.assign(new Error(message), { status: 403 });
+}
+
+async function runAction(payload, user) {
+  const permission = ACTION_PERMISSION[String(payload.action).split('.')[0]];
+  if (permission && !can(user, permission)) throw forbidden('Your role cannot change these records');
   switch (payload.action) {
     case 'application.update':
       return store.updateApplication(payload.id, payload.patch || {});
@@ -95,22 +99,26 @@ async function runAction(payload) {
 
 module.exports = async function handler(req, res) {
   try {
-    const auth = authorized(req);
+    const auth = await authorized(req);
     if (!auth.ok) return send(res, 401, { error: 'Invalid admin email or password' });
+    const { user } = auth;
 
     // A fresh session token is minted on every successful request (simplest sliding-window
     // design: it both establishes the session after a password login and extends it on reuse).
     const sessionExpiresAt = Date.now() + SESSION_TTL_MS;
-    const sessionFields = { sessionToken: signSession(auth.email, sessionExpiresAt), sessionExpiresAt };
+    const sessionFields = auth.legacy
+      ? { sessionToken: signSession(user.email, sessionExpiresAt), sessionExpiresAt }
+      : (({ token, expiresAt }) => ({ sessionToken: token, sessionExpiresAt: expiresAt }))(opsAuth.issueToken(user));
+    const access = { role: user.role, name: user.name, sections: user.role === 'director' ? 'all' : sectionsFor(user) };
 
     if (req.method === 'GET') {
       const days = Number(req.query?.days || 30);
       const [data, analyticsRows] = await Promise.all([
         store.getAll(),
-        store.getAnalytics(days),
+        can(user, 'admin.content') ? store.getAnalytics(days) : [],
       ]);
-      const analytics = summarizeAnalytics(analyticsRows, new Date(), days);
-      return send(res, 200, { ...data, analytics, ...sessionFields });
+      const analytics = can(user, 'admin.content') ? summarizeAnalytics(analyticsRows, new Date(), days) : undefined;
+      return send(res, 200, { ...scopeData(data, user), analytics, access, ...sessionFields });
     }
 
     if (req.method === 'POST') {
@@ -119,17 +127,19 @@ module.exports = async function handler(req, res) {
       const payload = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
 
       if (payload.action) {
-        await runAction(payload);
+        await runAction(payload, user);
         const data = await store.getAll();
-        return send(res, 200, { ...data, ...sessionFields });
+        return send(res, 200, { ...scopeData(data, user), access, ...sessionFields });
       }
 
+      const denied = Object.keys(payload).find((key) => SAVE_PERMISSION[key] && !can(user, SAVE_PERMISSION[key]));
+      if (denied) throw forbidden('Your role cannot change these settings');
       const data = await store.saveAll(payload);
-      return send(res, 200, { ...data, ...sessionFields });
+      return send(res, 200, { ...scopeData(data, user), access, ...sessionFields });
     }
 
     return send(res, 405, { error: 'Method not allowed' });
   } catch (error) {
-    return send(res, 500, { error: error.message });
+    return send(res, error.status || 500, { error: error.message });
   }
 };

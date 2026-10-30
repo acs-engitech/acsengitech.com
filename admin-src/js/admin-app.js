@@ -264,6 +264,26 @@ import acsDefaults from '../../lib/acs-defaults.js';
     state.partnerCategories = data.partnerCategories || state.partnerCategories;
     state.settings = data.settings || state.settings;
     if (data.analytics) state.analytics = data.analytics;
+    if (data.access) applyAccess(data.access);
+  }
+
+  // Staff accounts see only their own sections (the server enforces the same split); directors see
+  // everything plus the links into the operations platform.
+  function applyAccess(access) {
+    const all = access.sections === 'all';
+    const allowed = new Set(['overview', ...(all ? [] : access.sections)]);
+    $$('.nav-btn[data-tab]').forEach((button) => { button.hidden = !all && !allowed.has(button.dataset.tab); });
+    $$('.nav-group-label').forEach((label) => {
+      let next = label.nextElementSibling;
+      let visible = false;
+      while (next && !next.classList.contains('nav-group-label')) {
+        if (next.matches('.nav-btn[data-tab]') && !next.hidden) visible = true;
+        next = next.nextElementSibling;
+      }
+      if (!label.closest('[data-ops-nav]')) label.hidden = !all && !visible;
+    });
+    const opsNav = $('[data-ops-nav]');
+    if (opsNav) opsNav.hidden = access.role !== 'director';
   }
 
   async function save(payload, message) {
