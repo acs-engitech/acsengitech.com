@@ -22,3 +22,6 @@ Obsidian/
 # Local embedded database for the operations platform
 .data/
 /ops/
+
+# npm is the package manager (package-lock.json); a pnpm lockfile makes Vercel switch to pnpm
+pnpm-lock.yaml
