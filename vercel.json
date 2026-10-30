@@ -22,23 +22,19 @@
     },
     {
       "source": "/admin/command",
-      "destination": "/ops/index.html"
-    },
-    {
-      "source": "/ops",
-      "destination": "/ops/index.html"
+      "destination": "/ops"
     },
     {
       "source": "/ops/:path*",
-      "destination": "/ops/index.html"
+      "destination": "/ops"
     },
     {
       "source": "/portal",
-      "destination": "/ops/index.html"
+      "destination": "/ops"
     },
     {
       "source": "/portal/:path*",
-      "destination": "/ops/index.html"
+      "destination": "/ops"
     }
   ],
   "cleanUrls": true,
