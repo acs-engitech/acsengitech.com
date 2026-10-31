@@ -1197,16 +1197,6 @@
     });
   }
 
-  function installChatbot() {
-    const src = 'https://cleuzaibot.srv1512185.hstgr.cloud/widget/v1/bundle.js';
-    if (document.querySelector(`script[src="${src}"]`)) return;
-    const script = document.createElement('script');
-    script.src = src;
-    script.dataset.clientId = 'client_862605';
-    script.dataset.publicKey = 'pk_live_vk50wW0PYdOiHyPR4krYoozrATDgSQZNmn3N';
-    script.async = true;
-    document.body.appendChild(script);
-  }
 
   async function init() {
     const standalone = document.body?.hasAttribute('data-acs-standalone');
@@ -1216,7 +1206,7 @@
     }
     if (!standalone && !hasEnoughDomToStart()) return;
     acsShared.runtimeStarted = true;
-    installChatbot();
+    
     if (!standalone) {
       installSharedShell();
       bindSharedShell();
