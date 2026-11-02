@@ -72,8 +72,11 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
       x.fillStyle = '#2b2f31'; x.fillRect(0, 0, w, h); x.fillStyle = '#e8b923';
       for (let i = -2; i < 4; i++) { x.beginPath(); x.moveTo(i * 64, 0); x.lineTo(i * 64 + 32, 0); x.lineTo(i * 64 + 32 + h, h); x.lineTo(i * 64 + h, h); x.fill(); }
     }, [8, 1.5]),
-    flowWater: canvasTexture(256, 32, (x, w, h) => { x.fillStyle = '#3f8f6b'; x.fillRect(0, 0, w, h); x.fillStyle = '#7fd1a8'; for (let i = 0; i < w; i += 64) { x.beginPath(); x.moveTo(i, 4); x.lineTo(i + 22, h / 2); x.lineTo(i, h - 4); x.fill(); } }, [27, 1]),
-    flowSteam: canvasTexture(256, 32, (x, w, h) => { x.fillStyle = '#c9d0d3'; x.fillRect(0, 0, w, h); x.fillStyle = '#0069ab'; for (let i = 0; i < w; i += 64) { x.beginPath(); x.moveTo(i, 6); x.lineTo(i + 20, h / 2); x.lineTo(i, h - 6); x.fill(); } }, [27, 1]),
+    belt: canvasTexture(256, 64, (x, w, h) => {
+      x.fillStyle = '#2b3033'; x.fillRect(0, 0, w, h);
+      let seed = 3; const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+      for (let i = 0; i < 140; i++) { x.fillStyle = ['#5b4a3e', '#3d4042', '#6a5646', '#4a4d4f'][i % 4]; x.beginPath(); x.ellipse(r() * w, 10 + r() * (h - 20), 3 + r() * 7, 2 + r() * 5, r() * 3, 0, 7); x.fill(); }
+    }, [1, 1]),
     caution: canvasTexture(128, 80, (x, w, h) => { x.fillStyle = '#f3c330'; x.fillRect(0, 0, w, h); x.fillStyle = '#e2553a'; x.fillRect(0, 0, w, 30); x.fillStyle = '#fff'; x.font = font(800, 22); x.textAlign = 'center'; x.fillText('CAUTION', w / 2, 23); x.fillStyle = '#1b1d1f'; x.font = font(700, 16); x.fillText('CABLE ALLEY', w / 2, 58); }),
     contact: canvasTexture(128, 128, (x, w, h) => {
       const g = x.createRadialGradient(w / 2, h / 2, 4, w / 2, h / 2, w / 2);
@@ -83,15 +86,15 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
     hmi: canvasTexture(512, 360, (x, w, h) => {
       x.fillStyle = '#0d2633'; x.fillRect(0, 0, w, h);
       x.fillStyle = '#0069ab'; x.fillRect(0, 0, w, 52);
-      x.fillStyle = '#fff'; x.font = font(700, 24); x.fillText('MEE + ATFD  ·  ZLD', 18, 35);
+      x.fillStyle = '#fff'; x.font = font(700, 24); x.fillText('STOCKYARD  ·  STACKER / RECLAIMER', 18, 35);
       x.fillStyle = '#3ddc84'; x.font = font(700, 20); x.textAlign = 'right'; x.fillText('AUTO  ●  RUN', w - 18, 34); x.textAlign = 'left';
       x.strokeStyle = '#4f7d93'; x.lineWidth = 6; x.beginPath(); x.moveTo(30, 150); x.lineTo(w - 30, 150); x.stroke();
-      [[60, 'FEED'], [200, 'MEE'], [330, 'ATFD'], [450, 'COND']].forEach(([px, name]) => {
+      [[60, 'YARD'], [190, 'STACK'], [325, 'RECLM'], [450, 'JH-1']].forEach(([px, name]) => {
         x.fillStyle = '#1b4255'; x.fillRect(px - 42, 96, 84, 40); x.fillStyle = '#3ddc84'; x.beginPath(); x.arc(px - 26, 116, 7, 0, 7); x.fill();
         x.fillStyle = '#dbe9ef'; x.font = font(600, 15); x.fillText(name, px - 14, 122);
       });
-      x.fillStyle = '#9fc3d3'; x.font = font(600, 17); x.fillText('FEED', 30, 205); x.fillText('UPTIME', 190, 205); x.fillText('ALARMS', 350, 205);
-      x.fillStyle = '#fff'; x.font = font(700, 38); x.fillText('8.5 m³/h', 30, 250); x.fillText('24×7', 190, 250); x.fillText('0', 350, 250);
+      x.fillStyle = '#9fc3d3'; x.font = font(600, 17); x.fillText('RATE', 30, 205); x.fillText('UPTIME', 190, 205); x.fillText('ALARMS', 350, 205);
+      x.fillStyle = '#fff'; x.font = font(700, 38); x.fillText('1200 t/h', 30, 250); x.fillText('24×7', 190, 250); x.fillText('0', 350, 250);
       x.fillStyle = '#163a4b'; x.fillRect(30, 285, w - 60, 16); x.fillStyle = '#3ddc84'; x.fillRect(30, 285, (w - 60) * .78, 16);
       x.fillStyle = '#7fa6b7'; x.font = font(600, 14); x.fillText('ACS ENGITECH  ·  CONTROL SYSTEM', 30, 334);
     }),
@@ -151,15 +154,15 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
     lamp: M(0xffffff, .3, 0, { emissive: 0xfff6e3, emissiveIntensity: 1.2 }),
     monitor: M(0x1b1f21, .35, .2),
     cladding: M(0xd5dadc, .3, .75), claddingBand: M(0xa9b1b4, .35, .8),
-    tank: M(0xe2e6e4, .6, .05), tankBand: M(0xc9d0d1, .6, .1),
-    pipeGreen: M(0x3f8f6b, .5, .2), pipeGrey: M(0x7e888c, .45, .5),
     motor: M(0x1f5f9e, .45, .3), pump: M(0x5b6670, .45, .45),
-    grating: M(0x9aa3a6, .55, .6), salt: M(0xefe8d6, .95), membrane: M(0xf3f5f4, .4, .05), dosing: M(0x2e6fb4, .5),
+    grating: M(0x9aa3a6, .55, .6),
+    steelYellow: M(0xd9a52a, .5, .25), concrete: M(0xb9bfbd, .9), rail: M(0x6f777a, .35, .85),
+    coal: M(0x34383a, .97), ore: M(0x5e3a2b, .95),
+    fall: M(0x6d5242, .9, 0, { transparent: true, opacity: .55, depthWrite: false, side: THREE.DoubleSide }),
     relay: M(0x5aa0e0, .25, 0, { transparent: true, opacity: .85 }),
     gap: M(0x3d4448, .7, .1), brass: M(0xc9a24a, .35, .8),
     caution: M(0xffffff, .5, 0, { map: textures.caution }),
-    flowWater: M(0xffffff, .45, .1, { map: textures.flowWater }),
-    flowSteam: M(0xffffff, .3, .4, { map: textures.flowSteam })
+    belt: M(0xffffff, .85, 0, { map: textures.belt })
   };
 
   // ---------- geometry helpers ----------
@@ -238,155 +241,200 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
     }
   }
   for (const z of [-10.4, -7.2, -4, -1.6]) box(factory, [36, .14, .08], [0, 7.24, z], 'rafter');
-  // Floor markings: aisle, line zone and panel clearance.
-  const stripe = (x1, z1, x2, z2, w = .07) => box(factory, [Math.abs(x2 - x1) || w, .004, Math.abs(z2 - z1) || w], [(x1 + x2) / 2, .004, (z1 + z2) / 2], 'stripe');
-  stripe(-17, 5.6, 17, 5.6); stripe(-17, 6.9, 17, 6.9);
-  for (let x = -15; x <= 15; x += 3) box(factory, [1.2, .004, .5], [x, .004, 6.25], M(0xd4dcd9, .7));
-  stripe(-11.4, .25, 3.85, .25); stripe(3.85, .25, 3.85, 4.2); stripe(1.2, 4.2, 3.85, 4.2); stripe(-11.4, 4.2, 1.2, 4.2); stripe(-11.4, .25, -11.4, 4.2);
-  stripe(-1.4, -3.75, 6.6, -3.75); stripe(-1.4, -3.75, -1.4, -4.85); stripe(6.6, -3.75, 6.6, -4.85);
-  plane(factory, 1.75, .8, [modelSlots.panel.position[0], .006, modelSlots.panel.position[2] + .75], 'hatch', [-Math.PI / 2, 0, 0]).receiveShadow = true;
-  plane(factory, 2.2, .45, [-2.3, .006, 5.05], 'hatch', [-Math.PI / 2, 0, 0]).receiveShadow = true;
-
-  // Clad process vessels: jacket with bands, domed head and optional cone bottom.
-  function vessel(parent, x, z, r, y0, h, opts = {}) {
-    const g = new THREE.Group(); g.position.set(x, 0, z); parent.add(g);
-    const mat = opts.mat || 'cladding';
-    cyl(g, r, h, [0, y0 + h / 2, 0], mat, 'y', 40);
-    for (let y = y0 + .3; y < y0 + h - .1; y += opts.band || .6) cyl(g, r + .008, .028, [0, y, 0], opts.bandMat || 'claddingBand', 'y', 40);
-    const dome = mesh(g, new THREE.SphereGeometry(r, 40, 12, 0, Math.PI * 2, 0, Math.PI / 2), mat, [0, y0 + h, 0]); dome.scale.y = opts.dome ?? .45;
-    if (opts.cone) cyl(g, r, opts.cone, [0, y0 - opts.cone / 2, 0], mat, 'y', 40, .1);
-    return g;
-  }
   function ladder(parent, x, z, y0, y1, rot = 0) {
     const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = rot; parent.add(g);
     for (const dx of [-.2, .2]) box(g, [.04, y1 - y0, .04], [dx, (y0 + y1) / 2, 0], 'yellow');
     for (let y = y0 + .3; y < y1; y += .3) cyl(g, .012, .4, [0, y, 0], 'yellow', 'x', 6);
   }
-  function pumpSkid(parent, x, z, rot = 0) {
-    const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = rot; parent.add(g);
-    box(g, [.95, .12, .42], [0, .06, 0], 'machineDark', .01);
-    cyl(g, .14, .46, [.18, .3, 0], 'motor', 'x', 24);
-    for (let i = 0; i < 6; i++) cyl(g, .152, .012, [.02 + i * .06, .3, 0], 'motor', 'x', 24);
-    cyl(g, .15, .07, [.45, .3, 0], 'machineDark', 'x', 24);
-    box(g, [.14, .14, .18], [-.12, .3, 0], 'yellow', .01);
-    cyl(g, .17, .13, [-.3, .3, 0], 'pump', 'z', 24);
-    cyl(g, .05, .22, [-.3, .5, 0], 'pump', 'y', 12);
-    cyl(g, .05, .2, [-.47, .3, 0], 'pump', 'x', 12);
-    contact(g, 1.3, .8);
+  // Floor markings: walkway, MCC clearance and panel clearance.
+  const stripe = (x1, z1, x2, z2, w = .07) => box(factory, [Math.abs(x2 - x1) || w, .004, Math.abs(z2 - z1) || w], [(x1 + x2) / 2, .004, (z1 + z2) / 2], 'stripe');
+  stripe(-17, 7.9, 17, 7.9); stripe(-17, 9.2, 17, 9.2);
+  for (let x = -15; x <= 15; x += 3) box(factory, [1.2, .004, .5], [x, .004, 8.55], M(0xd4dcd9, .7));
+  stripe(-1.4, -3.75, 6.6, -3.75); stripe(-1.4, -3.75, -1.4, -4.85); stripe(6.6, -3.75, 6.6, -4.85);
+  plane(factory, 1.75, .8, [modelSlots.panel.position[0], .006, modelSlots.panel.position[2] + .75], 'hatch', [-Math.PI / 2, 0, 0]).receiveShadow = true;
+
+  // ---------- stacker and reclaimer stockyard ----------
+  // A covered bulk-material yard: two long stockpiles either side of a rail track, a boom stacker
+  // building one pile, a bucket-wheel reclaimer recovering the other, and a yard conveyor running
+  // to a junction house. Conveyor drives, travel, slew and wheel motors all run from the ACS panels.
+  const line = actors.line;
+  const TRACK_Z = .7, RAIL_GAUGE = 1.1, TRACK_X0 = -17.2, TRACK_X1 = .2;
+  const CONVEYOR_Z = -1, BELT_Y = .95;
+
+  // Stockpiles as noisy height-fields: a long ridge with rounded, conical ends.
+  function stockpile(cx, cz, length, halfWidth, height, mat, seed) {
+    const geo = new THREE.PlaneGeometry(length + halfWidth * 2, halfWidth * 2, 140, 40);
+    geo.rotateX(-Math.PI / 2);
+    const p = geo.attributes.position;
+    let s = seed;
+    const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < p.count; i++) {
+      const dx = Math.max(0, Math.abs(p.getX(i)) - length / 2), r = Math.hypot(dx, p.getZ(i));
+      const t = Math.max(0, 1 - r / halfWidth);
+      const profile = t > .9 ? .9 + (t - .9) * .45 : t;
+      // Noise fades out towards the toe so the pile meets the floor in a clean line.
+      p.setY(i, t > 0 ? height * profile + (rnd() - .5) * .08 * Math.min(1, t * 5) : -.01);
+    }
+    geo.computeVertexNormals();
+    return mesh(line, geo, mat, [cx, 0, cz]);
+  }
+  stockpile(-9.6, -4.6, 10, 2.6, 2.5, 'coal', 7);
+  stockpile(-7.2, 4.2, 9.4, 2.3, 2.1, 'ore', 13);
+
+  // Rail track on a concrete beam, with end stops and a cable trench beside it.
+  const trackLen = TRACK_X1 - TRACK_X0, trackX = (TRACK_X0 + TRACK_X1) / 2;
+  for (const dz of [-RAIL_GAUGE / 2, RAIL_GAUGE / 2]) {
+    box(line, [trackLen, .12, .42], [trackX, .06, TRACK_Z + dz], 'concrete');
+    box(line, [trackLen, .07, .07], [trackX, .155, TRACK_Z + dz], 'rail');
+    box(line, [.3, .4, .3], [TRACK_X1 + .15, .2, TRACK_Z + dz], 'yellow', .02);
+    box(line, [.3, .4, .3], [TRACK_X0 - .15, .2, TRACK_Z + dz], 'yellow', .02);
+  }
+  box(line, [trackLen, .02, .26], [trackX, .012, TRACK_Z + 1.05], 'machineDark');
+
+  // Conveyor belts carry a scrolling texture so material visibly flows while the yard runs.
+  const belts = [];
+  function beltMaterial(length) {
+    const map = textures.belt.clone(); map.needsUpdate = true; map.repeat.set(Math.max(1, length / 1.6), 1);
+    belts.push(map);
+    return M(0xffffff, .85, 0, { map });
+  }
+  // Lattice truss along local +x from the origin, used for booms, the tripper and the gallery.
+  function truss(parent, length, h = .6, w = .76, mat = 'steelYellow') {
+    for (const y of [h / 2, -h / 2]) for (const z of [-w / 2, w / 2]) box(parent, [length, .1, .1], [length / 2, y, z], mat);
+    const n = Math.max(2, Math.round(length / .8)), step = length / n, diag = Math.hypot(step, h), ang = Math.atan2(h, step);
+    for (let i = 0; i < n; i++) for (const z of [-w / 2, w / 2]) {
+      box(parent, [diag, .05, .05], [step * (i + .5), 0, z], mat, 0, [0, 0, i % 2 ? ang : -ang]);
+      box(parent, [.05, h, .05], [step * i, 0, z], mat);
+    }
+    for (const z of [-w / 2, w / 2]) box(parent, [.05, h, .05], [length, 0, z], mat);
+    for (let x = .3; x < length; x += .6) cyl(parent, .045, w - .12, [x, h / 2 + .05, 0], 'galv', 'z', 8);
+    box(parent, [length, .035, w - .14], [length / 2, h / 2 + .1, 0], beltMaterial(length));
+  }
+
+  // Yard conveyor: trestles, troughed idlers, belt, pull-cord safety switches and the head drive.
+  const yardX0 = TRACK_X0 + .2, yardX1 = -2.9, yardLen = yardX1 - yardX0, yardX = (yardX0 + yardX1) / 2;
+  for (const dz of [-.42, .42]) box(line, [yardLen, .14, .06], [yardX, BELT_Y - .12, CONVEYOR_Z + dz], 'galv');
+  for (let x = yardX0 + .3; x < yardX1; x += 2.2) for (const dz of [-.42, .42]) {
+    box(line, [.08, BELT_Y - .12, .08], [x, (BELT_Y - .12) / 2, CONVEYOR_Z + dz], 'galv');
+    box(line, [.22, .03, .22], [x, .015, CONVEYOR_Z + dz], 'galv');
+  }
+  for (let x = yardX0 + .2; x < yardX1; x += .55) {
+    cyl(line, .055, .34, [x, BELT_Y - .03, CONVEYOR_Z], 'galv', 'z', 10);
+    for (const dz of [-.27, .27]) cyl(line, .05, .22, [x, BELT_Y + .03, CONVEYOR_Z + dz], 'galv', 'z', 10).rotation.x = Math.PI / 2 + Math.sign(dz) * .45;
+  }
+  box(line, [yardLen, .03, .72], [yardX, BELT_Y + .04, CONVEYOR_Z], beltMaterial(yardLen));
+  for (let x = yardX0 + 1.2; x < yardX1; x += 3.6) {
+    box(line, [.05, 1.05, .05], [x, .52, CONVEYOR_Z - .62], 'galv');
+    box(line, [.16, .2, .12], [x, 1.1, CONVEYOR_Z - .62], 'yellow', .02);
+  }
+  tube(line, [[yardX0 + 1.2, 1.12, CONVEYOR_Z - .6], [yardX1 - .2, 1.12, CONVEYOR_Z - .6]], .008, 'wireRed', 2);
+  cyl(line, .3, .86, [yardX1 + .05, BELT_Y - .12, CONVEYOR_Z], 'machineDark', 'z', 28);
+  box(line, [.5, .42, .42], [yardX1 + .05, .55, CONVEYOR_Z - .78], 'pump', .03);
+  cyl(line, .17, .6, [yardX1 + .05, .55, CONVEYOR_Z - 1.3], 'motor', 'z', 24);
+  for (let i = 0; i < 5; i++) cyl(line, .18, .012, [yardX1 + .05, .55, CONVEYOR_Z - 1.12 - i * .08], 'motor', 'z', 24);
+  box(line, [.9, .12, .8], [yardX1 + .05, .3, CONVEYOR_Z - 1.0], 'machineDark', .01);
+  contact(line, yardLen + 1, 1.4, [yardX, 0, CONVEYOR_Z], .6);
+
+  // Junction house where the yard conveyor discharges to the gallery conveyor feeding the plant.
+  const jh = new THREE.Group(); jh.position.set(-1.6, 0, -1.1); line.add(jh);
+  for (const dx of [-1.15, 1.15]) for (const dz of [-1.05, 1.05]) box(jh, [.18, 4.3, .18], [dx, 2.15, dz], 'column');
+  box(jh, [2.5, .18, 2.3], [0, 4.35, 0], 'rafter');
+  box(jh, [2.5, 2.3, .05], [0, 2.95, -1.05], 'cladding');
+  box(jh, [.05, 2.3, 2.3], [1.15, 2.95, 0], 'cladding');
+  box(jh, [.05, 2.3, 2.3], [-1.15, 2.95, 0], 'cladding');
+  for (let y = 1.95; y < 4.1; y += .3) box(jh, [2.52, .025, .02], [0, y, -1.08], 'claddingBand');
+  box(jh, [2.3, .1, 2.1], [0, 1.75, 0], 'grating');
+  box(jh, [.9, 1.0, .9], [-.3, 1.2, .1], 'galv', .02);
+  cyl(jh, .26, .2, [-.3, .6, .1], 'galv', 'y', 16, .4);
+  ladder(jh, 1.0, 1.25, 0, 1.75);
+  contact(jh, 3.2, 3, [0, 0, 0], .9);
+  // Inclined gallery conveyor from the junction house to the plant behind the yard.
+  const gallery = new THREE.Group(); gallery.position.set(-1.6, 3.9, -2.3); gallery.rotation.set(0, Math.PI / 2, Math.atan2(2.4, 7.4)); line.add(gallery);
+  truss(gallery, Math.hypot(7.4, 2.4), .9, 1.0, 'galv');
+  for (const [z, h] of [[-6.4, 5.4], [-9.3, 6.3]]) for (const dx of [-.42, .42]) box(line, [.14, h, .14], [-1.6 + dx, h / 2, z], 'galv');
+  // Plant feed conveyor drive and pull-cord switch inside the yard.
+  stackLight(jh, [1.15, 4.45, 1.05]);
+
+  // Shared undercarriage for both yard machines: travel bogies, portal and cable reel.
+  function travelGear(parent, x, reel) {
+    const g = new THREE.Group(); g.position.set(x, 0, TRACK_Z); parent.add(g);
+    for (const dz of [-RAIL_GAUGE / 2, RAIL_GAUGE / 2]) for (const dx of [-1.45, 1.45]) {
+      box(g, [1.25, .34, .3], [dx, .42, dz], 'machineDark', .02);
+      for (const k of [-.4, 0, .4]) cyl(g, .15, .12, [dx + k, .31, dz], 'pump', 'z', 18);
+      box(g, [.32, .32, .34], [dx + .55, .62, dz], 'motor', .02);
+    }
+    for (const dx of [-1.45, 1.45]) for (const dz of [-RAIL_GAUGE / 2, RAIL_GAUGE / 2]) box(g, [.4, .5, .4], [dx, .8, dz], 'steelYellow', .02);
+    box(g, [3.9, .38, 1.9], [0, 1.18, 0], 'steelYellow', .03);
+    cyl(g, .82, .2, [0, 1.47, 0], 'machineDark', 'y', 40);
+    if (reel) {
+      cyl(g, .55, .3, [2.25, 1.05, .2], 'machineDark', 'x', 32);
+      cyl(g, .6, .04, [2.42, 1.05, .2], 'steelYellow', 'x', 32); cyl(g, .6, .04, [2.08, 1.05, .2], 'steelYellow', 'x', 32);
+      box(g, [.5, .7, .5], [2.25, .5, .2], 'steelYellow', .02);
+    }
+    contact(g, 4.6, 2.6, [0, 0, 0], .9);
     return g;
   }
-  // Effluent holding tanks, RO skid and dosing tanks: the front end of the ZLD plant.
-  for (const [x, z] of [[-15, -8.4], [-15, -4.9], [-11.7, -8.4]]) {
-    vessel(factory, x, z, 1.25, 0, 4.2, { mat: 'tank', bandMat: 'tankBand', band: 1.05, dome: .22 });
-    ladder(factory, x + 1.32, z, .2, 4.35, Math.PI / 2);
-    contact(factory, 3.3, 3.3, [x, 0, z]);
-  }
-  tube(factory, [[-13.75, .5, -8.4], [-13, .5, -7.4], [-12.4, .5, -6.7], [-10.1, .5, -6.7]], .07, 'pipeGreen', 20);
-  tube(factory, [[-13.75, .5, -4.9], [-12.6, .5, -5.6], [-10.1, .55, -6.4]], .07, 'pipeGreen', 16);
-  (function roSkid(x, z) {
-    const g = new THREE.Group(); g.position.set(x, 0, z); factory.add(g);
-    for (const dx of [-1.6, 0, 1.6]) for (const dz of [-.5, .5]) box(g, [.06, 2.0, .06], [dx, 1.0, dz], 'galv');
-    for (const y of [.25, 1.98]) for (const dz of [-.5, .5]) box(g, [3.26, .06, .06], [0, y, dz], 'galv');
-    for (const y of [.62, 1.04, 1.46]) for (const dz of [-.24, .24]) {
-      cyl(g, .12, 3.0, [0, y, dz], 'membrane', 'x', 24);
-      for (const sx of [-1.52, 1.52]) cyl(g, .13, .08, [sx, y, dz], 'machineDark', 'x', 24);
+  // Slewing superstructure: turntable, machinery house, cab, A-frame mast and stays.
+  function superstructure(parent, x, yaw) {
+    const g = new THREE.Group(); g.position.set(x, 1.57, TRACK_Z); g.rotation.y = yaw; parent.add(g);
+    box(g, [2.6, .32, 1.9], [0, .16, 0], 'steelYellow', .03);
+    box(g, [1.5, 1.05, 1.5], [-.95, .85, 0], 'machine', .03);
+    louvres(g, -.95, .55, .76, 1.1, 8, .07);
+    box(g, [.9, .82, .85], [.75, .73, -.95], 'machine', .03);
+    plane(g, .78, .42, [.75, .9, -1.38], 'window', [0, Math.PI, 0]);
+    plane(g, .8, .42, [1.21, .9, -.95], 'window', [0, Math.PI / 2, 0]);
+    for (const dz of [-.5, .5]) {
+      box(g, [.14, 3.6, .14], [-.35, 2.0, dz], 'steelYellow', 0, [0, 0, -.16]);
+      box(g, [.14, 3.4, .14], [.55, 1.9, dz], 'steelYellow', 0, [0, 0, .22]);
     }
-    for (const dz of [-.24, .24]) cyl(g, .035, 1.3, [1.62, 1.04, dz], 'chrome', 'y', 10);
-    box(g, [.5, .7, .3], [-1.25, 1.6, .7], 'machine', .02); box(g, [.36, .24, .01], [-1.25, 1.7, .855], 'screen');
-    for (const dx of [-2.3, -2.0]) cyl(g, .1, .9, [dx, .55, 0], 'chrome', 'y', 20);
-    pumpSkid(g, 2.45, 0, Math.PI / 2);
-    contact(g, 4.8, 1.8);
-  })(-8.4, -6.6);
-  for (let i = 0; i < 3; i++) {
-    const z = -4.9 + i * .85;
-    cyl(factory, .32, .95, [-11.4, .48, z], 'dosing', 'y', 28);
-    box(factory, [.2, .16, .16], [-11.4, 1.03, z], 'machineDark', .01);
-    contact(factory, .9, .9, [-11.4, 0, z]);
+    box(g, [.5, .2, 1.2], [-.05, 3.75, 0], 'steelYellow', .02);
+    return g;
   }
 
-  // ---------- MEE + ATFD plant (zero liquid discharge) ----------
-  const line = actors.line;
-  const effects = [-9.4, -6.8, -4.2];
-  const deck = { x0: -10.6, x1: -2.6, z0: .95, z1: 3.75, y: 3.3 };
-  const deckX = (deck.x0 + deck.x1) / 2, deckW = deck.x1 - deck.x0, deckD = deck.z1 - deck.z0, deckZ = (deck.z0 + deck.z1) / 2;
-  // Steel structure: columns, beams, grating, handrails and an access stair.
-  for (let i = 0; i <= 3; i++) for (const z of [deck.z0, deck.z1]) {
-    const x = deck.x0 + i * deckW / 3;
-    box(line, [.2, deck.y, .04], [x, deck.y / 2, z], 'column'); box(line, [.04, deck.y, .2], [x, deck.y / 2, z + .08], 'column'); box(line, [.04, deck.y, .2], [x, deck.y / 2, z - .08], 'column');
-    box(line, [.36, .03, .36], [x, .015, z], 'column');
+  // Bucket-wheel reclaimer recovering ore from the far pile; the wheel turns while the yard runs.
+  const RX = -3.2;
+  travelGear(line, RX, true);
+  const reclaimer = superstructure(line, RX, -Math.PI / 2 + .35);
+  const rBoom = new THREE.Group(); rBoom.position.set(.9, 1.15, 0); rBoom.rotation.z = -.08; reclaimer.add(rBoom);
+  truss(rBoom, 3.5);
+  const wheel = new THREE.Group(); wheel.position.set(3.85, .1, .62); wheel.userData.live = true; rBoom.add(wheel);
+  mesh(wheel, new THREE.TorusGeometry(.86, .07, 10, 48), 'steelYellow');
+  mesh(wheel, new THREE.TorusGeometry(.56, .05, 8, 40), 'steelYellow');
+  cyl(wheel, .2, .32, [0, 0, 0], 'machineDark', 'z', 24);
+  for (let k = 0; k < 9; k++) {
+    const a = k / 9 * Math.PI * 2, c = Math.cos(a), s = Math.sin(a);
+    box(wheel, [.06, .82, .06], [c * .43, s * .43, 0], 'steelYellow', 0, [0, 0, a - Math.PI / 2]);
+    box(wheel, [.34, .26, .42], [c * .98, s * .98, 0], 'steelYellow', .03, [0, 0, a]);
+    box(wheel, [.06, .3, .44], [c * 1.15, s * 1.15, 0], 'black', 0, [0, 0, a]);
   }
-  for (const z of [deck.z0, deck.z1]) box(line, [deckW + .2, .2, .12], [deckX, deck.y - .1, z], 'column');
-  for (let i = 0; i <= 3; i++) box(line, [.12, .2, deckD], [deck.x0 + i * deckW / 3, deck.y - .1, deckZ], 'column');
-  box(line, [deckW + .2, .04, deckD + .1], [deckX, deck.y + .02, deckZ], 'grating');
-  box(line, [deckW + .2, .1, .02], [deckX, deck.y + .09, deck.z0 - .05], 'yellow');
-  for (let x = deck.x0; x <= deck.x1 + .01; x += deckW / 8) box(line, [.04, 1.05, .04], [x, deck.y + .55, deck.z0 - .05], 'yellow');
-  for (const y of [deck.y + .55, deck.y + 1.07]) box(line, [deckW, .04, .04], [deckX, y, deck.z0 - .05], 'yellow');
-  for (const x of [deck.x0, deck.x1]) for (const y of [deck.y + .55, deck.y + 1.07]) box(line, [.04, .04, deckD], [x, y, deckZ], 'yellow');
-  (function stair(x0, x1, z) {
-    const run = x1 - x0, len = Math.hypot(run, deck.y), ang = Math.atan2(deck.y, run);
-    for (const dz of [-.45, .45]) {
-      box(line, [len, .22, .05], [(x0 + x1) / 2, deck.y / 2, z + dz], 'column', 0, [0, 0, -ang]);
-      box(line, [len, .04, .04], [(x0 + x1) / 2, deck.y / 2 + 1, z + dz], 'yellow', 0, [0, 0, -ang]);
-      for (const t of [.15, .5, .85]) box(line, [.04, 1, .04], [x1 - run * t, deck.y * t + .5, z + dz], 'yellow');
-    }
-    for (let i = 1; i < 14; i++) { const t = i / 14; box(line, [.26, .03, .86], [x1 - run * t, deck.y * t, z], 'grating'); }
-  })(deck.x1, deck.x1 + 2.3, 1.45);
-  // Three evaporator effects: calandria, vapour separator, vapour line and circulation pump.
-  effects.forEach((x, i) => {
-    vessel(line, x, 2.95, .42, .45, 4.4, { cone: .35 });
-    vessel(line, x, 1.65, .6, 1.0, 3.2, { cone: .55, dome: .5 });
-    const next = i < effects.length - 1 ? [effects[i + 1], 5.05, 2.95] : [-.9, 1.95, 3.1];
-    const vapour = i < effects.length - 1
-      ? [[x, 4.5, 1.65], [x, 4.95, 1.65], [x + .7, 5.3, 2.2], [x + 2.0, 5.3, 2.9], next]
-      : [[x, 4.5, 1.65], [x, 4.95, 1.65], [x + 1.0, 5.25, 2.4], [-1.3, 5.2, 3.1], [-.9, 3.6, 3.1], next];
-    tube(line, vapour, .13, 'cladding', 40);
-    tube(line, [[x, .1, 2.95], [x, .12, 2.35], [x, .32, 1.65]], .06, 'pipeGrey', 12);
-    pumpSkid(line, x + .95, 2.25, Math.PI);
-    cyl(line, .07, .03, [x + .3, 2.3, 2.2], 'device', 'z', 20);
-    cyl(line, .075, .02, [x + .3, 2.3, 2.19], 'black', 'z', 20);
-    cyl(line, .025, 1.6, [x + .63, 2.4, 1.65], 'chrome', 'y', 10);
-    box(line, [.1, .12, .08], [x - .5, 2.9, 1.95], 'deviceMid', .01);
-    contact(line, 1.6, 2.8, [x, 0, 2.3], .8);
-  });
-  // Surface condenser and vacuum pump.
-  const condenser = new THREE.Group(); condenser.position.set(-.9, 1.5, 3.1); line.add(condenser);
-  cyl(condenser, .42, 2.4, [0, 0, 0], 'cladding', 'x', 36);
-  for (let x = -1; x <= 1.01; x += .5) cyl(condenser, .43, .03, [x, 0, 0], 'claddingBand', 'x', 36);
-  for (const sx of [-1, 1]) { const head = mesh(condenser, new THREE.SphereGeometry(.42, 32, 10, 0, Math.PI * 2, 0, Math.PI / 2), 'pump', [sx * 1.2, 0, 0], [0, 0, -sx * Math.PI / 2]); head.scale.y = .35; }
-  for (const sx of [-.8, .8]) box(condenser, [.25, 1.3, .6], [sx, -.85, 0], 'column', .01);
-  tube(line, [[-2.3, 1.35, 3.1], [-2.7, 1.2, 3.6], [-2.7, .1, 3.9]], .07, 'pipeGreen', 12);
-  tube(line, [[-2.3, 1.7, 3.1], [-2.9, 1.8, 3.5], [-3.0, .1, 3.95]], .07, 'pipeGreen', 12);
-  pumpSkid(line, .55, 3.6, 0);
-  tube(line, [[-.2, 1.5, 3.4], [.1, .9, 3.6], [.25, .52, 3.6]], .05, 'pipeGrey', 10);
-  contact(line, 3.2, 1.4, [-.9, 0, 3.1], .8);
-  // Agitated thin film dryer: jacketed body, gear motor and rotating drive, salt discharge.
-  const atfd = new THREE.Group(); atfd.position.set(2.4, 0, 2.4); line.add(atfd);
-  for (const dx of [-.55, .55]) for (const dz of [-.55, .55]) box(atfd, [.14, 1.25, .14], [dx, .625, dz], 'column');
-  for (const dz of [-.55, .55]) box(atfd, [1.24, .14, .12], [0, 1.25, dz], 'column');
-  for (const dx of [-.55, .55]) box(atfd, [.12, .14, 1.24], [dx, 1.25, 0], 'column');
-  vessel(atfd, 0, 0, .38, 1.35, 2.35, { cone: .35, dome: .2, band: .4 });
-  cyl(atfd, .46, .06, [0, 2.6, 0], 'pump', 'y', 32);
-  cyl(atfd, .46, .06, [0, 3.72, 0], 'pump', 'y', 32);
-  box(atfd, [.46, .32, .46], [0, 4.08, 0], 'pump', .02);
-  cyl(atfd, .17, .55, [0, 4.5, 0], 'motor', 'y', 28);
-  for (let i = 0; i < 5; i++) cyl(atfd, .18, .012, [0, 4.32 + i * .08, 0], 'motor', 'y', 28);
-  cyl(atfd, .185, .12, [0, 4.83, 0], 'machineDark', 'y', 28);
-  const rotor = new THREE.Group(); rotor.position.set(0, 3.84, 0); rotor.userData.live = true; atfd.add(rotor);
-  cyl(rotor, .13, .1, [0, 0, 0], 'chrome', 'y', 24);
-  for (let k = 0; k < 4; k++) { const a = k * Math.PI / 2; box(rotor, [.05, .12, .05], [Math.cos(a) * .1, 0, Math.sin(a) * .1], 'yellow'); }
-  cyl(atfd, .14, .4, [0, .78, 0], 'chrome', 'y', 20);
-  box(atfd, [.9, .45, .7], [0, .26, 0], 'chrome', .02);
-  box(atfd, [.82, .06, .62], [0, .47, 0], 'salt');
-  cyl(atfd, .09, .25, [.48, 2.95, 0], 'cladding', 'x', 16);
-  contact(atfd, 1.8, 1.8, [0, 0, 0], .9);
-  tube(line, [[2.95, 2.95, 2.4], [3.2, 3.6, 2.6], [1.8, 4.3, 3.1], [.6, 3.4, 3.1], [.35, 1.95, 3.1]], .09, 'cladding', 30);
-  tube(line, [[-4.2, .3, 1.3], [-3.2, .25, .78], [1.2, .25, .78], [1.75, 1.6, 1.6], [2.0, 3.25, 2.25]], .05, 'pipeGrey', 40);
-  // Live headers: feed water and steam, with flow textures that move while the plant runs.
-  const header = (y, z, mat, r) => tube(line, [[-11, y, z], [2.6, y, z]], r, mat, 2);
-  header(.55, .62, 'flowWater', .07); header(.8, .62, 'flowSteam', .06);
-  for (let x = -10.5; x <= 2.5; x += 1.5) box(line, [.08, .82, .1], [x, .41, .62], 'column');
+  box(rBoom, [.5, .5, .45], [3.85, .1, -.32], 'motor', .03);
+  box(rBoom, [.5, .32, .9], [3.5, .1, .2], 'steelYellow', .02);
+  const rCounter = new THREE.Group(); rCounter.position.set(-.6, 1.25, 0); reclaimer.add(rCounter);
+  box(rCounter, [2.1, .26, .7], [-1.05, 0, 0], 'steelYellow', .02);
+  box(rCounter, [1.0, .95, 1.0], [-2.2, .1, 0], 'concrete', .04);
+  tube(reclaimer, [[-.05, 3.8, .15], [2.2, 2.1, .15], [4.1, 1.15, .15]], .025, 'galv', 12);
+  tube(reclaimer, [[-.05, 3.8, -.15], [-2.7, 1.6, -.15]], .025, 'galv', 8);
+  // Discharge chute from the machine to the yard conveyor.
+  box(line, [.7, .12, 1.4], [RX, 1.25, (TRACK_Z + CONVEYOR_Z) / 2 + .1], 'galv', 0, [-.35, 0, 0]);
 
-  // Cable tray from the control panel to the plant motors.
+  // Boom stacker building the coal pile, fed from the yard conveyor by a tripper.
+  const SX = -11.5;
+  travelGear(line, SX, false);
+  const stacker = superstructure(line, SX, Math.PI / 2 + .3);
+  const sBoom = new THREE.Group(); sBoom.position.set(.9, 1.0, 0); sBoom.rotation.z = .1; stacker.add(sBoom);
+  truss(sBoom, 4.9, .55, .7);
+  const sTip = new THREE.Group(); sTip.position.set(5.0, .05, 0); sBoom.add(sTip);
+  box(sTip, [.5, .5, .55], [0, -.15, 0], 'galv', .02, [0, 0, -.1]);
+  mesh(sTip, new THREE.ConeGeometry(.42, 1.0, 18, 1, true), 'fall', [0, -.85, 0], [0, 0, -.1]);
+  const sCounter = new THREE.Group(); sCounter.position.set(-.6, 1.15, 0); stacker.add(sCounter);
+  box(sCounter, [1.6, .24, .6], [-.8, 0, 0], 'steelYellow', .02);
+  box(sCounter, [.85, .85, .85], [-1.7, .1, 0], 'concrete', .04);
+  tube(stacker, [[-.05, 3.8, 0], [2.6, 2.4, 0], [5.6, 1.6, 0]], .022, 'galv', 12);
+  const tripper = new THREE.Group(); tripper.position.set(SX + 3.3, BELT_Y + .2, CONVEYOR_Z); tripper.rotation.set(0, Math.PI - .32, Math.atan2(1.5, 3.4)); line.add(tripper);
+  truss(tripper, Math.hypot(3.5, 1.5), .45, .7);
+  for (const dx of [2.6, 1.1]) box(line, [.1, BELT_Y + .5 + (2.6 - dx) * .4, .1], [SX + dx, (BELT_Y + .5 + (2.6 - dx) * .4) / 2, CONVEYOR_Z + .45], 'steelYellow');
+
+  // Cable tray from the control panel to the junction house drives.
   const PX = modelSlots.panel.position[0], PZ = modelSlots.panel.position[2];
   const trayY = 3.0, trayZ = .42;
   const tray = (x1, x2) => {
@@ -395,10 +443,9 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
     for (let x = x1 + .1; x < x2; x += .3) box(line, [.025, .012, .3], [x, trayY - .025, trayZ], 'galv');
     for (const dz of [-.07, 0, .07]) cyl(line, .022, len, [cx, trayY - .005, trayZ + dz], 'wireBlack', 'x', 8);
   };
-  tray(-10, PX);
-  for (let x = -9; x < PX; x += 3) { box(line, [.08, trayY, .08], [x, trayY / 2, trayZ - .25], 'galv'); box(line, [.08, .06, .5], [x, trayY - .07, trayZ], 'galv'); }
-  for (const x of effects) tube(line, [[x + 1.2, trayY, trayZ], [x + 1.2, 2.5, trayZ + .1], [x + 1.25, .15, .7], [x + 1.25, .12, 1.9], [x + 1.25, .32, 2.2]], .02, 'wireBlack', 24);
-  tube(line, [[2.4, trayY, trayZ], [2.4, 3.6, 1.0], [2.25, 4.45, 2.25]], .02, 'wireBlack', 16);
+  tray(-.5, PX);
+  for (const x of [.6, 3.1]) { box(line, [.08, trayY, .08], [x, trayY / 2, trayZ - .25], 'galv'); box(line, [.08, .06, .5], [x, trayY - .07, trayZ], 'galv'); }
+  tube(line, [[-.5, trayY, trayZ], [-.6, 2.7, .2], [-.45, 2.4, -.05]], .03, 'wireBlack', 12);
   for (const dz of [-.15, .15]) box(line, [.012, trayY - 2.15, .06], [PX, 2.15 + (trayY - 2.15) / 2, trayZ + dz], 'galv');
   tube(line, [[PX, trayY, trayZ], [PX, 2.5, trayZ + .2], [PX - .1, 2.16, PZ - .15]], .03, 'wireBlack', 16);
 
@@ -648,12 +695,17 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
 
   // ---------- animation ----------
   function animate(time) {
-    rotor.rotation.y = time * 2.4;
-    materials.flowWater.map.offset.x = -(time * .35 % 1);
-    materials.flowSteam.map.offset.x = -(time * .6 % 1);
+    wheel.rotation.z = -time * 1.1;
+    for (const map of belts) map.offset.x = -(time * .45 % 1);
     const blink = Math.sin(time * 9) > 0;
     materials.ledBlink.emissiveIntensity = blink ? 1.4 : .05;
     materials.lampGreen.emissiveIntensity = 1.5 + Math.sin(time * 2.2) * .15;
+  }
+
+  function setDoors(a, b, mix) {
+    const open = doorOverride ?? THREE.MathUtils.lerp(stages[a].doorOpen || 0, stages[b].doorOpen || 0, mix);
+    doors.forEach(({ door, side, baseRotation }) => { door.rotation.y = baseRotation + side * smooth(open) * 1.88; });
+    return open;
   }
 
   function render(time = performance.now()) {
@@ -669,8 +721,7 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
     if (!reduced) clock += elapsed / 1000;
     animate(clock);
     const a = Math.floor(progress), b = Math.min(stages.length - 1, a + 1), mix = smooth(progress - a);
-    const open = doorOverride ?? THREE.MathUtils.lerp(stages[a].doorOpen || 0, stages[b].doorOpen || 0, mix);
-    doors.forEach(({ door, side, baseRotation }) => { door.rotation.y = baseRotation + side * smooth(open) * 1.88; });
+    const open = setDoors(a, b, mix);
     renderer.render(scene, camera);
     const index = Math.round(progress), stage = stages[index];
     const point = v(stage.anchor).project(camera);
@@ -721,7 +772,14 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
     reset() { doorOverride = null; forceCamera = true; invalidate(); },
     rotate(direction) { const offset = camera.position.clone().sub(orbit.target); offset.applyAxisAngle(new THREE.Vector3(0, 1, 0), direction * .16); camera.position.copy(orbit.target).add(offset); camera.lookAt(orbit.target); orbit.update(); invalidate(); },
     setVisible(value) { visible = value; if (value) { lastTime = 0; invalidate(); } else { cancelAnimationFrame(frame); frame = 0; } },
-    capture() { renderer.render(scene, camera); return renderer.domElement.toDataURL('image/png'); },
+    // Captures the requested stage even when the next animation frame has not run yet (slow, CPU-only GPUs).
+    capture() {
+      if (forceCamera) { configureCamera(); forceCamera = false; }
+      const a = Math.floor(progress), b = Math.min(stages.length - 1, a + 1);
+      setDoors(a, b, smooth(progress - a));
+      renderer.render(scene, camera);
+      return renderer.domElement.toDataURL('image/png');
+    },
     dispose() {
       alive = false; observer.disconnect(); orbit.dispose(); cancelAnimationFrame(frame);
       scene.traverse(o => { o.geometry?.dispose(); for (const m of [o.material].flat().filter(Boolean)) m.dispose(); });

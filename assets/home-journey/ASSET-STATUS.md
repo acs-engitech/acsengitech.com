@@ -1,6 +1,6 @@
 # Homepage asset status
 
-The homepage is a single procedural Three.js plant scene (MEE + ATFD zero liquid discharge plant). All machines, panels and the building are illustrative models, not replicas of the ACS facility or of any client plant.
+The homepage is a single procedural Three.js plant scene (stacker and reclaimer stockyard). All machines, panels and the building are illustrative models, not replicas of the ACS facility or of any client plant.
 
 NEEDS CONFIRMATION: approved panel layouts if ACS wants the hero panel interior to match a specific delivered project. The current interior shows typical component roles without makes or ratings.
 

@@ -4,14 +4,14 @@ The active homepage uses world-scene.js and stages.js. Every object is real Thre
 
 ## Journey
 
-Plant floor → MEE + ATFD (ZLD) plant with its PLC control panel → the closed ACS PLC panel in front of a compartmental MCC → doors open with PLC-panel component callouts → "Panels that work 24×7" → ACS team → capabilities (facility, stated capacity, tools and standards) → enquiry.
+Covered stockyard → stacker and reclaimer plant with its PLC control panel → the closed ACS PLC panel in front of a compartmental MCC → doors open with PLC-panel component callouts → "Panels that work 24×7" → ACS team → capabilities (facility, stated capacity, tools and standards) → enquiry.
 
 `stages` in stages.js owns each chapter's camera (target, view direction, framed height, desktop placement, mobile framing), annotation anchor, door state (`doorOpen`) and whether the interior callouts show (`callouts`). Chapter IDs match the `<section>` IDs in index.html.
 
 ## Model slots
 
-- factory: cut-away hall (floor, walls, columns, rafters, high-bay lights), effluent holding tanks, RO skid, dosing tanks and an operator desk showing the real EMS and LogView images. Illustrative, NOT the ACS facility or a client plant.
-- line: MEE + ATFD zero liquid discharge plant: steel structure with grating, handrails and stair; three evaporator effects (calandria, vapour separator, vapour line, circulation pump); surface condenser and vacuum pump; agitated thin film dryer with rotating drive and salt discharge; feed/steam headers with moving flow texture; cable tray back to the panel.
+- factory: cut-away stockyard shed (floor, walls, columns, rafters, high-bay lights), walkway markings and an operator desk showing the real EMS and LogView images. Illustrative, NOT the ACS facility or a client plant.
+- line: stacker and reclaimer stockyard: coal and ore stockpiles (noisy height-fields), rail track with end stops and cable trench, rail-mounted bucket-wheel reclaimer (travel bogies, cable reel, slewing superstructure, lattice boom with belt, rotating bucket wheel, counterweight and stays) and boom stacker with discharge stream, yard conveyor with troughed idlers, pull-cord switches and head drive, tripper, junction house and inclined gallery conveyor; cable tray back to the panel.
 - panel: hero two-door PLC control panel modelled on assets/acs/control-panels.jpg: door HMI, indication lamps, E-stop, meter, louvres; PLC-panel interior with isolator, 24 V supplies, MCB distribution, PLC CPU + I/O, Ethernet switch, interface relays, signal isolators, terminal strip, ducts and wiring. Layout is illustrative; ratings are not asserted.
 - mcc: compartmental MCC modelled on ACS MCC photographs: top busbar chamber, incomer, five feeder columns of six modules (lamps, push-button, meter, rotary handle), louvred cable alleys and bottom chamber.
 
@@ -21,7 +21,7 @@ Callouts are defined in `callouts` (stages.js) with panel-local anchors; showroo
 
 ## Rendering
 
-Perspective camera, ACES tone mapping, procedural studio reflections (PMREM), soft directional shadows and canvas-generated textures (floor, flow headers, caution labels, HMI, meter, nameplate, hazard tape). Static meshes are merged per material at build time (`bake`), so hundreds of parts render in a few dozen draw calls; animated parts are flagged `userData.live`. Ambient motion (ATFD drive, header flow, blinking LEDs) runs only while the stage is visible and is frozen for reduced-motion users. CPU-only WebGL (SwiftShader / llvmpipe) gets no shadow pass and 1× pixels.
+Perspective camera, ACES tone mapping, procedural studio reflections (PMREM), soft directional shadows and canvas-generated textures (floor, conveyor belt load, caution labels, HMI, meter, nameplate, hazard tape). Static meshes are merged per material at build time (`bake`), so hundreds of parts render in a few dozen draw calls; animated parts are flagged `userData.live`. Ambient motion (bucket wheel, moving conveyor belts, blinking LEDs) runs only while the stage is visible and is frozen for reduced-motion users. CPU-only WebGL (SwiftShader / llvmpipe) gets no shadow pass and 1× pixels.
 
 ## Replacing an actor with a GLB
 
