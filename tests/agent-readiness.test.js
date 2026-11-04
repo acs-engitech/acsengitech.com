@@ -214,7 +214,7 @@ test('page SEO overrides saved before version 2 are not applied; new saves are',
     if (sql.startsWith('INSERT INTO acs_admin_data')) { values[args[0]] = JSON.parse(args[1]); return []; }
     return [];
   };
-  const context = { module: { exports: {} }, process: { env: { NEON_DATABASE_URL: 'test' } }, require: (name) => (name === '@neondatabase/serverless' ? { neon: () => query } : defaults) };
+  const context = { module: { exports: {} }, process: { env: { NEON_DATABASE_URL: 'test' } }, require: (name) => (name === '@neondatabase/serverless' ? { neon: () => query } : name.endsWith('linkedin-blog-import.json') ? require('../lib/linkedin-blog-import.json') : defaults) };
   vm.runInNewContext(read('api/_store.js'), context);
   const store = context.module.exports;
   // Objects built inside the vm context have their own prototypes, so compare through JSON.

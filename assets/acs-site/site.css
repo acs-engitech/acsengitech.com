@@ -6,6 +6,8 @@ body.menu-open{overflow:hidden}
 .site-header *,.site-footer *{box-sizing:border-box;letter-spacing:0}
 body .site-header{position:sticky;top:0;z-index:70;height:var(--header);padding:0 40px;display:flex;align-items:center;justify-content:space-between;gap:32px;background:#f8faf9;border-bottom:1px solid #c3d2d8}
 .site-header a{color:inherit;text-decoration:none}
+/* main.css resets `*{margin:0}`, which beats the browser default that centers modal dialogs; restore it. */
+dialog:modal{margin:auto;inset:0}
 .acs-media-viewer{width:1100px;max-width:calc(100% - 32px);max-height:92svh;padding:20px 24px;border:1px solid var(--line);background:#f8faf9;color:var(--ink);font-family:Manrope,Arial,sans-serif}
 .acs-media-viewer::backdrop{background:#142c39c9}
 .acs-media-viewer .media-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:18px}

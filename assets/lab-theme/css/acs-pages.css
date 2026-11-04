@@ -194,7 +194,7 @@ body.acs-secondary { --acs-blue: #0068d7; --acs-ink: #172944; --acs-light: #f5f7
 .acs-product-card[hidden] { display:none; }
 .acs-product-card img { width:100%; height:230px; object-fit:contain; background:#f4f6f8; margin-bottom:24px; cursor:zoom-in; }
 .acs-product-card a { display:block; margin-top:18px; padding:12px; background:#0068d7; color:#fff; }
-#acs-image-dialog { width:min(850px,90vw); max-height:90dvh; padding:48px 24px 24px; border:0; }
+#acs-image-dialog { width:min(850px,90vw); max-height:90dvh; margin:auto; padding:48px 24px 24px; border:0; }
 #acs-image-dialog::backdrop { background:#071525cc; }
 #acs-image-dialog img { width:100%; max-height:75dvh; object-fit:contain; }
 #acs-image-dialog button { position:absolute; right:12px; top:8px; height:36px; width:36px; border:0; background:#edf0f4; font-size:23px; }

@@ -67,6 +67,14 @@
 .acs-restored .acs-product-card :is(h3,h4){font-size:24px}
 .acs-restored .acs-product-card a{background:transparent;color:var(--blue);padding:12px 0;border-top:1px solid var(--line);font-size:15px}
 .acs-restored .rs-counter-area .rs-counter-number{color:var(--ink);-webkit-text-stroke:0;font-size:80px;font-weight:400}
+/* Counter numbers sit first in .acs-copy-block, so the eyebrow-label rule (13px, block, muted) used to win on
+   specificity and main.css made the digits transparent. Pin the counter look with a stronger selector. */
+body.acs-restored .rs-counter-area .acs-copy-block > span.rs-counter-number{display:inline-block;margin:0;font-size:clamp(48px,6vw,80px);line-height:1.1;font-weight:400;color:var(--ink);-webkit-text-fill-color:currentColor;-webkit-text-stroke:0;vertical-align:top}
+body.acs-restored .rs-counter-area span.rs-counter-number .odometer-digit{overflow:hidden;vertical-align:top}
+body.acs-restored .acs-content-flow .acs-copy-block > span.acs-stat-figure:first-child{display:block;margin:0 0 6px;font-size:clamp(36px,4.5vw,56px);line-height:1.05;font-weight:400;letter-spacing:-.02em;color:var(--ink)}
+body.acs-restored .about-experience > .acs-copy-block > span:first-child{display:inline;margin:0;font-size:.45em;line-height:1;font-weight:inherit;color:#0068d7;vertical-align:super}
+body.acs-restored .rs-counter-area .acs-copy-block > span.acs-counter-plus{display:inline-block;margin:0 0 0 4px;font-size:clamp(28px,3vw,40px);line-height:1;color:#0068d7;vertical-align:top}
+body.acs-restored .rs-counter-area .acs-copy-block > span.acs-counter-plus + span{display:block;margin:14px 0 4px;font-size:18px;font-weight:500;color:var(--ink)}
 .acs-restored .rs-history-area :is(h2,h3){color:var(--ink)}
 .acs-restored .rs-history-area .rs-section-subtitle{color:var(--blue)}
 .acs-restored .rs-history-tab-wrapper button{font-size:16px;color:var(--ink);border-color:var(--line)}
@@ -309,3 +317,18 @@
   .acs-restored .acs-package-record h3{font-size:23px}
   .acs-restored .acs-package-record p{font-size:16px}
 }
+
+/* Closing CTA + footer as one system, mirroring the homepage: navy contact band, then the paper footer, sharing the
+   footer's container edges and Manrope type. Replaces the competing lab-theme (blue) and restored (light) band styles. */
+body.acs-restored .rs-cta.acs-contact-band.acs-section{background:#1c3a62!important;color:#fff;padding:88px 0 92px;margin:0;border:0}
+body.acs-restored .acs-contact-band .container{width:calc(100% - var(--gutter)*2);max-width:var(--document-width);margin:auto;padding:0;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:48px}
+body.acs-restored .acs-contact-band .container>div{max-width:820px}
+body.acs-restored .acs-contact-band .container>div::before{content:'ACS / Start a project';display:block;margin-bottom:22px;font:12px/1.5 Manrope,Arial,sans-serif;text-transform:uppercase;color:#c1d2e0}
+body.acs-restored .acs-contact-band h2{margin:0 0 18px;font:400 clamp(34px,4vw,56px)/1.08 Manrope,Arial,sans-serif;color:#fff;letter-spacing:-.01em}
+body.acs-restored .acs-contact-band p{margin:0;max-width:680px;font:400 18px/1.7 Manrope,Arial,sans-serif;color:#c1d2e0}
+body.acs-restored .acs-contact-band a.rs-btn{display:inline-flex;align-items:center;gap:12px;min-height:56px;padding:0 28px;border-radius:0;background:#fff;color:#1c3a62;font:600 15px/1 Manrope,Arial,sans-serif;white-space:nowrap;transition:background .2s,color .2s}
+body.acs-restored .acs-contact-band a.rs-btn:hover,body.acs-restored .acs-contact-band a.rs-btn:focus-visible{background:var(--blue);color:#fff}
+body.acs-restored .site-footer{padding-top:56px}
+body.acs-restored .site-footer::before{display:none}
+@media(max-width:991px){body.acs-restored .rs-cta.acs-contact-band.acs-section{padding:64px 0 68px}body.acs-restored .acs-contact-band .container{grid-template-columns:1fr;align-items:start;gap:32px}}
+@media(max-width:699px){body.acs-restored .rs-cta.acs-contact-band.acs-section{padding:52px 0 56px}body.acs-restored .acs-contact-band p{font-size:16px}body.acs-restored .acs-contact-band a.rs-btn{width:100%;justify-content:center}body.acs-restored .site-footer{padding-top:40px}}

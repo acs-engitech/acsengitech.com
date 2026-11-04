@@ -1,5 +1,6 @@
 const { neon } = require('@neondatabase/serverless');
 const { PAGE_DEFAULTS, DEFAULT_SETTINGS, DEFAULT_JOBS, DEFAULT_POSITION_TYPES, DEFAULT_PARTNER_CATEGORIES } = require('../lib/acs-defaults');
+const LINKEDIN_IMPORT = require('../lib/linkedin-blog-import.json');
 
 let sql;
 let initialization;
@@ -126,6 +127,19 @@ function migrateJobToPosition(job) {
     tags: Array.isArray(job.tags) ? job.tags : [],
     status: job.status === 'closed' ? 'closed' : 'live',
   };
+}
+
+// LinkedIn articles bundled with the site are merged into the posts blob once (matched by slug), so they appear in
+// the admin as ordinary posts and their publish dates drive the daily 08:00 IST schedule. Deleting one later sticks.
+async function getPosts() {
+  const posts = (await getValue('posts', [])) || [];
+  const importedVersion = Number(await getValue('linkedinImportVersion', 0));
+  if (importedVersion >= LINKEDIN_IMPORT.version) return posts;
+  const existing = new Set(posts.map((post) => post.slug));
+  const merged = [...posts, ...LINKEDIN_IMPORT.posts.filter((post) => !existing.has(post.slug))];
+  await setValue('posts', merged);
+  await setValue('linkedinImportVersion', LINKEDIN_IMPORT.version);
+  return merged;
 }
 
 async function getPositions() {
@@ -329,7 +343,7 @@ async function getAll() {
       defaults: page.defaults,
       seo: pageSeo[page.path] || {},
     })),
-    posts: await getValue('posts', []),
+    posts: await getPosts(),
     jobs: await getValue('jobs', DEFAULT_JOBS),
     positions,
     positionTypes,
@@ -348,7 +362,7 @@ async function getPublicData() {
     getPositions(),
     getPositionTypes(),
     getPartnerCategories(),
-    getValue('posts', []),
+    getPosts(),
     getValue('jobs', DEFAULT_JOBS),
   ]);
   return {
