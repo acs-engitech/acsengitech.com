@@ -1115,52 +1115,61 @@
     root.innerHTML = `<div class="acs-dynamic-inner">${careerDetailsHtml(visibleJobs)}</div>`;
   }
 
+  function blogDate(value) {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function blogMeta(post) {
+    const tag = (post.tags || [])[0];
+    return `<div class="co-blog-meta">${tag ? `<b>${escapeHtml(tag)}</b>` : ''}<span>${blogDate(post.publishedAt)}</span><span>${post.readingMinutes || 1} min read</span></div>`;
+  }
+
+  function blogCard(post) {
+    return `
+      <a class="co-blog-card" href="/blog?post=${encodeURIComponent(post.slug)}">
+        <div class="co-frame"><img src="${escapeHtml(post.coverImage || acsImages.panels)}" alt="${escapeHtml(post.coverAlt || post.title)}" loading="lazy"></div>
+        ${blogMeta(post)}
+        <h3>${escapeHtml(post.title || 'ACS Engitech update')}</h3>
+        <p>${escapeHtml(post.excerpt || '')}</p>
+      </a>`;
+  }
+
+  // Blog index: latest post featured, the rest in a grid. A ?post= slug renders the article in place of the
+  // page hero so the post title is the page's only h1. Markup is styled by assets/acs-site/company.css.
   function renderBlog(posts) {
     const root = document.getElementById('acs-blog-board');
     if (!root) return;
     const slug = new URLSearchParams(location.search).get('post');
-    const selected = posts.find((post) => post.slug === slug);
     const visiblePosts = (posts || []).filter((post) => post.status !== 'draft');
+    const selected = visiblePosts.find((post) => post.slug === slug);
     if (selected) {
       document.title = selected.seo?.title || selected.title;
+      const hero = document.querySelector('[data-blog-hero]');
+      if (hero) hero.hidden = true;
+      const more = visiblePosts.filter((post) => post.slug !== selected.slug).slice(0, 3);
       root.innerHTML = `
-        <article class="acs-blog-article rs-postbox-wrapper">
-          <a class="acs-blog-back" href="/blog">Back to blogs</a>
-          <div class="acs-blog-article-hero">
-            <div class="acs-blog-hero-media"><img src="${selected.coverImage || acsImages.engineers}" alt="${escapeHtml(selected.coverAlt || selected.title)}"></div>
-            <p class="acs-kicker">${new Date(selected.publishedAt).toLocaleDateString()} - ${escapeHtml(selected.author || 'ACS Engitech')} - ${selected.readingMinutes || 1} min read</p>
-            <h1>${escapeHtml(selected.title)}</h1>
-            <p class="acs-lead">${escapeHtml(selected.excerpt || '')}</p>
-          </div>
-          <div class="acs-blog-content-card">
-            <div class="acs-blog-content">${selected.content ? sanitizeBlogHtml(selected.content) : `<p>${escapeHtml(selected.excerpt || 'Article content will be updated soon.')}</p>`}</div>
-          </div>
+        <article class="co-article">
+          <a class="co-article-back" href="/blog">&larr; All articles</a>
+          <header>${blogMeta(selected)}<h1>${escapeHtml(selected.title)}</h1></header>
+          <div class="co-frame co-article-wide"><img src="${escapeHtml(selected.coverImage || acsImages.engineers)}" alt="${escapeHtml(selected.coverAlt || selected.title)}"></div>
+          <div class="co-prose">${selected.content ? sanitizeBlogHtml(selected.content) : `<p>${escapeHtml(selected.excerpt || 'Article content will be updated soon.')}</p>`}</div>
+          ${more.length ? `<aside class="co-article-more co-article-wide"><p class="co-label">More articles</p><div class="co-blog-grid" style="margin-top:32px">${more.map(blogCard).join('')}</div></aside>` : ''}
         </article>`;
+      window.scrollTo(0, 0);
       return;
     }
+    if (!visiblePosts.length) {
+      root.innerHTML = '<p class="co-blog-empty">No published articles yet. New posts appear here as they go live.</p>';
+      return;
+    }
+    const [lead, ...rest] = visiblePosts;
     root.innerHTML = `
-      <div class="acs-dynamic-inner acs-blog-index">
-        <div class="acs-blog-hero">
-          <div class="acs-blog-hero-media"><img src="${acsImages.engineers}" alt="ACS Engitech industrial automation insights"></div>
-          <p class="acs-kicker">ACS insights</p>
-          <h1>Industrial automation blog</h1>
-          <p class="acs-lead">PLC, SCADA, control panel, and industrial automation notes from ACS Engitech.</p>
-        </div>
-        <div class="acs-blog-list">
-          ${visiblePosts.map((post) => `
-            <article class="acs-blog-card">
-              <img src="${post.coverImage || acsImages.panels}" alt="${escapeHtml(post.coverAlt || post.title)}">
-              <div>
-                <p>${new Date(post.publishedAt).toLocaleDateString()} - ${escapeHtml(post.author || 'ACS Engitech')}</p>
-                <h2>${escapeHtml(post.title || 'ACS Engitech update')}</h2>
-                <span>${escapeHtml(post.excerpt || 'Industrial automation insight from ACS Engitech.')}</span>
-                ${(post.tags || []).length ? `<div class="acs-blog-tags">${post.tags.slice(0, 4).map((tag) => `<em>${escapeHtml(tag)}</em>`).join('')}</div>` : ''}
-              </div>
-              <a href="/blog?post=${encodeURIComponent(post.slug)}">Read article</a>
-            </article>
-          `).join('') || '<p>No published posts yet.</p>'}
-        </div>
-      </div>`;
+      <a class="co-blog-feature" href="/blog?post=${encodeURIComponent(lead.slug)}">
+        <div class="co-frame"><img src="${escapeHtml(lead.coverImage || acsImages.panels)}" alt="${escapeHtml(lead.coverAlt || lead.title)}"></div>
+        <div><p class="co-label">Latest</p><h2>${escapeHtml(lead.title)}</h2>${blogMeta(lead)}<p style="margin-top:16px">${escapeHtml(lead.excerpt || '')}</p><span class="co-link" style="margin-top:24px">Read article <i class="ri-arrow-right-line" aria-hidden="true"></i></span></div>
+      </a>
+      ${rest.length ? `<div class="co-blog-grid">${rest.map(blogCard).join('')}</div>` : ''}`;
   }
 
   function hasEnoughDomToStart() {

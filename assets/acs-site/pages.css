@@ -332,3 +332,8 @@ body.acs-restored .site-footer{padding-top:56px}
 body.acs-restored .site-footer::before{display:none}
 @media(max-width:991px){body.acs-restored .rs-cta.acs-contact-band.acs-section{padding:64px 0 68px}body.acs-restored .acs-contact-band .container{grid-template-columns:1fr;align-items:start;gap:32px}}
 @media(max-width:699px){body.acs-restored .rs-cta.acs-contact-band.acs-section{padding:52px 0 56px}body.acs-restored .acs-contact-band p{font-size:16px}body.acs-restored .acs-contact-band a.rs-btn{width:100%;justify-content:center}body.acs-restored .site-footer{padding-top:40px}}
+
+/* Type harmony with the company pages and footer: light display weight for page titles and section heads. */
+body.acs-restored .rs-breadcrumb-title{font-weight:400;letter-spacing:-.025em;line-height:1.04}
+body.acs-restored .acs-content-flow h2,body.acs-restored .acs-section > .container > h2{font-weight:400;letter-spacing:-.02em;line-height:1.1}
+body.acs-restored .acs-content-flow h2 :is(span,em,strong){font-weight:inherit}
