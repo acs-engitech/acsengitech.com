@@ -201,5 +201,8 @@
     "api/blog-post.js": {
       "includeFiles": "{blog,404}.html"
     }
-  }
+  },
+  "regions": [
+    "sin1"
+  ]
 }
