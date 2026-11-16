@@ -286,6 +286,11 @@ import acsDefaults from '../../lib/acs-defaults.js';
     });
     const opsNav = $('[data-ops-nav]');
     if (opsNav) opsNav.hidden = access.role !== 'director';
+    const name = access.name || 'Administrator';
+    const roles = { director: 'Director', hr: 'HR', content: 'Content', purchase: 'Purchasing' };
+    $('#adminUserName').textContent = name;
+    $('#adminUserRole').textContent = roles[access.role] || 'Signed in';
+    $('#adminUserAvatar').textContent = name.trim().split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase() || 'A';
   }
 
   async function save(payload, message) {
@@ -333,10 +338,20 @@ import acsDefaults from '../../lib/acs-defaults.js';
     user: '<path fill-rule="evenodd" clip-rule="evenodd" d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm-7.25 8a7.25 7.25 0 0 1 14.5 0 .75.75 0 0 1-.75.75H5.5a.75.75 0 0 1-.75-.75Z"/>',
   };
 
-  function metric(label, value, icon, tone) {
+  function metric(label, value, icon, tone, hint) {
     const path = METRIC_ICONS[icon] || METRIC_ICONS.grid;
     const toneClass = 'metric-icon-' + (tone || 'brand');
-    return `<article class="metric"><div class="metric-icon ${toneClass}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${path}</svg></div><div class="metric-body"><div><span>${label}</span><strong>${value}</strong></div></div></article>`;
+    return `<article class="metric"><div class="metric-icon ${toneClass}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${path}</svg></div><div class="metric-body"><div><span>${label}</span><strong>${value}</strong>${hint ? `<small>${hint}</small>` : ''}</div></div></article>`;
+  }
+
+  function shortDate(value) {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  }
+
+  function recentPanel(title, tab, rows, empty) {
+    return `<section class="dash-panel"><header><h2>${title}</h2><button type="button" class="dash-link" data-goto-tab="${tab}">View all</button></header>${
+      rows.length ? `<ul>${rows.join('')}</ul>` : `<p class="dash-empty">${empty}</p>`}</section>`;
   }
 
   function renderOverview() {
@@ -347,17 +362,25 @@ import acsDefaults from '../../lib/acs-defaults.js';
     const newApplications = state.applications.filter((app) => app.status === 'new').length;
     const newPartners = state.partners.filter((partner) => partner.status === 'new').length;
     $('#overviewMetrics').innerHTML = [
-      metric('SEO pages', state.pages.length, 'grid', 'brand'),
-      metric('Published blogs', published, 'doc', 'success'),
-      metric('Scheduled blogs', scheduled, 'clock', 'warning'),
-      metric('SEO pages with JSON-LD', state.pages.filter((page) => (state.pageSeo[page.path]?.jsonLd || page.defaults?.jsonLd)).length, 'grid', 'info'),
-      metric('Open positions', openPositions, 'briefcase', 'info'),
-      metric('New enquiries', newEnquiries, 'doc', 'warning'),
-      metric('Total enquiries', state.enquiries.length, 'doc', 'brand'),
-      metric('New applications', newApplications, 'user', 'warning'),
-      metric('Total applications', state.applications.length, 'user', 'brand'),
-      metric('New partner registrations', newPartners, 'briefcase', 'warning'),
-      metric('Total partners', state.partners.length, 'briefcase', 'brand'),
+      metric('New enquiries', newEnquiries, 'doc', 'brand', `of ${state.enquiries.length} total`),
+      metric('New applications', newApplications, 'user', 'brand', `of ${state.applications.length} total`),
+      metric('New partner registrations', newPartners, 'briefcase', 'brand', `of ${state.partners.length} total`),
+      metric('Scheduled blogs', scheduled, 'clock', 'brand', `${published} published`),
+    ].join('');
+    const stat = (label, value) => `<div><strong>${value}</strong><span>${label}</span></div>`;
+    $('#overviewStats').innerHTML = [
+      stat('SEO pages', state.pages.length),
+      stat('With JSON-LD', state.pages.filter((page) => (state.pageSeo[page.path]?.jsonLd || page.defaults?.jsonLd)).length),
+      stat('Open positions', openPositions),
+      stat('Blog posts', state.posts.length),
+    ].join('');
+    const item = (title, sub, meta, status) => `<li><div><strong>${escapeHtml(title)}</strong><span>${escapeHtml(sub)}</span></div><div class="dash-meta"><small>${meta}</small>${status ? `<span class="status-pill status-${status === 'new' ? 'open' : 'closed'}">${status}</span>` : ''}</div></li>`;
+    const newest = (list) => [...list].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
+    const upcoming = state.posts.filter((post) => post.status === 'scheduled').sort((a, b) => new Date(a.publishedAt) - new Date(b.publishedAt)).slice(0, 5);
+    $('#overviewRecent').innerHTML = [
+      recentPanel('Recent enquiries', 'enquiries', newest(state.enquiries).map((e) => item(e.name || 'Unknown', e.subject || e.email || '', shortDate(e.createdAt), e.status)), 'No enquiries yet.'),
+      recentPanel('Recent applications', 'applications', newest(state.applications).map((a) => item(a.name || 'Unknown', a.positionTitle || 'General application', shortDate(a.createdAt), a.status)), 'No applications yet.'),
+      recentPanel('Publishing queue', 'blogs', upcoming.map((p) => item(p.title, `/blog/${p.slug}`, shortDate(p.publishedAt), '')), 'Nothing scheduled.'),
     ].join('');
   }
 
@@ -614,18 +637,16 @@ import acsDefaults from '../../lib/acs-defaults.js';
     }
 
     $('#enquiryList').innerHTML = shown.map((enquiry) => `
-      <article class="entity-row" data-enquiry-row="${enquiry.id}">
-        <input type="checkbox" class="enquiry-select" data-select-enquiry="${enquiry.id}" ${state.enquirySelectedIds.has(enquiry.id) ? 'checked' : ''}>
-        <div class="entity-main">
-          <div class="entity-title">${escapeHtml(enquiry.name)} <span class="status-pill status-${enquiry.status === 'new' ? 'open' : enquiry.status === 'closed' ? 'closed' : 'scheduled'}">${enquiry.status}</span></div>
-          <div class="entity-sub">${escapeHtml(enquiry.subject)}</div>
-          <div class="entity-sub">${escapeHtml(enquiry.email)} - ${new Date(enquiry.createdAt).toLocaleString()}</div>
-        </div>
-        <div class="entity-actions">
+      <article class="dt-row" data-enquiry-row="${enquiry.id}">
+        <label class="dt-check"><input type="checkbox" class="enquiry-select" data-select-enquiry="${enquiry.id}" ${state.enquirySelectedIds.has(enquiry.id) ? 'checked' : ''} aria-label="Select ${escapeHtml(enquiry.name)}"></label>
+        <div class="dt-person"><strong>${escapeHtml(enquiry.name)}</strong><span>${escapeHtml(enquiry.email)}</span></div>
+        <div class="dt-detail"><span>${escapeHtml(enquiry.subject)}</span></div>
+        <div class="dt-date">${shortDate(enquiry.createdAt)}<small>${new Date(enquiry.createdAt).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })}</small></div>
+        <div class="dt-state"><select class="field-input dt-status enquiry-status-select" data-status="${enquiry.status}" data-enquiry-status="${enquiry.id}" aria-label="Status">
+          ${ENQUIRY_STATUSES.map((s) => `<option value="${s}" ${s === enquiry.status ? 'selected' : ''}>${s}</option>`).join('')}
+        </select></div>
+        <div class="dt-actions">
           <a href="${escapeHtml('mailto:' + encodeURI(enquiry.email) + '?subject=' + encodeURIComponent('Re: ' + enquiry.subject))}" class="btn-secondary">Reply</a>
-          <select class="field-input enquiry-status-select" data-enquiry-status="${enquiry.id}">
-            ${ENQUIRY_STATUSES.map((s) => `<option value="${s}" ${s === enquiry.status ? 'selected' : ''}>${s}</option>`).join('')}
-          </select>
           <button type="button" class="btn-secondary" data-enquiry-details="${enquiry.id}">Details</button>
           <button type="button" class="btn-danger danger" data-enquiry-delete="${enquiry.id}">Delete</button>
         </div>
@@ -702,18 +723,16 @@ import acsDefaults from '../../lib/acs-defaults.js';
     }
 
     $('#applicationList').innerHTML = shown.map((app) => `
-      <article class="entity-row" data-application-row="${app.id}">
-        <input type="checkbox" class="application-select" data-select-application="${app.id}" ${state.applicationSelectedIds.has(app.id) ? 'checked' : ''}>
-        <div class="entity-main">
-          <div class="entity-title">${escapeHtml(app.name)} <span class="status-pill status-${app.status === 'new' ? 'open' : app.status === 'rejected' ? 'closed' : 'scheduled'}">${app.status}</span></div>
-          <div class="entity-sub">${escapeHtml(app.positionTitle || 'General application')}</div>
-          <div class="entity-sub">${escapeHtml(app.email)} ${app.phone ? '- ' + escapeHtml(app.phone) : ''} ${app.yearsExperience ? '- ' + escapeHtml(app.yearsExperience) : ''}</div>
-        </div>
-        <div class="entity-actions">
-          ${app.resumeUrl ? `<a href="${safeHref(app.resumeUrl)}" target="_blank" rel="noopener noreferrer" class="btn-secondary">Resume${app.resumeSize ? ' (' + formatBytes(app.resumeSize) + ')' : ''}</a>` : '<span class="text-xs text-gray-400">No resume</span>'}
-          <select class="field-input application-status-select" data-application-status="${app.id}">
-            ${APPLICATION_STATUSES.map((s) => `<option value="${s}" ${s === app.status ? 'selected' : ''}>${s}</option>`).join('')}
-          </select>
+      <article class="dt-row" data-application-row="${app.id}">
+        <label class="dt-check"><input type="checkbox" class="application-select" data-select-application="${app.id}" ${state.applicationSelectedIds.has(app.id) ? 'checked' : ''} aria-label="Select ${escapeHtml(app.name)}"></label>
+        <div class="dt-person"><strong>${escapeHtml(app.name)}</strong><span>${escapeHtml(app.email)}${app.phone ? ' / ' + escapeHtml(app.phone) : ''}</span></div>
+        <div class="dt-detail"><span>${escapeHtml(app.positionTitle || 'General application')}</span>${app.yearsExperience ? `<small>${escapeHtml(app.yearsExperience)}</small>` : ''}</div>
+        <div class="dt-date">${shortDate(app.createdAt)}<small>${new Date(app.createdAt).getFullYear()}</small></div>
+        <div class="dt-state"><select class="field-input dt-status application-status-select" data-status="${app.status}" data-application-status="${app.id}" aria-label="Status">
+          ${APPLICATION_STATUSES.map((s) => `<option value="${s}" ${s === app.status ? 'selected' : ''}>${s}</option>`).join('')}
+        </select></div>
+        <div class="dt-actions">
+          ${app.resumeUrl ? `<a href="${safeHref(app.resumeUrl)}" target="_blank" rel="noopener noreferrer" class="btn-secondary">Resume${app.resumeSize ? ' (' + formatBytes(app.resumeSize) + ')' : ''}</a>` : '<span class="dt-none">No resume</span>'}
           <button type="button" class="btn-secondary" data-application-details="${app.id}">Details</button>
           <button type="button" class="btn-danger danger" data-application-delete="${app.id}">Delete</button>
         </div>
@@ -784,20 +803,16 @@ import acsDefaults from '../../lib/acs-defaults.js';
     }
 
     $('#partnerList').innerHTML = shown.map((p) => `
-      <article class="entity-row" data-partner-row="${p.id}">
-        <input type="checkbox" class="partner-select" data-select-partner="${p.id}" ${state.partnerSelectedIds.has(p.id) ? 'checked' : ''}>
-        <div class="entity-main">
-          <div class="entity-title">${escapeHtml(p.name)} <span class="status-pill status-${p.status === 'new' ? 'open' : p.status === 'rejected' ? 'closed' : 'scheduled'}">${p.status}</span></div>
-          <div class="entity-sub">${escapeHtml(p.category || 'Uncategorized')} - ${escapeHtml(p.city || '')} - ${escapeHtml(p.entityType || '')} - ${escapeHtml(p.yearsExperience || '')}</div>
-          <div class="entity-sub">${escapeHtml(p.email)} ${p.phone ? '- ' + escapeHtml(p.phone) : ''}</div>
-          <div class="entity-sub">${(p.portfolioUrls || []).map((url) => `<a href="${safeHref(url)}" target="_blank" rel="noopener noreferrer" class="text-brand-600">${escapeHtml(url)}</a>`).join(', ')}</div>
-          <div class="entity-sub">${new Date(p.createdAt).toLocaleDateString()}</div>
-        </div>
-        <div class="entity-actions">
-          ${p.profileUrl ? `<a href="${safeHref(p.profileUrl)}" target="_blank" rel="noopener noreferrer" class="btn-secondary">Profile${p.profileSize ? ' (' + formatBytes(p.profileSize) + ')' : ''}</a>` : '<span class="text-xs text-gray-400">No profile file</span>'}
-          <select class="field-input partner-status-select" data-partner-status="${p.id}">
-            ${APPLICATION_STATUSES.map((s) => `<option value="${s}" ${s === p.status ? 'selected' : ''}>${s}</option>`).join('')}
-          </select>
+      <article class="dt-row" data-partner-row="${p.id}">
+        <label class="dt-check"><input type="checkbox" class="partner-select" data-select-partner="${p.id}" ${state.partnerSelectedIds.has(p.id) ? 'checked' : ''} aria-label="Select ${escapeHtml(p.name)}"></label>
+        <div class="dt-person"><strong>${escapeHtml(p.name)}</strong><span>${escapeHtml(p.email)}${p.phone ? ' / ' + escapeHtml(p.phone) : ''}</span></div>
+        <div class="dt-detail"><span>${escapeHtml(p.category || 'Uncategorized')}</span><small>${[p.city, p.entityType, p.yearsExperience].filter(Boolean).map(escapeHtml).join(' / ')}</small></div>
+        <div class="dt-date">${shortDate(p.createdAt)}<small>${new Date(p.createdAt).getFullYear()}</small></div>
+        <div class="dt-state"><select class="field-input dt-status partner-status-select" data-status="${p.status}" data-partner-status="${p.id}" aria-label="Status">
+          ${APPLICATION_STATUSES.map((s) => `<option value="${s}" ${s === p.status ? 'selected' : ''}>${s}</option>`).join('')}
+        </select></div>
+        <div class="dt-actions">
+          ${p.profileUrl ? `<a href="${safeHref(p.profileUrl)}" target="_blank" rel="noopener noreferrer" class="btn-secondary">Profile${p.profileSize ? ' (' + formatBytes(p.profileSize) + ')' : ''}</a>` : '<span class="dt-none">No profile</span>'}
           <button type="button" class="btn-secondary" data-partner-details="${p.id}">Details</button>
           <button type="button" class="btn-danger danger" data-partner-delete="${p.id}">Delete</button>
         </div>
@@ -985,6 +1000,11 @@ import acsDefaults from '../../lib/acs-defaults.js';
       } finally {
         setLoginLoading(false);
       }
+    });
+
+    document.addEventListener('click', (event) => {
+      const go = event.target.closest('[data-goto-tab]');
+      if (go) document.querySelector(`.nav-btn[data-tab="${go.dataset.gotoTab}"]`)?.click();
     });
 
     $('#logoutBtn')?.addEventListener('click', () => {

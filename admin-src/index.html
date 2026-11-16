@@ -24,42 +24,41 @@
     <strong class="text-sm font-medium">Loading...</strong>
   </div>
 
-  <section class="admin-login flex min-h-screen items-center justify-center bg-white p-6" id="adminLogin" aria-label="Admin sign in">
-    <div class="tailadmin-login-shell grid w-full max-w-5xl grid-cols-1 overflow-hidden rounded-2xl border border-gray-200 shadow-lg lg:grid-cols-2">
-      <form class="login-card flex flex-col gap-5 p-8 sm:p-10" id="loginForm" x-data="{ showPassword: false }">
-        <img src="/logo-1.svg" alt="ACS Engitech" class="h-9 w-auto">
-        <p class="eyebrow">Secure administration</p>
-        <h1 class="text-2xl font-semibold text-gray-800">Welcome back</h1>
-        <p class="login-copy text-sm text-gray-500">Sign in to manage ACS Engitech content, search visibility, careers, and analytics.</p>
-        <div id="loginError" class="login-error text-sm font-medium text-red-600 empty:hidden" role="alert"></div>
-        <label class="field-label">Email address
-          <input name="email" type="email" autocomplete="username" placeholder="Enter your email" required class="field-input">
-        </label>
-        <label class="field-label">Password
-          <div class="relative mt-1.5">
-            <input name="password" :type="showPassword ? 'text' : 'password'" autocomplete="current-password" placeholder="Enter your password" required class="field-input mt-0 pr-16">
-            <button type="button" @click="showPassword = !showPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-gray-500 hover:text-gray-700" :aria-pressed="showPassword.toString()" aria-label="Toggle password visibility">
-              <span x-text="showPassword ? 'Hide' : 'Show'"></span>
-            </button>
+  <section class="admin-login" id="adminLogin" aria-label="Admin sign in">
+    <div class="login-split">
+      <div class="login-pane">
+        <form class="login-form" id="loginForm" x-data="{ showPassword: false }">
+          <img src="/logo-1.svg" alt="ACS Engitech" class="login-logo">
+          <div>
+            <h1>Sign in</h1>
+            <p class="login-sub">Manage content, search visibility, careers, enquiries and analytics for acsengitech.com.</p>
           </div>
-        </label>
-        <button class="primary btn-primary mt-2 h-11" type="submit">Sign in</button>
-      </form>
-      <aside class="tailadmin-login-brand relative hidden flex-col justify-center gap-4 overflow-hidden bg-brand-950 p-10 text-white lg:flex" aria-label="ACS Admin capabilities">
-        <svg class="pointer-events-none absolute inset-0 h-full w-full opacity-20" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <pattern id="admin-dot-grid" width="24" height="24" patternUnits="userSpaceOnUse">
-            <circle cx="2" cy="2" r="1.5" fill="currentColor"></circle>
-          </pattern>
-          <rect width="100%" height="100%" fill="url(#admin-dot-grid)"></rect>
-        </svg>
-        <img src="/logo-white.svg" alt="ACS Engitech" class="relative h-8 w-auto">
-        <h2 class="relative text-title-md font-semibold">One board for every ACS update.</h2>
-        <p class="relative text-sm text-white/70">Publish industrial insights, manage open roles, refine page SEO, and review first-party traffic from a single secure workspace.</p>
-        <div class="login-capabilities relative flex flex-wrap gap-2 text-xs font-medium">
-          <span class="rounded-full bg-white/10 px-3 py-1">SEO</span>
-          <span class="rounded-full bg-white/10 px-3 py-1">Blogs</span>
-          <span class="rounded-full bg-white/10 px-3 py-1">Careers</span>
-          <span class="rounded-full bg-white/10 px-3 py-1">Analytics</span>
+          <div id="loginError" class="login-error empty:hidden" role="alert"></div>
+          <label class="field-label">Email
+            <input name="email" type="email" autocomplete="username" placeholder="you@acsengitech.com" required class="field-input">
+          </label>
+          <label class="field-label">Password
+            <div class="relative">
+              <input name="password" :type="showPassword ? 'text' : 'password'" autocomplete="current-password" placeholder="Enter your password" required class="field-input pr-16">
+              <button type="button" @click="showPassword = !showPassword" class="login-reveal" :aria-pressed="showPassword.toString()" aria-label="Toggle password visibility">
+                <span x-text="showPassword ? 'Hide' : 'Show'"></span>
+              </button>
+            </div>
+          </label>
+          <button class="primary btn-primary login-submit" type="submit">Sign in</button>
+          <p class="login-foot">Protected area. Sessions end after 12 hours.</p>
+        </form>
+      </div>
+      <aside class="login-art" aria-label="ACS Admin">
+        <img src="/logo-white.svg" alt="" class="login-art-logo">
+        <div class="login-art-copy">
+          <p class="login-art-kicker">ACS Engitech / Admin</p>
+          <h2>One workspace for everything on the website.</h2>
+          <ul>
+            <li><b>Content</b><span>Page SEO, blog scheduling, open roles</span></li>
+            <li><b>Inbox</b><span>Enquiries, job applications, partner registrations</span></li>
+            <li><b>Insight</b><span>First-party traffic, Google tags, crawler files</span></li>
+          </ul>
         </div>
       </aside>
     </div>
@@ -67,30 +66,24 @@
 
   <div class="admin-app admin-dashboard-frame" x-data="adminShell()">
     <div class="admin-scrim" :class="sidebarOpen ? 'is-open' : ''" @click="sidebarOpen = false" aria-hidden="true"></div>
-    <header class="tailadmin-topbar admin-topbar dashboard-command-bar sticky top-0 z-40 flex items-center gap-4 border-b border-gray-200 bg-white px-4 py-3 lg:px-6">
-      <button id="adminMenuToggle" type="button" class="admin-menu-toggle flex h-11 w-11 flex-col items-center justify-center gap-1.5 rounded-lg border border-gray-200 text-gray-600" aria-controls="adminSidebar" aria-label="Open admin navigation" :class="sidebarOpen ? 'is-open' : ''" @click="sidebarOpen = !sidebarOpen" :aria-expanded="sidebarOpen.toString()">
-        <span class="block h-0.5 w-5 bg-current transition-transform"></span>
-        <span class="block h-0.5 w-5 bg-current transition-opacity"></span>
-        <span class="block h-0.5 w-5 bg-current transition-transform"></span>
+    <header class="admin-topbar dashboard-command-bar">
+      <button id="adminMenuToggle" type="button" class="admin-menu-toggle" aria-controls="adminSidebar" aria-label="Open admin navigation" :class="sidebarOpen ? 'is-open' : ''" @click="sidebarOpen = !sidebarOpen" :aria-expanded="sidebarOpen.toString()">
+        <span></span><span></span><span></span>
       </button>
-      <a class="tailadmin-brand brand flex items-center gap-2" href="/index.html" aria-label="ACS Engitech site">
-        <img src="/logo-1.svg" alt="ACS Engitech" class="h-7 w-auto">
-        <span class="text-sm font-semibold text-gray-800">ACS Admin</span>
-      </a>
-      <div class="top-actions ml-auto flex items-center gap-2">
-        <div class="hidden sm:flex items-center gap-2">
-          <a href="/index.html" target="_blank" rel="noopener" class="btn-secondary">View site</a>
-          <button id="refreshBtn" type="button" class="btn-secondary">Refresh</button>
-        </div>
-        <button id="logoutBtn" type="button" class="btn-dark whitespace-nowrap">Sign out</button>
+      <div class="topbar-title">
+        <p>ACS Admin</p>
+        <h1 x-text="title">Overview</h1>
       </div>
     </header>
 
     <main class="tailadmin-shell admin-shell dashboard-workspace flex items-start">
-      <aside class="tailadmin-sidebar admin-nav dashboard-rail fixed inset-y-0 left-0 z-30 flex w-[290px] flex-col gap-2 overflow-y-auto border-r border-gray-200 bg-white px-5 pb-6" id="adminSidebar" aria-label="Admin sections" :class="sidebarOpen ? 'is-open' : ''">
-        <div class="nav-title px-1 pb-3 pt-8">
-          <span class="nav-group-label">Workspace</span>
+      <aside class="tailadmin-sidebar admin-nav dashboard-rail " id="adminSidebar" aria-label="Admin sections" :class="sidebarOpen ? 'is-open' : ''">
+        <div class="rail-brand">
+          <a href="/index.html" aria-label="ACS Engitech site"><img src="/logo-1.svg" alt="ACS Engitech"></a>
+          <span>Admin</span>
         </div>
+        <nav class="rail-nav" aria-label="Sections">
+          <p class="nav-group-label">Workspace</p>
         <button class="nav-btn group" data-tab="overview" type="button" :class="{ active: activeTab === 'overview' }" @click="selectTab('overview')">
           <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.5 3.25C4.257 3.25 3.25 4.257 3.25 5.5V9c0 1.243 1.007 2.25 2.25 2.25h3.5c1.243 0 2.25-1.007 2.25-2.25V5.5c0-1.243-1.007-2.25-2.25-2.25h-3.5Zm9 0c-1.243 0-2.25 1.007-2.25 2.25V9c0 1.243 1.007 2.25 2.25 2.25h3.5c1.243 0 2.25-1.007 2.25-2.25V5.5c0-1.243-1.007-2.25-2.25-2.25h-3.5ZM5.5 12.75c-1.243 0-2.25 1.007-2.25 2.25v3.5c0 1.243 1.007 2.25 2.25 2.25h3.5c1.243 0 2.25-1.007 2.25-2.25V15c0-1.243-1.007-2.25-2.25-2.25h-3.5Zm9 0c-1.243 0-2.25 1.007-2.25 2.25v3.5c0 1.243 1.007 2.25 2.25 2.25h3.5c1.243 0 2.25-1.007 2.25-2.25V15c0-1.243-1.007-2.25-2.25-2.25h-3.5Z"/></svg>
           <span class="flex flex-col"><span class="text-sm font-medium">Overview</span><small class="text-xs font-normal text-gray-400">Board summary</small></span>
@@ -145,6 +138,21 @@
           <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2.75a.75.75 0 0 1 .7.48l1.53 3.98 3.98 1.53a.75.75 0 0 1 0 1.4l-3.98 1.53-1.53 3.98a.75.75 0 0 1-1.4 0l-1.53-3.98-3.98-1.53a.75.75 0 0 1 0-1.4l3.98-1.53 1.53-3.98a.75.75 0 0 1 .7-.48Zm6 11.5a.75.75 0 0 1 .7.48l.66 1.71 1.71.66a.75.75 0 0 1 0 1.4l-1.71.66-.66 1.71a.75.75 0 0 1-1.4 0l-.66-1.71-1.71-.66a.75.75 0 0 1 0-1.4l1.71-.66.66-1.71a.75.75 0 0 1 .7-.48Z"/></svg>
           <span class="flex flex-col"><span class="text-sm font-medium">LLMs.txt</span><small class="text-xs font-normal text-gray-400">AI assistant summary</small></span>
         </button>
+        </nav>
+        <div class="rail-tools">
+          <a href="/index.html" target="_blank" rel="noopener" class="btn-secondary">View site</a>
+          <button id="refreshBtn" type="button" class="btn-secondary">Refresh</button>
+        </div>
+        <div class="rail-profile">
+          <span class="rail-avatar" id="adminUserAvatar" aria-hidden="true">A</span>
+          <div class="rail-user">
+            <strong id="adminUserName">Administrator</strong>
+            <span id="adminUserRole">Signed in</span>
+          </div>
+          <button id="logoutBtn" type="button" class="rail-signout" aria-label="Sign out" title="Sign out">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4.5H6.5A1.5 1.5 0 0 0 5 6v12a1.5 1.5 0 0 0 1.5 1.5H9"/><path d="M15 8l4 4-4 4"/><path d="M19 12H9.5"/></svg>
+          </button>
+        </div>
       </aside>
 
       <section class="tailadmin-content admin-content dashboard-canvas min-w-0 flex-1 p-4 lg:p-8">
@@ -153,19 +161,19 @@
         <section class="panel" id="overview" :class="{ active: activeTab === 'overview' }">
           <div class="section-head">
             <div>
-              <p class="eyebrow">ACS Engitech</p>
-              <h1 class="text-2xl font-semibold text-gray-800">Content control board</h1>
+              <h1 class="page-title">Content control board</h1>
             </div>
             <button id="saveAllTop" class="primary btn-primary" type="button">Save changes</button>
           </div>
-          <div class="metric-grid" id="overviewMetrics"></div>
+          <div class="metric-grid kpi-grid" id="overviewMetrics"></div>
+          <div class="stat-strip" id="overviewStats"></div>
+          <div class="dash-grid" id="overviewRecent"></div>
         </section>
 
         <section class="panel" id="seo" :class="{ active: activeTab === 'seo' }">
           <div class="section-head">
             <div>
-              <p class="eyebrow">All pages</p>
-              <h2 class="text-xl font-semibold text-gray-800">SEO manager</h2>
+              <h2 class="page-title">SEO manager</h2>
             </div>
             <button id="saveSeoBtn" class="primary btn-primary" type="button">Save SEO</button>
           </div>
@@ -270,8 +278,7 @@
         <section class="panel" id="blogs" :class="{ active: activeTab === 'blogs' }">
           <div class="section-head">
             <div>
-              <p class="eyebrow">Draft, schedule, publish</p>
-              <h2 class="text-xl font-semibold text-gray-800">Blog manager</h2>
+              <h2 class="page-title">Blog manager</h2>
             </div>
             <button id="newPostBtn" class="primary btn-primary" type="button">New post</button>
           </div>
@@ -342,8 +349,7 @@
         <section class="panel" id="positions" :class="{ active: activeTab === 'positions' }">
           <div class="section-head">
             <div>
-              <p class="eyebrow">Open roles</p>
-              <h2 class="text-xl font-semibold text-gray-800">Positions manager</h2>
+              <h2 class="page-title">Positions manager</h2>
             </div>
             <div class="section-actions flex flex-wrap items-center gap-2">
               <button id="managePositionTypesBtn" class="btn-secondary" type="button">Manage types</button>
@@ -414,43 +420,45 @@
         <section class="panel" id="enquiries" :class="{ active: activeTab === 'enquiries' }">
           <div class="section-head">
             <div>
-              <p class="eyebrow">Contact form</p>
-              <h2 class="text-xl font-semibold text-gray-800">Enquiries</h2>
+              <h2 class="page-title">Enquiries</h2>
             </div>
             <div class="section-actions flex flex-wrap items-center gap-2">
               <button id="refreshEnquiriesBtn" class="btn-secondary" type="button">Refresh</button>
               <button id="exportEnquiriesBtn" class="btn-secondary" type="button">Export CSV</button>
             </div>
           </div>
-          <div class="filters mb-3 flex flex-wrap gap-2" id="enquiryWorkflowFilters"></div>
-          <div class="workspace-toolbar filter-row card mb-4 flex flex-wrap items-end gap-3 p-4" id="enquiryFilterRow">
+          <div class="filters" id="enquiryWorkflowFilters"></div>
+          <div class="dt">
+          <div class="dt-toolbar filter-row" id="enquiryFilterRow">
             <label class="field-label">From <input type="date" id="enquiryFromDate" class="field-input mt-1.5"></label>
             <label class="field-label">To <input type="date" id="enquiryToDate" class="field-input mt-1.5"></label>
             <label class="field-label">Search <input type="search" id="enquirySearch" placeholder="Name, email or subject" class="field-input mt-1.5"></label>
             <button id="clearEnquiryFiltersBtn" class="btn-secondary" type="button">Clear</button>
           </div>
-          <div class="workspace-bulkbar bulk-row card mb-4 flex flex-wrap items-center gap-3 p-4">
-            <label class="flex items-center gap-2 text-sm font-medium text-gray-700"><input type="checkbox" id="enquirySelectAll"> Select all shown</label>
-            <span class="text-sm text-gray-500" id="enquirySelectedCount">0 selected</span>
+          <div class="dt-bulk bulk-row">
+            <label class="dt-selectall"><input type="checkbox" id="enquirySelectAll"> Select all shown</label>
+            <span class="dt-selected" id="enquirySelectedCount">0 selected</span>
             <button id="deleteEnquiriesBtn" class="danger btn-danger" type="button">Delete selected</button>
-            <span class="ml-auto text-sm text-gray-400" id="enquiryShownCount"></span>
+            <span class="dt-count" id="enquiryShownCount"></span>
           </div>
-          <div class="list-full space-y-2" id="enquiryList"></div>
+          <div class="dt-cols" aria-hidden="true"><span></span><span>Contact</span><span>Subject</span><span>Received</span><span>Status</span><span></span></div>
+          <div class="dt-body" id="enquiryList"></div>
+          </div>
         </section>
 
         <section class="panel" id="applications" :class="{ active: activeTab === 'applications' }">
           <div class="section-head">
             <div>
-              <p class="eyebrow">Job applications</p>
-              <h2 class="text-xl font-semibold text-gray-800">Applications</h2>
+              <h2 class="page-title">Applications</h2>
             </div>
             <div class="section-actions flex flex-wrap items-center gap-2">
               <button id="refreshApplicationsBtn" class="btn-secondary" type="button">Refresh</button>
               <button id="exportApplicationsBtn" class="btn-secondary" type="button">Export CSV</button>
             </div>
           </div>
-          <div class="filters mb-3 flex flex-wrap gap-2" id="applicationWorkflowFilters"></div>
-          <div class="workspace-toolbar filter-row card mb-4 flex flex-wrap items-end gap-3 p-4" id="applicationFilterRow">
+          <div class="filters" id="applicationWorkflowFilters"></div>
+          <div class="dt">
+          <div class="dt-toolbar filter-row" id="applicationFilterRow">
             <label class="field-label">Position
               <select id="applicationPositionFilter" class="field-input mt-1.5"><option value="">All positions</option></select>
             </label>
@@ -459,20 +467,21 @@
             <label class="field-label">Search <input type="search" id="applicationSearch" placeholder="Name or email" class="field-input mt-1.5"></label>
             <button id="clearApplicationFiltersBtn" class="btn-secondary" type="button">Clear</button>
           </div>
-          <div class="workspace-bulkbar bulk-row card mb-4 flex flex-wrap items-center gap-3 p-4">
-            <label class="flex items-center gap-2 text-sm font-medium text-gray-700"><input type="checkbox" id="applicationSelectAll"> Select all shown</label>
-            <span class="text-sm text-gray-500" id="applicationSelectedCount">0 selected</span>
+          <div class="dt-bulk bulk-row">
+            <label class="dt-selectall"><input type="checkbox" id="applicationSelectAll"> Select all shown</label>
+            <span class="dt-selected" id="applicationSelectedCount">0 selected</span>
             <button id="deleteApplicationsBtn" class="danger btn-danger" type="button">Delete selected</button>
-            <span class="ml-auto text-sm text-gray-400" id="applicationShownCount"></span>
+            <span class="dt-count" id="applicationShownCount"></span>
           </div>
-          <div class="list-full space-y-2" id="applicationList"></div>
+          <div class="dt-cols" aria-hidden="true"><span></span><span>Applicant</span><span>Position</span><span>Applied</span><span>Status</span><span></span></div>
+          <div class="dt-body" id="applicationList"></div>
+          </div>
         </section>
 
         <section class="panel" id="partners" :class="{ active: activeTab === 'partners' }">
           <div class="section-head">
             <div>
-              <p class="eyebrow">Partner registrations</p>
-              <h2 class="text-xl font-semibold text-gray-800">Partners</h2>
+              <h2 class="page-title">Partners</h2>
             </div>
             <div class="section-actions flex flex-wrap items-center gap-2">
               <button id="managePartnerCategoriesBtn" class="btn-secondary" type="button">Manage categories</button>
@@ -480,8 +489,9 @@
               <button id="exportPartnersBtn" class="btn-secondary" type="button">Export CSV</button>
             </div>
           </div>
-          <div class="filters mb-3 flex flex-wrap gap-2" id="partnerWorkflowFilters"></div>
-          <div class="workspace-toolbar filter-row card mb-4 flex flex-wrap items-end gap-3 p-4" id="partnerFilterRow">
+          <div class="filters" id="partnerWorkflowFilters"></div>
+          <div class="dt">
+          <div class="dt-toolbar filter-row" id="partnerFilterRow">
             <label class="field-label">Category
               <select id="partnerCategoryFilter" class="field-input mt-1.5"><option value="">All categories</option></select>
             </label>
@@ -490,20 +500,21 @@
             <label class="field-label">Search <input type="search" id="partnerSearch" placeholder="Name or email" class="field-input mt-1.5"></label>
             <button id="clearPartnerFiltersBtn" class="btn-secondary" type="button">Clear</button>
           </div>
-          <div class="workspace-bulkbar bulk-row card mb-4 flex flex-wrap items-center gap-3 p-4">
-            <label class="flex items-center gap-2 text-sm font-medium text-gray-700"><input type="checkbox" id="partnerSelectAll"> Select all shown</label>
-            <span class="text-sm text-gray-500" id="partnerSelectedCount">0 selected</span>
+          <div class="dt-bulk bulk-row">
+            <label class="dt-selectall"><input type="checkbox" id="partnerSelectAll"> Select all shown</label>
+            <span class="dt-selected" id="partnerSelectedCount">0 selected</span>
             <button id="deletePartnersBtn" class="danger btn-danger" type="button">Delete selected</button>
-            <span class="ml-auto text-sm text-gray-400" id="partnerShownCount"></span>
+            <span class="dt-count" id="partnerShownCount"></span>
           </div>
-          <div class="list-full space-y-2" id="partnerList"></div>
+          <div class="dt-cols" aria-hidden="true"><span></span><span>Partner</span><span>Category</span><span>Registered</span><span>Status</span><span></span></div>
+          <div class="dt-body" id="partnerList"></div>
+          </div>
         </section>
 
         <section class="panel" id="analytics" :class="{ active: activeTab === 'analytics' }">
           <div class="section-head">
             <div>
-              <p class="eyebrow">First party tracking</p>
-              <h2 class="text-xl font-semibold text-gray-800">Analytics</h2>
+              <h2 class="page-title">Analytics</h2>
             </div>
             <div class="section-actions flex items-center gap-3">
               <select id="analyticsDays" aria-label="Analytics date range" class="field-input mt-0 w-auto">
@@ -516,7 +527,6 @@
           </div>
           <form class="editor wide analytics-tags card mb-6 space-y-4" id="analyticsTagForm">
             <div>
-              <p class="eyebrow">Google tags</p>
               <h3 class="text-base font-semibold text-gray-800">Tracking setup</h3>
             </div>
             <div class="two-col">
@@ -544,8 +554,7 @@
         <section class="panel" id="settings" :class="{ active: activeTab === 'settings' }">
           <div class="section-head">
             <div>
-              <p class="eyebrow">Crawler rules</p>
-              <h2 class="text-xl font-semibold text-gray-800">Robots.txt</h2>
+              <h2 class="page-title">Robots.txt</h2>
             </div>
             <button id="saveSettingsBtn" class="primary btn-primary" type="button">Save robots.txt</button>
           </div>
@@ -570,8 +579,7 @@
         <section class="panel" id="llms" :class="{ active: activeTab === 'llms' }">
           <div class="section-head">
             <div>
-              <p class="eyebrow">AI assistants &amp; answer engines</p>
-              <h2 class="text-xl font-semibold text-gray-800">LLMs.txt</h2>
+              <h2 class="page-title">LLMs.txt</h2>
             </div>
             <button id="saveLlmsBtn" class="primary btn-primary" type="button">Save llms.txt</button>
           </div>

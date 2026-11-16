@@ -59,10 +59,10 @@ test('applications tab workflow filters and row status change POSTs an action', 
   await signIn(page);
 
   await page.locator('[data-tab="applications"]').click();
-  await expect(page.locator('#applicationList .entity-row')).toHaveCount(2);
+  await expect(page.locator('#applicationList .dt-row')).toHaveCount(2);
 
   await page.locator('[data-app-filter="shortlisted"]').click();
-  await expect(page.locator('#applicationList .entity-row')).toHaveCount(1);
+  await expect(page.locator('#applicationList .dt-row')).toHaveCount(1);
   await expect(page.locator('#applicationList')).toContainText('Rohit Shah');
 
   await page.locator('[data-app-filter="all"]').click();

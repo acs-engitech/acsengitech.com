@@ -29,12 +29,12 @@ test('admin session survives a page refresh (no re-login, data still visible)', 
   await page.click('#loginForm button[type="submit"]');
 
   await expect(page.locator('body')).not.toHaveClass(/admin-locked/);
-  await expect(page.locator('#overviewMetrics')).toContainText('SEO pages');
+  await expect(page.locator('#overviewStats')).toContainText('SEO pages');
 
   await page.reload();
 
   await expect(page.locator('body')).not.toHaveClass(/admin-locked/);
-  await expect(page.locator('#overviewMetrics')).toContainText('SEO pages');
+  await expect(page.locator('#overviewStats')).toContainText('SEO pages');
   await page.locator('[data-tab="blogs"]').click();
   await expect(page.locator('#postList')).toContainText('PLC basics');
 });

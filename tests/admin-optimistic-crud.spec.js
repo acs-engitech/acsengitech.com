@@ -33,13 +33,13 @@ test('application status change appears instantly, before the delayed network re
   await expect(page.locator('body')).not.toHaveClass(/admin-locked/);
 
   await page.locator('[data-tab="applications"]').click();
-  await expect(page.locator('[data-application-row="a1"] .status-pill')).toHaveText('new');
+  await expect(page.locator('[data-application-status="a1"]')).toHaveValue('new');
 
   await page.locator('[data-application-status="a1"]').selectOption('reviewed');
 
   // The mock POST response is delayed 500ms. Assert the DOM already shows the new status
   // well before that — proving the update is optimistic, not just a fast round trip.
-  await expect(page.locator('[data-application-row="a1"] .status-pill')).toHaveText('reviewed', { timeout: 200 });
+  await expect(page.locator('[data-application-status="a1"]')).toHaveValue('reviewed', { timeout: 200 });
 
   // No full-screen blocking overlay for an optimistic action.
   await expect(page.locator('#adminLoading')).not.toHaveClass(/is-visible/);
