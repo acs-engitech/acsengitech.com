@@ -33,68 +33,71 @@ function init() {
 }
 
 async function createTables() {
-  await db()`CREATE TABLE IF NOT EXISTS acs_admin_data (
-    key text PRIMARY KEY,
-    value jsonb NOT NULL,
-    updated_at timestamptz NOT NULL DEFAULT now()
-  )`;
-  await db()`CREATE TABLE IF NOT EXISTS acs_analytics_events (
-    id bigserial PRIMARY KEY,
-    path text NOT NULL,
-    visitor_id text,
-    referrer text,
-    device text,
-    user_agent text,
-    created_at timestamptz NOT NULL DEFAULT now()
-  )`;
-  await db()`CREATE TABLE IF NOT EXISTS acs_applications (
-    id bigserial PRIMARY KEY,
-    position_id text,
-    position_title text,
-    name text NOT NULL,
-    email text NOT NULL,
-    phone text,
-    years_experience text,
-    message text,
-    resume_url text,
-    resume_filename text,
-    resume_size integer,
-    status text NOT NULL DEFAULT 'new',
-    admin_notes text,
-    created_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now()
-  )`;
-  await db()`CREATE TABLE IF NOT EXISTS acs_enquiries (
-    id bigserial PRIMARY KEY,
-    first_name text NOT NULL,
-    last_name text NOT NULL,
-    email text NOT NULL,
-    subject text NOT NULL,
-    message text NOT NULL,
-    status text NOT NULL DEFAULT 'new',
-    admin_notes text,
-    created_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now()
-  )`;
-  await db()`CREATE TABLE IF NOT EXISTS acs_partners (
-    id bigserial PRIMARY KEY,
-    category text,
-    name text NOT NULL,
-    email text NOT NULL,
-    phone text,
-    city text,
-    entity_type text,
-    years_experience text,
-    portfolio_urls jsonb DEFAULT '[]'::jsonb,
-    profile_url text,
-    profile_filename text,
-    profile_size integer,
-    description text,
-    status text NOT NULL DEFAULT 'new',
-    admin_notes text,
-    created_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now()
-  )`;
+  // Independent statements, so they run together: one round trip of latency on a cold start instead of five.
+  await Promise.all([
+    db()`CREATE TABLE IF NOT EXISTS acs_admin_data (
+      key text PRIMARY KEY,
+      value jsonb NOT NULL,
+      updated_at timestamptz NOT NULL DEFAULT now()
+    )`,
+    db()`CREATE TABLE IF NOT EXISTS acs_analytics_events (
+      id bigserial PRIMARY KEY,
+      path text NOT NULL,
+      visitor_id text,
+      referrer text,
+      device text,
+      user_agent text,
+      created_at timestamptz NOT NULL DEFAULT now()
+    )`.then(() => db()`CREATE INDEX IF NOT EXISTS acs_analytics_events_created_at ON acs_analytics_events (created_at)`),
+    db()`CREATE TABLE IF NOT EXISTS acs_applications (
+      id bigserial PRIMARY KEY,
+      position_id text,
+      position_title text,
+      name text NOT NULL,
+      email text NOT NULL,
+      phone text,
+      years_experience text,
+      message text,
+      resume_url text,
+      resume_filename text,
+      resume_size integer,
+      status text NOT NULL DEFAULT 'new',
+      admin_notes text,
+      created_at timestamptz NOT NULL DEFAULT now(),
+      updated_at timestamptz NOT NULL DEFAULT now()
+    )`,
+    db()`CREATE TABLE IF NOT EXISTS acs_enquiries (
+      id bigserial PRIMARY KEY,
+      first_name text NOT NULL,
+      last_name text NOT NULL,
+      email text NOT NULL,
+      subject text NOT NULL,
+      message text NOT NULL,
+      status text NOT NULL DEFAULT 'new',
+      admin_notes text,
+      created_at timestamptz NOT NULL DEFAULT now(),
+      updated_at timestamptz NOT NULL DEFAULT now()
+    )`,
+    db()`CREATE TABLE IF NOT EXISTS acs_partners (
+      id bigserial PRIMARY KEY,
+      category text,
+      name text NOT NULL,
+      email text NOT NULL,
+      phone text,
+      city text,
+      entity_type text,
+      years_experience text,
+      portfolio_urls jsonb DEFAULT '[]'::jsonb,
+      profile_url text,
+      profile_filename text,
+      profile_size integer,
+      description text,
+      status text NOT NULL DEFAULT 'new',
+      admin_notes text,
+      created_at timestamptz NOT NULL DEFAULT now(),
+      updated_at timestamptz NOT NULL DEFAULT now()
+    )`,
+  ]);
 }
 
 async function getValue(key, fallback) {
@@ -325,9 +328,12 @@ async function deletePartners(ids) {
 }
 
 async function getAll() {
-  const pageSeo = await getPageSeo();
-  const settings = await getValue('settings', {});
-  const [positions, positionTypes, partnerCategories, applications, partners, enquiries] = await Promise.all([
+  // All reads are independent; one parallel batch keeps the admin load to the slowest single query.
+  const [pageSeo, settings, posts, jobs, positions, positionTypes, partnerCategories, applications, partners, enquiries] = await Promise.all([
+    getPageSeo(),
+    getValue('settings', {}),
+    getPosts(),
+    getValue('jobs', DEFAULT_JOBS),
     getPositions(),
     getPositionTypes(),
     getPartnerCategories(),
@@ -343,8 +349,8 @@ async function getAll() {
       defaults: page.defaults,
       seo: pageSeo[page.path] || {},
     })),
-    posts: await getPosts(),
-    jobs: await getValue('jobs', DEFAULT_JOBS),
+    posts,
+    jobs,
     positions,
     positionTypes,
     applications,
@@ -356,9 +362,9 @@ async function getAll() {
 }
 
 async function getPublicData() {
-  const pageSeo = await getPageSeo();
-  const settings = await getValue('settings', {});
-  const [positions, positionTypes, partnerCategories, posts, jobs] = await Promise.all([
+  const [pageSeo, settings, positions, positionTypes, partnerCategories, posts, jobs] = await Promise.all([
+    getPageSeo(),
+    getValue('settings', {}),
     getPositions(),
     getPositionTypes(),
     getPartnerCategories(),
@@ -404,11 +410,20 @@ async function recordAnalytics(event) {
 async function getAnalytics(days = 30) {
   await init();
   const since = new Date(Date.now() - (Number(days) || 30) * 24 * 60 * 60 * 1000).toISOString();
-  const rows = await db()`SELECT path, visitor_id AS "visitorId", referrer, device, created_at AS "createdAt"
-    FROM acs_analytics_events
-    WHERE created_at >= ${since}
-    ORDER BY created_at ASC`;
-  return rows;
+  // Grouped in Postgres: the admin needs counts, not every raw page view (which grows with traffic).
+  const [totals, devices, pages, referrers, daily] = await Promise.all([
+    db()`SELECT count(*)::int AS views, count(DISTINCT NULLIF(visitor_id, ''))::int AS visitors
+      FROM acs_analytics_events WHERE created_at >= ${since}`,
+    db()`SELECT device AS key, count(*)::int AS count FROM acs_analytics_events
+      WHERE created_at >= ${since} GROUP BY device`,
+    db()`SELECT path AS key, count(*)::int AS count FROM acs_analytics_events
+      WHERE created_at >= ${since} GROUP BY path ORDER BY count DESC LIMIT 200`,
+    db()`SELECT referrer AS key, count(*)::int AS count FROM acs_analytics_events
+      WHERE created_at >= ${since} AND referrer <> '' GROUP BY referrer ORDER BY count DESC LIMIT 500`,
+    db()`SELECT to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD') AS key, count(*)::int AS count
+      FROM acs_analytics_events WHERE created_at >= ${since} GROUP BY 1 ORDER BY 1`,
+  ]);
+  return { views: totals[0]?.views || 0, visitors: totals[0]?.visitors || 0, devices, pages, referrers, daily };
 }
 
 module.exports = {

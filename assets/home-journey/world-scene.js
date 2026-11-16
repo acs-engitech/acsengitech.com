@@ -11,7 +11,8 @@ const smooth = t => t * t * (3 - 2 * t);
 export async function createWorld(mount, { onProject, onCallouts, onLost, reduced = false } = {}) {
   await Promise.race([document.fonts?.load('600 20px Manrope').catch(() => {}), new Promise(r => setTimeout(r, 900))]);
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance', preserveDrawingBuffer: false });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, innerWidth < 1000 ? 1.5 : 1.75));
+  // Pixel ratio is the biggest GPU cost on phones and laptops; 1.25x / 1.5x keeps edges clean at a fraction of the fill.
+  renderer.setPixelRatio(Math.min(devicePixelRatio, innerWidth < 1000 ? 1.25 : 1.5));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.02;
@@ -20,7 +21,10 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
   const software = /swiftshader|llvmpipe|softpipe|software/i.test(debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : '');
   if (software) renderer.setPixelRatio(1);
   renderer.shadowMap.enabled = !software;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
+  // The scene is static apart from doors and small ambient parts, so the shadow pass only reruns when something moves.
+  renderer.shadowMap.autoUpdate = false;
+  renderer.shadowMap.needsUpdate = true;
   renderer.domElement.setAttribute('aria-label', 'Interactive 3D factory floor with an ACS control panel');
   renderer.domElement.setAttribute('role', 'img');
   mount.append(renderer.domElement);
@@ -35,7 +39,7 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
   scene.add(new THREE.HemisphereLight(0xffffff, 0xb4c0c3, .85));
   const sun = new THREE.DirectionalLight(0xfff8ee, 2.6);
   sun.position.set(7, 15, 11); sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.mapSize.setScalar(innerWidth < 1000 ? 1024 : 2048);
   Object.assign(sun.shadow.camera, { left: -21, right: 21, top: 15, bottom: -15, near: 1, far: 50 });
   sun.shadow.normalBias = .03; sun.shadow.bias = -.0004; sun.shadow.radius = 4;
   scene.add(sun);
@@ -710,14 +714,14 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
 
   function render(time = performance.now()) {
     frame = 0; if (!alive || !visible) return;
-    // Ambient motion is capped near 40 fps; scroll-driven camera moves render every frame.
-    if (lastTime && !forceCamera && Math.abs(desired - progress) <= .001 && time - lastTime < 24) { invalidate(); return; }
+    // Ambient motion is capped near 30 fps; scroll-driven camera moves render every frame.
+    if (lastTime && !forceCamera && Math.abs(desired - progress) <= .001 && time - lastTime < 33) { invalidate(); return; }
     // Time-based easing: slow GPUs reach the scrolled stage in the same wall-clock time.
     const elapsed = Math.min(250, lastTime ? time - lastTime : 16); lastTime = time;
     const delta = desired - progress;
     if (Math.abs(delta) > .001) { progress = reduced ? desired : progress + delta * (1 - Math.exp(-elapsed / 110)); forceCamera = true; }
     else if (progress !== desired) { progress = desired; forceCamera = true; }
-    if (forceCamera) { configureCamera(); forceCamera = false; }
+    if (forceCamera) { configureCamera(); forceCamera = false; renderer.shadowMap.needsUpdate = true; }
     if (!reduced) clock += elapsed / 1000;
     animate(clock);
     const a = Math.floor(progress), b = Math.min(stages.length - 1, a + 1), mix = smooth(progress - a);
@@ -754,7 +758,7 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
       const center = bounds.getCenter(new THREE.Vector3());
       asset.scene.scale.setScalar(scale); asset.scene.position.set(-center.x * scale, -bounds.min.y * scale, -center.z * scale);
       asset.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
-      const host = actors[id]; retiredModels.push(...host.children); host.clear(); host.add(asset.scene);
+      const host = actors[id]; retiredModels.push(...host.children); host.clear(); host.add(asset.scene); renderer.shadowMap.needsUpdate = true;
       if (id === 'panel') {
         doors.length = 0;
         for (const [name, side] of [['ACS_Door_Left', -1], ['ACS_Door_Right', 1]]) { const door = asset.scene.getObjectByName(name); if (door) doors.push({ door, side, baseRotation: door.rotation.y }); }
@@ -774,7 +778,7 @@ export async function createWorld(mount, { onProject, onCallouts, onLost, reduce
     setVisible(value) { visible = value; if (value) { lastTime = 0; invalidate(); } else { cancelAnimationFrame(frame); frame = 0; } },
     // Captures the requested stage even when the next animation frame has not run yet (slow, CPU-only GPUs).
     capture() {
-      if (forceCamera) { configureCamera(); forceCamera = false; }
+      if (forceCamera) { configureCamera(); forceCamera = false; renderer.shadowMap.needsUpdate = true; }
       const a = Math.floor(progress), b = Math.min(stages.length - 1, a + 1);
       setDoors(a, b, smooth(progress - a));
       renderer.render(scene, camera);

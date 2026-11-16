@@ -31,7 +31,8 @@ test('database setup can retry after a temporary failure', async () => {
   });
   await assert.rejects(store.getPublicData(), /temporary database outage/);
   await store.getPublicData();
-  assert.equal(calls.filter(sql => sql.startsWith('CREATE TABLE')).length, 6);
+  // Setup statements run in parallel, so the failed attempt still issued all five before the retry.
+  assert.equal(calls.filter(sql => sql.startsWith('CREATE TABLE')).length, 10);
 });
 
 test('bundled LinkedIn posts are merged into the posts blob once, keeping existing posts and slugs', async () => {

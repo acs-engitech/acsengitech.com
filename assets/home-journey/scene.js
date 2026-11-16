@@ -33,7 +33,7 @@ export async function createJourneyScene(mount, stages, onLost, onProject) {
   floor.rotation.x = -Math.PI / 2; floor.position.set(14, -1.64, 0); floor.receiveShadow = true; scene.add(floor);
   let alive = true, visible = true, frame = 0, desired = 0, progress = 0, initial = true, introStart = 0;
   let ems;
-  try { ems = await new THREE.TextureLoader().loadAsync(new URL('./media/ems.jpg', import.meta.url).href); ems.colorSpace = THREE.SRGBColorSpace; }
+  try { ems = await new THREE.TextureLoader().loadAsync(new URL('./media/ems.webp', import.meta.url).href); ems.colorSpace = THREE.SRGBColorSpace; }
   catch { /* The static EMS image and text remain available if its texture cannot load. */ }
 
   const material = (color, metalness = 0.25) => new THREE.MeshStandardMaterial({ color, metalness, roughness: 0.48 });

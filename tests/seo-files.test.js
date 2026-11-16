@@ -22,8 +22,8 @@ test('sitemap lists indexable pages and live posts only', () => {
   const xml = buildSitemap({ pages: hidden, posts }, NOW);
   assert.match(xml, /^<\?xml/);
   assert.strictEqual((xml.match(/<url>/g) || []).length, pages.length - 2 + 2);
-  assert.match(xml, /post=due/);
-  assert.doesNotMatch(xml, /post=later|post=draft/);
+  assert.match(xml, /\/blog\/due<\/loc>/);
+  assert.doesNotMatch(xml, /\/blog\/(later|draft)<\/loc>/);
   assert.doesNotMatch(xml, new RegExp(`<loc>${pages[1].defaults.canonical}</loc>`));
 });
 

@@ -167,7 +167,7 @@ test('sitemap lists absolute www URLs only and ignores junk canonical overrides'
   for (const loc of locs) assert.match(loc, /^https:\/\/www\.acsengitech\.com\//);
   assert.ok(locs.includes('https://www.acsengitech.com/about'));
   assert.ok(locs.includes('https://www.acsengitech.com/privacy'));
-  assert.ok(locs.includes('https://www.acsengitech.com/blog?post=p'));
+  assert.ok(locs.includes('https://www.acsengitech.com/blog/p'));
 });
 
 test('llms.txt always carries when-to-use guidance, once', () => {

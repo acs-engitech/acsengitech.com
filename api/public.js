@@ -12,6 +12,23 @@ function send(res, status, payload, cache) {
   res.end(JSON.stringify(payload));
 }
 
+// Every page fetches this endpoint, so the payload is kept to what that page uses: its own SEO entry (plus the
+// home entry the runtime falls back to), and blog posts only on /blog. Full article HTML is sent only for the
+// post being read (?post=slug); the index needs the summary fields alone.
+function pageSeoFor(path, entries) {
+  const all = Object.fromEntries(entries);
+  const out = {};
+  for (const key of [path, path.replace(/\/$/, ''), '/']) if (all[key]) out[key] = all[key];
+  return out;
+}
+
+function blogPosts(posts, slug) {
+  return posts
+    .filter((post) => isPostVisible(post))
+    .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt))
+    .map((post) => (post.slug === slug ? post : { ...post, content: undefined }));
+}
+
 module.exports = async function handler(req, res) {
   try {
     if (req.method === 'POST') {
@@ -26,10 +43,8 @@ module.exports = async function handler(req, res) {
     }
 
     const data = await store.getPublicData();
-    const pageSeo = {};
-    for (const page of data.pages) {
-      pageSeo[page.path] = mergeSeo(page.defaults, page.seo);
-    }
+    const currentPath = normalizePagePath(req.query?.path || '/');
+    const pageSeo = pageSeoFor(currentPath, data.pages.map((page) => [page.path, mergeSeo(page.defaults, page.seo)]));
 
     const livePositions = (data.positions || []).filter((position) => position.status !== 'closed');
     // Legacy consumers read `jobs` with open|paused|closed statuses — map positions back to that shape.
@@ -41,15 +56,12 @@ module.exports = async function handler(req, res) {
       positionTypes: data.positionTypes || [],
       partnerCategories: data.partnerCategories || [],
       jobs: jobsFromPositions.length ? jobsFromPositions : data.jobs.filter((job) => job.status !== 'closed'),
-      posts: data.posts.filter((post) => isPostVisible(post)).sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt)),
+      posts: currentPath === '/blog' ? blogPosts(data.posts, req.query?.post) : [],
       pageSeo,
-      currentPath: normalizePagePath(req.query?.path || '/'),
+      currentPath,
     }, 'public, s-maxage=60, stale-while-revalidate=86400');
   } catch (error) {
-    const pageSeo = {};
-    for (const page of PAGE_DEFAULTS) {
-      pageSeo[page.path] = mergeSeo(page.defaults, {});
-    }
+    const pageSeo = pageSeoFor(normalizePagePath(req.query?.path || '/'), PAGE_DEFAULTS.map((page) => [page.path, mergeSeo(page.defaults, {})]));
     return send(res, 200, {
       settings: DEFAULT_SETTINGS,
       jobs: DEFAULT_JOBS.filter((job) => job.status !== 'closed'),

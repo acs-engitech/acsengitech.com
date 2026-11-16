@@ -30,6 +30,11 @@ module.exports = async function handler(req, res) {
     return res.end();
   }
   const requested = String(req.query?.path || '/');
+  const postPath = requested.match(/^\/blog\/([^/?#]+)\/?$/);
+  if (postPath) {
+    const post = await findPost(decodeURIComponent(postPath[1]));
+    return post ? send(req, res, 200, postMarkdown(post)) : send(req, res, 404, notFoundMarkdown(requested));
+  }
   const page = pageForPath(requested);
   if (!page) return send(req, res, 404, notFoundMarkdown(requested));
   if (page.path === '/blog' && req.query?.post) {

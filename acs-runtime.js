@@ -56,12 +56,12 @@
     { label: 'Contact Us', href: 'contact.html' },
   ];
   const acsImages = {
-    engineers: 'assets/acs/process-automation.jpg',
-    automation: 'assets/acs/machine-automation.jpg',
-    team: 'assets/acs/acs-team.jpg',
-    panels: 'assets/acs/control-panels.jpg',
-    software: 'assets/acs/industrial-software.png',
-    server: 'assets/acs/data-systems.jpg',
+    engineers: 'assets/acs/process-automation.webp',
+    automation: 'assets/acs/machine-automation.webp',
+    team: 'assets/acs/acs-team.webp',
+    panels: 'assets/acs/control-panels.webp',
+    software: 'assets/acs/industrial-software.webp',
+    server: 'assets/acs/data-systems.webp',
     mccPanel: 'assets/acs/mcc-panel.jpg',
     plcPanel: 'assets/acs/plc-panel.jpg',
     vfdPanel: 'assets/acs/vfd-panel.jpg',
@@ -244,6 +244,7 @@
   }
 
   function applySeo(data) {
+    if (document.body?.hasAttribute('data-acs-ssr-seo')) return;
     const path = normalizePath(location.pathname);
     const seo = data.pageSeo?.[path] || data.pageSeo?.[path.replace(/\/$/, '')] || data.pageSeo?.['/'];
     if (!seo) return;
@@ -729,7 +730,7 @@
           <div class="acs-clients-row">
             <img src="assets/acs/hikal-logo.png" alt="Hikal">
             <img src="assets/acs/johnson-matthey-logo.svg" alt="Johnson Matthey">
-            <img src="assets/acs/rexroth-logo.png" alt="Rexroth">
+            <img src="assets/acs/rexroth-logo.webp" alt="Rexroth">
           </div>
         </div>
       </section>
@@ -1127,7 +1128,7 @@
 
   function blogCard(post) {
     return `
-      <a class="co-blog-card" href="/blog?post=${encodeURIComponent(post.slug)}">
+      <a class="co-blog-card" href="/blog/${encodeURIComponent(post.slug)}">
         <div class="co-frame"><img src="${escapeHtml(post.coverImage || acsImages.panels)}" alt="${escapeHtml(post.coverAlt || post.title)}" loading="lazy"></div>
         ${blogMeta(post)}
         <h3>${escapeHtml(post.title || 'ACS Engitech update')}</h3>
@@ -1139,8 +1140,11 @@
   // page hero so the post title is the page's only h1. Markup is styled by assets/acs-site/company.css.
   function renderBlog(posts) {
     const root = document.getElementById('acs-blog-board');
-    if (!root) return;
+    // /blog/<slug> arrives server-rendered (api/blog-post.js); keep it.
+    if (!root || root.dataset.ssr) return;
     const slug = new URLSearchParams(location.search).get('post');
+    // Old ?post= links move to the indexable /blog/<slug> URL.
+    if (slug) { location.replace(`/blog/${encodeURIComponent(slug)}`); return; }
     const visiblePosts = (posts || []).filter((post) => post.status !== 'draft');
     const selected = visiblePosts.find((post) => post.slug === slug);
     if (selected) {
@@ -1154,7 +1158,7 @@
           <header>${blogMeta(selected)}<h1>${escapeHtml(selected.title)}</h1></header>
           <div class="co-frame co-article-wide"><img src="${escapeHtml(selected.coverImage || acsImages.engineers)}" alt="${escapeHtml(selected.coverAlt || selected.title)}"></div>
           <div class="co-prose">${selected.content ? sanitizeBlogHtml(selected.content) : `<p>${escapeHtml(selected.excerpt || 'Article content will be updated soon.')}</p>`}</div>
-          ${more.length ? `<aside class="co-article-more co-article-wide"><p class="co-label">More articles</p><div class="co-blog-grid" style="margin-top:32px">${more.map(blogCard).join('')}</div></aside>` : ''}
+          ${more.length ? `<aside class="co-article-more co-article-wide"><p class="co-label">More articles</p><div class="co-blog-grid co-blog-grid--more">${more.map(blogCard).join('')}</div></aside>` : ''}
         </article>`;
       window.scrollTo(0, 0);
       return;
@@ -1165,7 +1169,7 @@
     }
     const [lead, ...rest] = visiblePosts;
     root.innerHTML = `
-      <a class="co-blog-feature" href="/blog?post=${encodeURIComponent(lead.slug)}">
+      <a class="co-blog-feature" href="/blog/${encodeURIComponent(lead.slug)}">
         <div class="co-frame"><img src="${escapeHtml(lead.coverImage || acsImages.panels)}" alt="${escapeHtml(lead.coverAlt || lead.title)}"></div>
         <div><p class="co-label">Latest</p><h2>${escapeHtml(lead.title)}</h2>${blogMeta(lead)}<p style="margin-top:16px">${escapeHtml(lead.excerpt || '')}</p><span class="co-link" style="margin-top:24px">Read article <i class="ri-arrow-right-line" aria-hidden="true"></i></span></div>
       </a>
@@ -1227,7 +1231,8 @@
     }
     try {
       const path = encodeURIComponent(normalizePath(location.pathname));
-      const response = await fetch(resolveApiUrl(`/api/public?path=${path}`));
+      const post = new URLSearchParams(location.search).get('post');
+      const response = await fetch(resolveApiUrl(`/api/public?path=${path}${post ? `&post=${encodeURIComponent(post)}` : ''}`));
       const data = await response.json();
       if (!response.ok) return;
       siteState.data = data;

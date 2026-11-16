@@ -2,7 +2,7 @@
 export const modelSlots = {
   factory: { modelUrl: null, size: [36, 7.5, 22], position: [0, 0, 0], reference: null, status: 'Illustrative covered stockyard shed with walkways and an operator desk. Not a replica of a specific client plant or of the ACS facility.' },
   line: { modelUrl: null, size: [16, 6.5, 12], position: [0, 0, 0], reference: null, status: 'Illustrative stacker and reclaimer stockyard: coal and ore stockpiles, rail-mounted boom stacker and bucket-wheel reclaimer, yard conveyor and junction house.' },
-  panel: { modelUrl: null, size: [1.6, 2.15, .62], position: [5.6, 0, 1], reference: 'assets/acs/control-panels.jpg', status: 'Representative ACS PLC control panel. Component layout is illustrative; every project is engineered to its own specification.' },
+  panel: { modelUrl: null, size: [1.6, 2.15, .62], position: [5.6, 0, 1], reference: 'assets/acs/control-panels.webp', status: 'Representative ACS PLC control panel. Component layout is illustrative; every project is engineered to its own specification.' },
   mcc: { modelUrl: null, size: [7.4, 2.4, .65], position: [2.6, 0, -5.2], reference: 'assets/acs/mcc-panel.jpg', status: 'Representative compartmental MCC based on ACS MCC panel photography.' }
 };
 

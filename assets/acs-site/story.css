@@ -1,7 +1,7 @@
 /* Editorial scenes enhance the preserved document; native disclosures remain accessible. */
 .acs-story-page .acs-breadcrumb-photo{display:none}
 .acs-story-page .rs-breadcrumb-one{padding-top:50px}
-.acs-restored .acs-breadcrumb-photo[src="assets/acs/process-automation.jpg"]{display:none}
+.acs-restored .acs-breadcrumb-photo[src="assets/acs/process-automation.webp"]{display:none}
 .acs-story-page.acs-family-product .acs-product-hero .rs-breadcrumb-content-wrapper{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);column-gap:70px;align-items:start}
 .acs-story-page.acs-family-product .acs-product-hero .rs-section-subtitle{grid-column:1;grid-row:1}
 .acs-story-page.acs-family-product .acs-product-hero .rs-breadcrumb-title{grid-column:1;grid-row:2;font-size:64px;margin-bottom:26px}

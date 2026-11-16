@@ -95,7 +95,7 @@
     const id=chapters[index].id;
     const base='assets/home-journey/media/world-'+id;
     document.getElementById('world-poster-mobile').srcset=base+'-mobile.png';
-    poster.src=base+'-desktop.png';poster.alt='Rendered 3D scene: '+(stages?.[index].label||id);
+    poster.src=base+'-desktop.webp';poster.alt='Rendered 3D scene: '+(stages?.[index].label||id);
   }
   function select(index) {
     if(index===active)return;
@@ -145,46 +145,7 @@
   }
   function schedule(){if(!frame)frame=requestAnimationFrame(update);}
   window.addEventListener('scroll',schedule,{passive:true});
-  // One gesture, one chapter. Wheel and keys step to the neighbouring chapter with an eased scroll; touch uses CSS snapping.
-  let stepping=0,quietUntil=0,wheelSum=0,wheelReset=0;
-  function stepTarget(direction){
-    if(!scrollPositions.length)return null;
-    const y=scrollY,last=scrollPositions[scrollPositions.length-1];
-    if(direction>0){if(y>=last-2)return null;return scrollPositions.find(p=>p>y+2)??null;}
-    if(y>last+2||y<=scrollPositions[0]+2)return null;
-    return [...scrollPositions].reverse().find(p=>p<y-2)??null;
-  }
-  function glide(to){
-    if(motion.matches){scrollTo({top:to,behavior:'instant'});quietUntil=performance.now()+250;return;}
-    const from=scrollY,start=performance.now(),span=Math.min(1100,Math.max(650,Math.abs(to-from)*.9));
-    cancelAnimationFrame(stepping);
-    const tick=now=>{
-      const t=Math.min(1,(now-start)/span),e=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
-      scrollTo({top:from+(to-from)*e,behavior:'instant'});
-      if(t<1)stepping=requestAnimationFrame(tick);else{stepping=0;quietUntil=performance.now()+380;}
-    };
-    stepping=requestAnimationFrame(tick);
-  }
-  function ownsGesture(target){return journey.classList.contains('is-present')&&!scope.open&&!target?.closest?.('dialog,.nav-dropdown,#main-navigation,select,input,textarea');}
-  window.addEventListener('wheel',e=>{
-    if(e.ctrlKey||Math.abs(e.deltaX)>Math.abs(e.deltaY)||!ownsGesture(e.target))return;
-    const direction=Math.sign(e.deltaY),to=stepTarget(direction);
-    if(to===null){wheelSum=0;return;}
-    e.preventDefault();
-    const now=performance.now();
-    if(stepping||now<quietUntil){quietUntil=Math.max(quietUntil,now+(stepping?0:160));return;}
-    if(now>wheelReset)wheelSum=0;wheelReset=now+260;
-    wheelSum+=e.deltaMode===1?e.deltaY*16:e.deltaY;
-    if(Math.abs(wheelSum)<24)return;
-    wheelSum=0;glide(to);
-  },{passive:false});
-  window.addEventListener('keydown',e=>{
-    if(e.altKey||e.ctrlKey||e.metaKey||!ownsGesture(e.target)||e.target.closest?.('a,button,[contenteditable]')&&e.key===' ')return;
-    const direction={ArrowDown:1,PageDown:1,' ':e.shiftKey?-1:1,ArrowUp:-1,PageUp:-1}[e.key];
-    if(!direction)return;
-    const to=stepTarget(direction);if(to===null)return;
-    e.preventDefault();if(!stepping)glide(to);
-  });
+  // Scrolling stays native (wheel, keys, trackpad, touch); CSS scroll-snap settles on chapters without delaying input.
   window.addEventListener('resize',measure,{passive:true});
   document.fonts.ready.then(measure);
   function project(point) {
@@ -220,5 +181,8 @@
       mount.setReviewStage=index=>{engine.setProgress(index,true);select(index);};
     } catch {fallback();}
   }
-  measure();boot();
+  measure();
+  // The poster image covers the hero until WebGL is ready, so build the 3D scene once the page is idle.
+  const start=()=>('requestIdleCallback' in window?requestIdleCallback(boot,{timeout:1500}):setTimeout(boot,200));
+  if(document.readyState==='complete')start();else addEventListener('load',start,{once:true});
 })();

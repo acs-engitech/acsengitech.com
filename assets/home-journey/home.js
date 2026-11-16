@@ -96,7 +96,7 @@
     description.textContent = stage.detail;
     closeHotspot();
     document.getElementById('scene-mount').setAttribute('aria-label', stage.modelLabel);
-    fallback.src = index ? stage.fallback : 'assets/acs/control-panels.jpg';
+    fallback.src = index ? stage.fallback : 'assets/acs/control-panels.webp';
     fallback.alt = index ? stage.alt : 'ACS electrical control panels with internal wiring visible';
     caption.textContent = journey.dataset.renderer === 'ready' && !journey.classList.contains('no-sticky') ? 'Concept assembly / not to scale' : index ? stage.caption : 'ACS control panel / engineering reference';
     mapLinks.forEach((link, i) => {

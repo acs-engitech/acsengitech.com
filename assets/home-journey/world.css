@@ -648,6 +648,8 @@ html:not(.has-js) .round-clock strong{font-size:90px}
 
 /* One gesture, one chapter: the journey snaps chapter to chapter; the footer releases it. */
 @media(pointer:coarse){html.has-js:has(#acs-world){scroll-snap-type:y mandatory}}
+/* Desktop: native wheel and trackpad scrolling, nudged onto chapters only when the stop lands close to one. */
+@media(pointer:fine){html.has-js:has(#acs-world){scroll-snap-type:y proximity}.world-chapter{scroll-snap-stop:normal}}
 .has-js .site-footer{scroll-snap-align:start}
 @media(min-width:1000px){#acs-world #inside .scene-content{width:min(var(--copy-w),27vw)}}
 /* Phones and tablets: title at the top, story at the bottom; showroom.js measures the gap between them and the 3D is framed inside it. */

@@ -14,6 +14,7 @@ if (!['NEON_DATABASE_URL', 'DATABASE_URL', 'POSTGRES_URL'].some((name) => proces
 const apiRoutes = {
   '/api/admin': './api/admin',
   '/api/public': './api/public',
+  '/api/blog-post': './api/blog-post',
   '/api/apply': './api/apply',
   '/api/partner': './api/partner',
   '/api/contact': './api/contact',
@@ -137,6 +138,13 @@ const server = http.createServer(async (req, res) => {
   if (rewrite) {
     const target = new URL(rewrite.headers.get('x-middleware-rewrite'));
     handleApi(target.pathname, req, res, target);
+    return;
+  }
+  // Mirrors the vercel.json rewrite for server-rendered blog posts.
+  const postMatch = parsedUrl.pathname.match(/^\/blog\/([^/]+)\/?$/);
+  if (postMatch) {
+    parsedUrl.searchParams.set('slug', decodeURIComponent(postMatch[1]));
+    handleApi('/api/blog-post', req, res, parsedUrl);
     return;
   }
   const apiRoute = apiRoutes[parsedUrl.pathname] ? parsedUrl.pathname : null;

@@ -19,11 +19,11 @@
   const applications=main.querySelector('.acs-application-index');
   if(applications){
     const references=[
-      ['assets/acs/control-panels.jpg','Control panel engineering'],
+      ['assets/acs/control-panels.webp','Control panel engineering'],
       ['assets/acs/vfd-panel.jpg','Drive panel engineering'],
-      ['assets/home-journey/media/plc-mcc.jpg','PLC / MCC panel engineering'],
-      ['assets/home-journey/media/ems.jpg','ACS energy monitoring'],
-      ['assets/home-journey/media/logview.jpg','ACS LogView']
+      ['assets/home-journey/media/plc-mcc.webp','PLC / MCC panel engineering'],
+      ['assets/home-journey/media/ems.webp','ACS energy monitoring'],
+      ['assets/home-journey/media/logview.webp','ACS LogView']
     ];
     const rows=[...applications.querySelectorAll('.application-row')];
     const stage=document.createElement('figure');stage.className='application-preview';
@@ -97,7 +97,7 @@
         scope.lastElementChild.append(...paragraphs);layout.after(scope);
       }
       const photo=document.createElement('figure');photo.className='acs-drawing-plane';
-      photo.innerHTML='<img src="assets/home-journey/media/engineering.jpg" alt="ACS engineering drawings" width="1000" height="700" loading="lazy"><figcaption>ACS / Panel engineering</figcaption>';
+      photo.innerHTML='<img src="assets/home-journey/media/engineering.webp" alt="ACS engineering drawings" width="1000" height="700" loading="lazy"><figcaption>ACS / Panel engineering</figcaption>';
       right.replaceChildren(photo);
     }
   }

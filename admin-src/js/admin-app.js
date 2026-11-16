@@ -480,7 +480,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
     $('#postList').innerHTML = posts.map((post) => `
       <button class="row-card ${post.id === state.selectedPost ? 'active' : ''}" data-post="${post.id}" type="button">
         <strong>${post.title} <span class="status-pill status-${post.status}">${post.status}</span></strong>
-        <span class="row-path">${new Date(post.publishedAt).toLocaleDateString()} - /blog?post=${post.slug}</span>
+        <span class="row-path">${new Date(post.publishedAt).toLocaleDateString()} - /blog/${post.slug}</span>
         <span class="row-tags">${(post.tags || []).map((tag) => `<span class="tag-chip">${tag}</span>`).join('')}</span>
       </button>
     `).join('') || '<p class="empty-state">No posts in this view.</p>';
@@ -522,7 +522,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
     form.metaTitle.value = post.seo?.title || '';
     form.metaDescription.value = post.seo?.description || '';
     form.status.value = post.status || 'published';
-    $('#previewPostLink').href = `/blog?post=${post.slug || ''}`;
+    $('#previewPostLink').href = `/blog/${post.slug || ''}`;
   }
 
   // ---------- Positions ----------

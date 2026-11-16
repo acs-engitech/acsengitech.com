@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/blog/:slug",
+      "destination": "/api/blog-post?slug=:slug"
+    },
+    {
       "source": "/robots.txt",
       "destination": "/api/robots"
     },
@@ -143,11 +147,59 @@
           "value": "noindex, nofollow"
         }
       ]
+    },
+    {
+      "source": "/assets/(.*)\\.(css|js)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/acs-runtime.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)\\.(webp|png|jpg|jpeg|svg|gif|avif|ttf|woff|woff2|glb)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=2592000, stale-while-revalidate=604800"
+        }
+      ]
+    },
+    {
+      "source": "/(logo-1|logo-white)\\.svg",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=2592000, stale-while-revalidate=604800"
+        }
+      ]
+    },
+    {
+      "source": "/admin/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
     }
   ],
   "functions": {
     "api/markdown.js": {
       "includeFiles": "*.html"
+    },
+    "api/blog-post.js": {
+      "includeFiles": "{blog,404}.html"
     }
   }
 }

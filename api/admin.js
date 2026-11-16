@@ -1,5 +1,5 @@
 const store = require('./_store');
-const { summarizeAnalytics } = require('../lib/admin-core');
+const { summarizeAnalyticsGroups } = require('../lib/admin-core');
 const { hashPassword, safeEqual, configuredEmail, configuredHash, signSession, verifySession } = require('../lib/admin-credentials');
 const { can } = require('../lib/ops/rbac');
 const opsDb = require('../lib/ops/db');
@@ -113,11 +113,11 @@ module.exports = async function handler(req, res) {
 
     if (req.method === 'GET') {
       const days = Number(req.query?.days || 30);
-      const [data, analyticsRows] = await Promise.all([
+      const [data, analyticsGroups] = await Promise.all([
         store.getAll(),
         can(user, 'admin.content') ? store.getAnalytics(days) : [],
       ]);
-      const analytics = can(user, 'admin.content') ? summarizeAnalytics(analyticsRows, new Date(), days) : undefined;
+      const analytics = can(user, 'admin.content') ? summarizeAnalyticsGroups(analyticsGroups, days) : undefined;
       return send(res, 200, { ...scopeData(data, user), analytics, access, ...sessionFields });
     }
 
