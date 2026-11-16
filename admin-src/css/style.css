@@ -388,9 +388,9 @@ body:not(.admin-locked) #adminLogin { display: none; }
 @media (max-width: 1023px) { .seo-page-nav .list { max-height: 320px; } }
 
 /* The SEO workspace preserves page navigation and swaps editing contexts in-place. */
-.seo-workbench { align-items: start; max-width: 1320px; margin: 0 auto; }
-.seo-workbench .seo-page-nav { position: sticky; top: 92px; max-height: calc(100vh - 116px); }
-.seo-workbench .seo-page-nav .list { max-height: calc(100vh - 308px); }
+
+
+
 .seo-editor-canvas { min-width: 0; }
 .seo-editor-tabs { @apply flex gap-1 overflow-x-auto rounded-xl border border-gray-200 bg-gray-50 p-1; }
 .seo-editor-tabs button { @apply shrink-0 rounded-lg px-4 py-2 text-sm font-medium text-gray-500 transition hover:text-gray-800; }

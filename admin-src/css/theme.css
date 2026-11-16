@@ -84,7 +84,7 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--primary); widt
 .admin-menu-toggle { display: none; width: 44px; height: 44px; flex-direction: column; align-items: center; justify-content: center; gap: 5px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--text); flex: none; }
 .admin-menu-toggle span { display: block; width: 18px; height: 2px; border-radius: 2px; background: currentColor; transition: transform .2s, opacity .2s; }
 .admin-content { max-width: none; padding: 8px 24px 48px; }
-.panel { position: relative; max-width: 1480px; }
+.panel { position: relative; max-width: none; }
 .panel.active { animation: panelIn .2s ease-out; }
 @keyframes panelIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
@@ -355,3 +355,36 @@ select.field-input { appearance: none; padding-right: 38px; background-image: li
 
 .section-actions select.field-input { width: auto; min-width: 130px; margin: 0; border-radius: var(--r-pill); }
 .workbench-list { max-height: none; }
+
+/* ---------- Structure pass: one scroll, rounded rows, compact headers, workbench fills the viewport ---------- */
+.section-head { align-items: center; margin: 0 0 18px; }
+.section-head .page-title { font-size: 26px; }
+.page-sub { margin-top: 3px; font-size: 13px; }
+.card { padding: 22px; }
+.editor.card, .seo-editor-canvas { padding: 24px 26px; }
+.admin-content { padding-top: 4px; }
+
+/* Rows are rounded pills inside the rounded table, separated by inset hairlines, never full-bleed rectangles */
+.dt { padding: 8px; }
+.dt-body { display: flex; flex-direction: column; gap: 2px; margin-top: 4px; }
+.dt-row { border-bottom: 0; border-radius: 16px; padding-block: 14px; }
+.dt-row::after { content: ''; position: absolute; left: 18px; right: 18px; bottom: -1px; height: 1px; background: var(--line); }
+.dt-row:last-child::after, .dt-row:hover::after, .dt-row.is-active::after, .dt-row:has(input:checked)::after { display: none; }
+.dt-row:hover { background: var(--wash); }
+.dt-row:has(input:checked), .dt-row.is-active { background: var(--primary-soft); }
+
+/* Soft fade where content slides under the top bar, instead of a hard cut */
+@media (min-width: 1024px) {
+  .admin-topbar { position: relative; z-index: 5; }
+  .admin-topbar::after { content: ''; position: absolute; left: 0; right: 8px; top: 100%; height: 14px; background: linear-gradient(var(--canvas), rgba(242, 245, 244, 0)); pointer-events: none; }
+}
+
+/* SEO: header stays, the two panes fill what is left and scroll on their own */
+@media (min-width: 1100px) {
+  .dashboard-canvas:has(#seo.active) { display: flex; flex-direction: column; overflow: hidden; padding-bottom: 0; }
+  #seo.active { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+  #seo .seo-workbench { flex: 1; min-height: 0; grid-template-rows: minmax(0, 1fr); align-items: stretch; padding-bottom: 8px; }
+  #seo .seo-page-nav { position: static; max-height: none; min-height: 0; overflow: hidden; }
+  #seo .seo-editor-canvas { min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--accent) transparent; align-content: start; }
+}
+textarea.code-field.tall { min-height: 340px; }
