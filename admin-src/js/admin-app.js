@@ -290,6 +290,8 @@ import acsDefaults from '../../lib/acs-defaults.js';
     const name = access.name || 'Administrator';
     const roles = { director: 'Director', hr: 'HR', content: 'Content', purchase: 'Purchasing' };
     $('#adminUserName').textContent = name;
+    const hour = new Date().getHours();
+    $('#overviewGreeting').textContent = `${hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'}, ${name.split(' ')[0]}`;
     $('#adminUserRole').textContent = roles[access.role] || 'Signed in';
     $('#adminUserAvatar').textContent = name.trim().split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase() || 'A';
   }
@@ -354,6 +356,57 @@ import acsDefaults from '../../lib/acs-defaults.js';
   function recentPanel(title, tab, rows, empty) {
     return `<section class="dash-panel"><header><h2>${title}</h2><button type="button" class="dash-link" data-goto-tab="${tab}">View all</button></header>${
       rows.length ? `<ul>${rows.join('')}</ul>` : `<p class="dash-empty">${empty}</p>`}</section>`;
+  }
+
+  // One search box for everything the admin manages; picking a result jumps to it.
+  function initGlobalSearch() {
+    const input = $('#globalSearch');
+    const box = $('#searchResults');
+    let results = [];
+    const go = (tab) => document.querySelector(`.nav-btn[data-tab="${tab}"]`)?.click();
+    const sources = () => [
+      ...state.pages.map((p) => ({ group: 'Pages', label: p.label || p.path, hint: p.path, act: () => { go('seo'); state.selectedPage = p.path; renderSeoPageList(); renderSeo(); } })),
+      ...state.posts.map((p) => ({ group: 'Posts', label: p.title, hint: `/blog/${p.slug}`, act: () => { go('blogs'); state.selectedPost = p.id; renderPosts(); openEditor('#postForm'); } })),
+      ...state.positions.map((p) => ({ group: 'Positions', label: p.title, hint: p.department || '', act: () => { go('positions'); state.selectedPosition = p.id; renderPositions(); openEditor('#positionForm'); } })),
+      ...state.enquiries.map((e) => ({ group: 'Enquiries', label: e.name, hint: e.subject || e.email, act: () => { go('enquiries'); openEnquiryDrawer(e.id); } })),
+      ...state.applications.map((a) => ({ group: 'Applications', label: a.name, hint: a.positionTitle || a.email, act: () => { go('applications'); openApplicationDrawer(a.id); } })),
+      ...state.partners.map((p) => ({ group: 'Partners', label: p.name, hint: p.category || p.email, act: () => { go('partners'); openPartnerDrawer(p.id); } })),
+    ];
+    const close = () => { box.hidden = true; input.setAttribute('aria-expanded', 'false'); };
+    const render = () => {
+      const terms = input.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+      if (!terms.length) { close(); return; }
+      const perGroup = {};
+      results = sources().filter((item) => {
+        const text = `${item.label} ${item.hint}`.toLowerCase();
+        return terms.every((term) => text.includes(term));
+      }).filter((item) => (perGroup[item.group] = (perGroup[item.group] || 0) + 1) <= 3).slice(0, 10);
+      let lastGroup = '';
+      box.innerHTML = results.map((item, index) => {
+        const head = item.group !== lastGroup ? `<p class="search-group">${item.group}</p>` : '';
+        lastGroup = item.group;
+        return `${head}<button type="button" role="option" class="search-item" data-search-index="${index}"><strong>${escapeHtml(item.label)}</strong><span>${escapeHtml(item.hint)}</span></button>`;
+      }).join('') || '<p class="search-empty">Nothing matches that search.</p>';
+      box.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
+    };
+    input.addEventListener('input', render);
+    input.addEventListener('focus', render);
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') { input.value = ''; close(); input.blur(); }
+      if (event.key === 'Enter' && results[0]) { results[0].act(); input.value = ''; close(); input.blur(); }
+    });
+    box.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-search-index]');
+      if (!button) return;
+      results[Number(button.dataset.searchIndex)]?.act();
+      input.value = '';
+      close();
+    });
+    document.addEventListener('click', (event) => { if (!event.target.closest('#globalSearchBox')) close(); });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === '/' && !event.target.closest('input, textarea, select, [contenteditable]')) { event.preventDefault(); input.focus(); }
+    });
   }
 
   function renderOverview() {
@@ -1685,6 +1738,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
       await save({ pageSeo: state.pageSeo, posts: state.posts, positions: state.positions, settings: collectSettings() }, 'All changes saved.');
     });
     $('#refreshBtn').addEventListener('click', load);
+    initGlobalSearch();
     $('#analyticsDays').addEventListener('change', load);
   }
 
