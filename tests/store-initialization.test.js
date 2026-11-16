@@ -41,6 +41,7 @@ test('bundled LinkedIn posts are merged into the posts blob once, keeping existi
   const query = async (parts, ...args) => {
     const sql = parts.join('?');
     if (sql.startsWith('SELECT value FROM acs_admin_data')) return values[args[0]] === undefined ? [] : [{ value: values[args[0]] }];
+    if (sql.startsWith('SELECT key, value FROM acs_admin_data')) return args[0].filter((key) => values[key] !== undefined).map((key) => ({ key, value: values[key] }));
     if (sql.startsWith('INSERT INTO acs_admin_data')) { values[args[0]] = JSON.parse(args[1]); return []; }
     return [];
   };

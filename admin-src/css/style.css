@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --font-outfit: "Outfit", sans-serif;
+  --font-sans: Manrope, Arial, sans-serif;
 
   /* TailAdmin text scale */
   --text-title-2xl: 72px;
@@ -21,19 +21,18 @@
   --text-theme-xs: 12px;
   --text-theme-xs--line-height: 18px;
 
-  /* TailAdmin gray ramp */
-  --color-gray-25: #fcfcfd;
-  --color-gray-50: #f9fafb;
-  --color-gray-100: #f2f4f7;
-  --color-gray-200: #e4e7ec;
-  --color-gray-300: #d0d5dd;
-  --color-gray-400: #98a2b3;
-  --color-gray-500: #667085;
-  --color-gray-600: #475467;
-  --color-gray-700: #344054;
-  --color-gray-800: #1d2939;
-  --color-gray-900: #101828;
-  --color-gray-950: #0c111d;
+  --color-gray-25: #fafbfb;
+  --color-gray-50: #f6f8f7;
+  --color-gray-100: #eff2f1;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #cfd8db;
+  --color-gray-400: #9aa8ad;
+  --color-gray-500: #6d7b80;
+  --color-gray-600: #4f5f65;
+  --color-gray-700: #3a4a50;
+  --color-gray-800: #253237;
+  --color-gray-900: #1b2529;
+  --color-gray-950: #11181b;
   --color-gray-dark: #1a2231;
 
   /* TailAdmin orange ramp */
@@ -64,19 +63,18 @@
   --color-success-900: #054f31;
   --color-success-950: #053321;
 
-  /* TailAdmin error ramp */
-  --color-error-25: #fffbfa;
-  --color-error-50: #fef3f2;
-  --color-error-100: #fee4e2;
-  --color-error-200: #fecdca;
-  --color-error-300: #fda29b;
-  --color-error-400: #f97066;
-  --color-error-500: #f04438;
-  --color-error-600: #d92d20;
-  --color-error-700: #b42318;
-  --color-error-800: #912018;
-  --color-error-900: #7a271a;
-  --color-error-950: #55160c;
+  --color-error-25: #fffafa;
+  --color-error-50: #fdeeee;
+  --color-error-100: #fadcdc;
+  --color-error-200: #f5bcbc;
+  --color-error-300: #ec9393;
+  --color-error-400: #e06a6a;
+  --color-error-500: #d64545;
+  --color-error-600: #bd3535;
+  --color-error-700: #9a2b2b;
+  --color-error-800: #7f2727;
+  --color-error-900: #6a2424;
+  --color-error-950: #3d1111;
 
   /* TailAdmin warning ramp */
   --color-warning-25: #fffcf5;
@@ -106,19 +104,32 @@
   --color-blue-light-900: #0b4a6f;
   --color-blue-light-950: #062c41;
 
-  /* ACS brand overrides TailAdmin brand ramp */
-  --color-brand-25: #f2f7ff;
-  --color-brand-50: #ecf3ff;
-  --color-brand-100: #dde9ff;
-  --color-brand-200: #c2d6ff;
-  --color-brand-300: #9cb9ff;
-  --color-brand-400: #338fff;
-  --color-brand-500: #0067ff;  /* ACS accent -> primary */
-  --color-brand-600: #0057db;
-  --color-brand-700: #0048b8;
-  --color-brand-800: #1c3a62;  /* ACS navy -> deep surfaces / sidebar */
-  --color-brand-900: #0e2645;
-  --color-brand-950: #031323;  /* ACS dark */
+  --color-red-25: #fffafa;
+  --color-red-50: #fdeeee;
+  --color-red-100: #fadcdc;
+  --color-red-200: #f5bcbc;
+  --color-red-300: #ec9393;
+  --color-red-400: #e06a6a;
+  --color-red-500: #d64545;
+  --color-red-600: #bd3535;
+  --color-red-700: #9a2b2b;
+  --color-red-800: #7f2727;
+  --color-red-900: #6a2424;
+  --color-red-950: #3d1111;
+
+  /* ACS brand ramp (DESIGN.md primary #0069AB) */
+  --color-brand-25: #f4f9fc;
+  --color-brand-50: #e9f2f8;
+  --color-brand-100: #d4e6f1;
+  --color-brand-200: #a9cce2;
+  --color-brand-300: #70a9cd;
+  --color-brand-400: #2f87bc;
+  --color-brand-500: #0069ab;
+  --color-brand-600: #005a94;
+  --color-brand-700: #004c7c;
+  --color-brand-800: #123a57;
+  --color-brand-900: #0c2a40;
+  --color-brand-950: #071b2a;
 }
 
 /* Boot cover: shown at first paint, hidden once admin-app.js knows what to render.
@@ -126,7 +137,7 @@
 #adminBoot {
   position: fixed; inset: 0; z-index: 100000;
   display: flex; align-items: center; justify-content: center;
-  background: #f8fafc;
+  background: #f2f5f4;
 }
 body.admin-booted #adminBoot { display: none; }
 .admin-boot-inner { display: flex; flex-direction: column; align-items: center; gap: 16px; }
@@ -135,7 +146,7 @@ body.admin-booted #adminBoot { display: none; }
   border: 3px solid #e2e8f0; border-top-color: #1c3a62;
   animation: adminBootSpin .8s linear infinite;
 }
-.admin-boot-inner p { font-family: 'Outfit', system-ui, sans-serif; font-size: 14px; font-weight: 600; color: #64748b; letter-spacing: .02em; margin: 0; }
+.admin-boot-inner p { font-size: 14px; font-weight: 600; color: #64748b; letter-spacing: .02em; margin: 0; }
 @keyframes adminBootSpin { to { transform: rotate(360deg); } }
 
 /* App state-classes the frozen logic toggles (parity contract). Matches acs-admin.css. */
@@ -309,8 +320,6 @@ body:not(.admin-locked) #adminLogin { display: none; }
 .editor-section > summary small { @apply ml-auto text-xs font-normal text-gray-400; }
 .editor-section-body { @apply space-y-5 bg-white p-5; }
 @media (min-width: 1024px) {
-  .content-workbench > .workbench-list { position: sticky; top: 6.5rem; }
-  .workspace-bulkbar { position: sticky; top: 5.5rem; z-index: 10; }
 }
 @media (max-width: 640px) {
   .section-head { @apply pb-4; }
@@ -378,36 +387,6 @@ body:not(.admin-locked) #adminLogin { display: none; }
 }
 @media (max-width: 1023px) { .seo-page-nav .list { max-height: 320px; } }
 
-/* ACS workbench: a complete presentation layer for every operational surface.
-   The existing IDs and form fields stay untouched; shared visual rules provide
-   one product rather than a collection of per-tab patches. */
-body:not(.admin-locked) { background: #f4f7fb; }
-.admin-topbar { min-height: 68px; box-shadow: 0 1px 0 rgba(16, 24, 40, .05); }
-.admin-nav { width: 248px !important; background: #fbfcfe; }
-.nav-btn { @apply rounded-xl px-3 py-2.5; }
-.nav-btn small { display: none; }
-.nav-group-label { @apply mt-7 px-3 text-[10px] tracking-[0.16em]; }
-.admin-content { @apply p-5 lg:p-9; }
-.panel.active { animation: workspaceEnter .24s ease-out; }
-@keyframes workspaceEnter { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-.section-head { @apply mb-7 border-0 pb-0; }
-.section-head h1, .section-head h2 { @apply tracking-[-0.025em]; }
-.section-head .eyebrow { @apply mb-1.5; }
-.card { @apply rounded-2xl border-gray-200/80 bg-white shadow-[0_1px_2px_rgba(16,24,40,.025)]; }
-.metric { @apply rounded-2xl border-gray-200/80 bg-white shadow-[0_1px_2px_rgba(16,24,40,.025)]; }
-.metric-grid { @apply gap-4; }
-.field-input { @apply rounded-xl border-gray-200 bg-white px-4 py-3; }
-.btn-primary, .btn-secondary, .btn-danger, .btn-dark { @apply rounded-xl; }
-.filters { @apply rounded-xl border border-gray-200 bg-white p-2; }
-.filter-chip { @apply border-transparent bg-transparent px-3 py-2; }
-.filter-chip.active { @apply bg-brand-50 shadow-sm; }
-.workspace-toolbar, .workspace-bulkbar { @apply rounded-2xl border-gray-200/80 bg-white shadow-[0_1px_2px_rgba(16,24,40,.025)]; }
-.entity-row { @apply rounded-2xl border-gray-200/80 bg-white; }
-.entity-row .entity-actions { @apply gap-1.5; }
-.editor.card, .seo-editor-canvas { @apply rounded-2xl border-gray-200/80 bg-white p-6 md:p-8; }
-.editor-section, .seo-section { @apply rounded-2xl border-gray-200/80; }
-.editor-section > summary, .seo-section > summary { @apply px-5 py-4; }
-
 /* The SEO workspace preserves page navigation and swaps editing contexts in-place. */
 .seo-workbench { align-items: start; max-width: 1320px; margin: 0 auto; }
 .seo-workbench .seo-page-nav { position: sticky; top: 92px; max-height: calc(100vh - 116px); }
@@ -420,37 +399,6 @@ body:not(.admin-locked) { background: #f4f7fb; }
 .seo-editor-panel[hidden] { display: none; }
 @media (min-width: 1024px) { .seo-editor-canvas { min-height: calc(100vh - 178px); } }
 
-/* Desktop dashboard frame — a visual replacement of the legacy flat admin shell.
-   The rail, command bar and canvas are shared by every panel so the UI changes
-   as one product while panel IDs and JavaScript behavior remain untouched. */
-@media (min-width: 1024px) {
-  body:not(.admin-locked) { min-height: 100vh; background: #e8ebf2; padding: 22px; }
-  .admin-dashboard-frame { display: grid; min-height: calc(100vh - 44px); grid-template-columns: 224px minmax(0, 1fr); grid-template-rows: 68px auto; gap: 16px; }
-  .dashboard-command-bar { position: relative; top: auto; grid-column: 2; grid-row: 1; min-height: 68px; border: 0; border-radius: 22px; background: rgba(255, 255, 255, .92); padding: 10px 20px; box-shadow: 0 12px 32px rgba(25, 40, 72, .06); }
-  .dashboard-workspace { display: contents; }
-  #adminSidebar.dashboard-rail { position: relative; inset: auto; grid-column: 1; grid-row: 1 / 3; width: 224px !important; transform: none; border: 0; border-radius: 26px; background: #111b30; padding: 22px 14px; box-shadow: 0 12px 32px rgba(25, 40, 72, .12); }
-  #adminSidebar.dashboard-rail .nav-title { padding: 6px 10px 12px; }
-  #adminSidebar.dashboard-rail .nav-group-label { margin-top: 22px; padding: 0 10px; color: #71809d; }
-  #adminSidebar.dashboard-rail .nav-btn { min-height: 44px; border-radius: 12px; color: #b9c3d6; padding: 10px 12px; }
-  #adminSidebar.dashboard-rail .nav-btn:hover { background: rgba(255, 255, 255, .08); color: #fff; }
-  #adminSidebar.dashboard-rail .nav-btn.active { background: #fff; color: #13213b; box-shadow: 0 7px 18px rgba(0, 0, 0, .16); }
-  #adminSidebar.dashboard-rail .nav-btn .menu-icon { fill: currentColor; }
-  #adminSidebar.dashboard-rail .nav-btn small { display: none; }
-  #adminMenuToggle { display: none; }
-  .dashboard-canvas { grid-column: 2; grid-row: 2; min-height: calc(100vh - 134px); overflow: visible; border: 0; border-radius: 0; background: transparent; padding: 18px 34px 34px; box-shadow: none; }
-  .dashboard-canvas .panel { max-width: 1440px; margin: 0 auto; }
-  .dashboard-canvas .section-head { align-items: end; margin-bottom: 28px; }
-  .dashboard-canvas .section-head h1, .dashboard-canvas .section-head h2 { font-size: 28px; line-height: 1.1; }
-  .dashboard-canvas .card, .dashboard-canvas .metric { border: 1px solid #e8ebf1; box-shadow: none; }
-  .dashboard-canvas .metric { background: #fff; }
-  .dashboard-canvas .metric:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(25, 40, 72, .08); }
-  .dashboard-canvas .seo-workbench { grid-template-columns: 300px minmax(0, 1fr); max-width: none; }
-  .dashboard-canvas .seo-page-nav { top: 0; max-height: calc(100vh - 192px); border-radius: 20px; background: #fff; }
-  .dashboard-canvas .seo-page-nav .list { max-height: calc(100vh - 384px); }
-  .dashboard-canvas .seo-editor-canvas { min-height: 0; border-radius: 20px; background: #fff; }
-  .dashboard-canvas .seo-overview { grid-template-columns: minmax(0, 1.35fr) minmax(280px, .9fr); }
-  .section-actions .btn-primary { white-space: nowrap; }
-}
 @media (max-width: 1023px) { .admin-nav { width: 290px !important; } .nav-btn small { display: block; } .admin-content { @apply p-4; } }
 /* Dims the page behind the off-canvas menu on mobile so taps outside the menu close it instead of hitting content. */
 .admin-scrim { display: none; }

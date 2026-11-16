@@ -1,6 +1,5 @@
 const { neon } = require('@neondatabase/serverless');
 const { PAGE_DEFAULTS, DEFAULT_SETTINGS, DEFAULT_JOBS, DEFAULT_POSITION_TYPES, DEFAULT_PARTNER_CATEGORIES } = require('../lib/acs-defaults');
-const LINKEDIN_IMPORT = require('../lib/linkedin-blog-import.json');
 
 let sql;
 let initialization;
@@ -123,6 +122,60 @@ async function getPageSeo() {
   return Number(version) >= PAGE_SEO_VERSION ? pageSeo || {} : {};
 }
 
+// ---------- Batched reads ----------
+// Network round trips to the database dominate request time (the function and Neon are not co-located), so the
+// admin and public payloads are each read in ONE round trip: every key/value blob in a single SELECT, plus the
+// record tables and analytics, sent together as one Neon HTTP transaction. Anything that must be written back
+// (first-time migrations) is returned as `writes` and done after the read.
+const KV_KEYS = ['settings', 'pageSeo', 'pageSeoVersion', 'posts', 'jobs', 'positions', 'positionTypes', 'partnerCategories', 'linkedinImportVersion'];
+
+// One HTTP request when the driver supports transactions, parallel requests otherwise (tests, local fakes).
+async function batch(build) {
+  const sql = db();
+  const queries = build(sql);
+  return typeof sql.transaction === 'function' ? sql.transaction(queries) : Promise.all(queries);
+}
+
+const kvQuery = (sql) => sql`SELECT key, value FROM acs_admin_data WHERE key = ANY(${KV_KEYS})`;
+
+function kvMap(rows) {
+  const map = new Map();
+  for (const row of rows || []) map.set(row.key, row.value);
+  return (key, fallback) => map.get(key) ?? fallback;
+}
+
+function resolveKv(get) {
+  const writes = [];
+  const pageSeoVersion = Number(get('pageSeoVersion', 1));
+  const jobs = get('jobs', DEFAULT_JOBS);
+  let positions = get('positions', []);
+  if (!positions || !positions.length) {
+    positions = (jobs || []).map(migrateJobToPosition);
+    writes.push(['positions', positions]);
+  }
+  let posts = get('posts', []) || [];
+  const linkedin = require('../lib/linkedin-blog-import.json');
+  if (Number(get('linkedinImportVersion', 0)) < linkedin.version) {
+    const existing = new Set(posts.map((post) => post.slug));
+    posts = [...posts, ...linkedin.posts.filter((post) => !existing.has(post.slug))];
+    writes.push(['posts', posts], ['linkedinImportVersion', linkedin.version]);
+  }
+  return {
+    writes,
+    pageSeo: pageSeoVersion >= PAGE_SEO_VERSION ? get('pageSeo', {}) || {} : {},
+    settings: get('settings', {}),
+    posts,
+    jobs,
+    positions,
+    positionTypes: get('positionTypes', DEFAULT_POSITION_TYPES),
+    partnerCategories: get('partnerCategories', DEFAULT_PARTNER_CATEGORIES),
+  };
+}
+
+async function applyWrites(writes) {
+  for (const [key, value] of writes) await setValue(key, value);
+}
+
 function migrateJobToPosition(job) {
   return {
     ...job,
@@ -130,19 +183,6 @@ function migrateJobToPosition(job) {
     tags: Array.isArray(job.tags) ? job.tags : [],
     status: job.status === 'closed' ? 'closed' : 'live',
   };
-}
-
-// LinkedIn articles bundled with the site are merged into the posts blob once (matched by slug), so they appear in
-// the admin as ordinary posts and their publish dates drive the daily 08:00 IST schedule. Deleting one later sticks.
-async function getPosts() {
-  const posts = (await getValue('posts', [])) || [];
-  const importedVersion = Number(await getValue('linkedinImportVersion', 0));
-  if (importedVersion >= LINKEDIN_IMPORT.version) return posts;
-  const existing = new Set(posts.map((post) => post.slug));
-  const merged = [...posts, ...LINKEDIN_IMPORT.posts.filter((post) => !existing.has(post.slug))];
-  await setValue('posts', merged);
-  await setValue('linkedinImportVersion', LINKEDIN_IMPORT.version);
-  return merged;
 }
 
 async function getPositions() {
@@ -328,63 +368,54 @@ async function deletePartners(ids) {
 }
 
 async function getAll() {
-  // All reads are independent; one parallel batch keeps the admin load to the slowest single query.
-  const [pageSeo, settings, posts, jobs, positions, positionTypes, partnerCategories, applications, partners, enquiries] = await Promise.all([
-    getPageSeo(),
-    getValue('settings', {}),
-    getPosts(),
-    getValue('jobs', DEFAULT_JOBS),
-    getPositions(),
-    getPositionTypes(),
-    getPartnerCategories(),
-    listApplications(),
-    listPartners(),
-    listEnquiries(),
+  await init();
+  const [kvRows, applications, partners, enquiries] = await batch((sql) => [
+    kvQuery(sql),
+    sql`SELECT * FROM acs_applications ORDER BY created_at DESC`,
+    sql`SELECT * FROM acs_partners ORDER BY created_at DESC`,
+    sql`SELECT * FROM acs_enquiries ORDER BY created_at DESC`,
   ]);
+  const kv = resolveKv(kvMap(kvRows));
+  await applyWrites(kv.writes);
   return {
     pages: PAGE_DEFAULTS.map((page) => ({
       path: page.path,
       label: page.label,
       file: page.file,
       defaults: page.defaults,
-      seo: pageSeo[page.path] || {},
+      seo: kv.pageSeo[page.path] || {},
     })),
-    posts,
-    jobs,
-    positions,
-    positionTypes,
-    applications,
-    partners,
-    enquiries,
-    partnerCategories,
-    settings: { ...DEFAULT_SETTINGS, ...settings },
+    posts: kv.posts,
+    jobs: kv.jobs,
+    positions: kv.positions,
+    positionTypes: kv.positionTypes,
+    applications: applications.map(rowToApplication),
+    partners: partners.map(rowToPartner),
+    enquiries: enquiries.map(rowToEnquiry),
+    partnerCategories: kv.partnerCategories,
+    settings: { ...DEFAULT_SETTINGS, ...kv.settings },
   };
 }
 
 async function getPublicData() {
-  const [pageSeo, settings, positions, positionTypes, partnerCategories, posts, jobs] = await Promise.all([
-    getPageSeo(),
-    getValue('settings', {}),
-    getPositions(),
-    getPositionTypes(),
-    getPartnerCategories(),
-    getPosts(),
-    getValue('jobs', DEFAULT_JOBS),
-  ]);
+  await init();
+  const [kvRows] = await batch((sql) => [kvQuery(sql)]);
+  const kv = resolveKv(kvMap(kvRows));
+  await applyWrites(kv.writes);
   return {
     pages: PAGE_DEFAULTS.map((page) => ({
       path: page.path,
       label: page.label,
       file: page.file,
       defaults: page.defaults,
-      seo: pageSeo[page.path] || {},
+      seo: kv.pageSeo[page.path] || {},
     })),
-    posts,
-    jobs,
-    positions,
-    positionTypes,
-    partnerCategories,
-    settings: { ...DEFAULT_SETTINGS, ...settings },
+    posts: kv.posts,
+    jobs: kv.jobs,
+    positions: kv.positions,
+    positionTypes: kv.positionTypes,
+    partnerCategories: kv.partnerCategories,
+    settings: { ...DEFAULT_SETTINGS, ...kv.settings },
   };
 }
 
@@ -411,16 +442,16 @@ async function getAnalytics(days = 30) {
   await init();
   const since = new Date(Date.now() - (Number(days) || 30) * 24 * 60 * 60 * 1000).toISOString();
   // Grouped in Postgres: the admin needs counts, not every raw page view (which grows with traffic).
-  const [totals, devices, pages, referrers, daily] = await Promise.all([
-    db()`SELECT count(*)::int AS views, count(DISTINCT NULLIF(visitor_id, ''))::int AS visitors
+  const [totals, devices, pages, referrers, daily] = await batch((sql) => [
+    sql`SELECT count(*)::int AS views, count(DISTINCT NULLIF(visitor_id, ''))::int AS visitors
       FROM acs_analytics_events WHERE created_at >= ${since}`,
-    db()`SELECT device AS key, count(*)::int AS count FROM acs_analytics_events
+    sql`SELECT device AS key, count(*)::int AS count FROM acs_analytics_events
       WHERE created_at >= ${since} GROUP BY device`,
-    db()`SELECT path AS key, count(*)::int AS count FROM acs_analytics_events
+    sql`SELECT path AS key, count(*)::int AS count FROM acs_analytics_events
       WHERE created_at >= ${since} GROUP BY path ORDER BY count DESC LIMIT 200`,
-    db()`SELECT referrer AS key, count(*)::int AS count FROM acs_analytics_events
+    sql`SELECT referrer AS key, count(*)::int AS count FROM acs_analytics_events
       WHERE created_at >= ${since} AND referrer <> '' GROUP BY referrer ORDER BY count DESC LIMIT 500`,
-    db()`SELECT to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD') AS key, count(*)::int AS count
+    sql`SELECT to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD') AS key, count(*)::int AS count
       FROM acs_analytics_events WHERE created_at >= ${since} GROUP BY 1 ORDER BY 1`,
   ]);
   return { views: totals[0]?.views || 0, visitors: totals[0]?.visitors || 0, devices, pages, referrers, daily };

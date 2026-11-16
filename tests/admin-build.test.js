@@ -11,6 +11,6 @@ test('admin build emits index.html and brand-tokened CSS', () => {
   const css = fs.readdirSync(path.join(adminDir, 'assets')).filter((f) => f.endsWith('.css'));
   assert.ok(css.length > 0, 'no compiled CSS emitted');
   const cssText = css.map((f) => fs.readFileSync(path.join(adminDir, 'assets', f), 'utf8')).join('');
-  assert.match(cssText, /#0067ff/i, 'ACS brand color not in compiled CSS');
-  assert.match(cssText, /Outfit/i, 'Outfit font not in compiled CSS');
+  assert.match(cssText, /#0069ab/i, 'ACS brand color (DESIGN.md primary) not in compiled CSS');
+  assert.match(cssText, /Manrope/i, 'Manrope font not in compiled CSS');
 });

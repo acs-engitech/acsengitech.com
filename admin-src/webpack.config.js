@@ -13,7 +13,7 @@ module.exports = {
   },
   module: {
     rules: [
-      { test: /\.css$/, use: [MiniCssExtractPlugin.loader, 'css-loader', 'postcss-loader'] },
+      { test: /\.css$/, use: [MiniCssExtractPlugin.loader, { loader: 'css-loader', options: { url: { filter: (url) => !url.startsWith('/assets/') } } }, 'postcss-loader'] },
       { test: /\.(png|svg|jpe?g|gif|woff2?)$/, type: 'asset/resource', generator: { filename: 'assets/[hash][ext]' } },
     ],
   },

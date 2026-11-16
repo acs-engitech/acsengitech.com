@@ -224,7 +224,9 @@ import acsDefaults from '../../lib/acs-defaults.js';
     // A valid session is enough to proceed — hide the sign-in screen up front so
     // it never flashes while the (cold-start-slow) initial API call is pending.
     // If the request comes back 401, the catch block re-shows sign-in.
-    if (hasValidSession()) hideSignIn();
+    // The shell (rail, top bar, placeholders) shows immediately on a refresh with a valid session; data fills in
+    // when the request returns instead of the whole page waiting behind the boot cover.
+    if (hasValidSession()) { hideSignIn(); document.body.classList.add('admin-booted'); }
     setBusy(true, 'Loading admin data...');
     setStatus('Loading admin data...');
     try {
