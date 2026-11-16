@@ -65,14 +65,22 @@
   </section>
 
   <div class="admin-app admin-dashboard-frame" x-data="adminShell()">
+    <div class="editor-scrim" id="editorScrim" aria-hidden="true"></div>
     <div class="admin-scrim" :class="sidebarOpen ? 'is-open' : ''" @click="sidebarOpen = false" aria-hidden="true"></div>
     <header class="admin-topbar dashboard-command-bar">
       <button id="adminMenuToggle" type="button" class="admin-menu-toggle" aria-controls="adminSidebar" aria-label="Open admin navigation" :class="sidebarOpen ? 'is-open' : ''" @click="sidebarOpen = !sidebarOpen" :aria-expanded="sidebarOpen.toString()">
         <span></span><span></span><span></span>
       </button>
       <div class="topbar-title">
-        <p>ACS Admin</p>
         <h1 x-text="title">Overview</h1>
+        <p x-text="subtitle">Here is what is happening on acsengitech.com</p>
+      </div>
+      <div class="topbar-tools">
+        <button id="refreshBtn" type="button" class="icon-btn" aria-label="Refresh data" title="Refresh data"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg></button>
+        <div class="user-chip">
+          <span class="user-avatar" id="adminUserAvatar" aria-hidden="true">A</span>
+          <div class="user-meta"><strong id="adminUserName">Administrator</strong><span id="adminUserRole">Signed in</span></div>
+        </div>
       </div>
     </header>
 
@@ -96,7 +104,7 @@
           </a>
           <a class="nav-btn group" href="/ops/trading">
             <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M4.25 7A2.75 2.75 0 0 1 7 4.25h10A2.75 2.75 0 0 1 19.75 7v10A2.75 2.75 0 0 1 17 19.75H7A2.75 2.75 0 0 1 4.25 17V7Zm4 2a.75.75 0 0 0 0 1.5h7.5a.75.75 0 0 0 0-1.5h-7.5Zm0 4a.75.75 0 0 0 0 1.5h4.5a.75.75 0 0 0 0-1.5h-4.5Z"/></svg>
-            <span class="flex flex-col"><span class="text-sm font-medium">Trading · Purchase · Dispatch</span><small class="text-xs font-normal text-gray-400">Operational workspaces</small></span>
+            <span class="flex flex-col"><span class="text-sm font-medium">Trading and dispatch</span><small class="text-xs font-normal text-gray-400">Operational workspaces</small></span>
           </a>
         </div>
         <p class="nav-group-label">Content</p>
@@ -139,19 +147,9 @@
           <span class="flex flex-col"><span class="text-sm font-medium">LLMs.txt</span><small class="text-xs font-normal text-gray-400">AI assistant summary</small></span>
         </button>
         </nav>
-        <div class="rail-tools">
-          <a href="/index.html" target="_blank" rel="noopener" class="btn-secondary">View site</a>
-          <button id="refreshBtn" type="button" class="btn-secondary">Refresh</button>
-        </div>
-        <div class="rail-profile">
-          <span class="rail-avatar" id="adminUserAvatar" aria-hidden="true">A</span>
-          <div class="rail-user">
-            <strong id="adminUserName">Administrator</strong>
-            <span id="adminUserRole">Signed in</span>
-          </div>
-          <button id="logoutBtn" type="button" class="rail-signout" aria-label="Sign out" title="Sign out">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4.5H6.5A1.5 1.5 0 0 0 5 6v12a1.5 1.5 0 0 0 1.5 1.5H9"/><path d="M15 8l4 4-4 4"/><path d="M19 12H9.5"/></svg>
-          </button>
+        <div class="rail-foot">
+          <a href="/index.html" target="_blank" rel="noopener" class="nav-btn rail-link"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17"/><path d="M12 3.5c2.5 2.4 3.8 5.2 3.8 8.5s-1.3 6.1-3.8 8.5c-2.5-2.4-3.8-5.2-3.8-8.5s1.3-6.1 3.8-8.5z"/></svg><span>View live site</span></a>
+          <button id="logoutBtn" type="button" class="nav-btn rail-link rail-signout"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4.5H6.5A1.5 1.5 0 0 0 5 6v12a1.5 1.5 0 0 0 1.5 1.5H9"/><path d="M15 8l4 4-4 4"/><path d="M19 12H9.5"/></svg><span>Sign out</span></button>
         </div>
       </aside>
 
@@ -282,24 +280,27 @@
             </div>
             <button id="newPostBtn" class="primary btn-primary" type="button">New post</button>
           </div>
-          <section class="card schedule-card mb-4" aria-labelledby="scheduleTitle">
-            <div class="flex flex-wrap items-center justify-between gap-2"><h3 id="scheduleTitle" class="text-base font-semibold text-gray-800">Publishing schedule</h3><small class="text-xs text-gray-500">Scheduled posts go live automatically at their publish time.</small></div>
+          <section class="upnext" aria-labelledby="scheduleTitle">
+            <div class="upnext-head"><h3 id="scheduleTitle">Up next</h3><small>Scheduled posts go live automatically at their publish time.</small></div>
             <ol id="scheduleList" class="schedule-list"></ol>
           </section>
-          <div class="filters mb-4 flex flex-wrap gap-2">
-            <button class="filter-chip active" data-post-filter="all" type="button">All</button>
-            <button class="filter-chip" data-post-filter="published" type="button">Published</button>
-            <button class="filter-chip" data-post-filter="scheduled" type="button">Scheduled</button>
-            <button class="filter-chip" data-post-filter="draft" type="button">Drafts</button>
+          <div class="list-bar">
+            <div class="filters">
+              <button class="filter-chip active" data-post-filter="all" type="button">All</button>
+              <button class="filter-chip" data-post-filter="published" type="button">Published</button>
+              <button class="filter-chip" data-post-filter="scheduled" type="button">Scheduled</button>
+              <button class="filter-chip" data-post-filter="draft" type="button">Drafts</button>
+            </div>
+            <label class="search-pill"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4-4"/></svg><input id="postSearch" type="search" placeholder="Search title, slug or tag"></label>
+            <span id="postShownCount" class="list-count"></span>
           </div>
-          <div class="workspace-toolbar card mb-4 flex flex-wrap items-end gap-3 p-4">
-            <label class="field-label">Search posts <input id="postSearch" type="search" class="field-input mt-1.5" placeholder="Title, slug or tag"></label>
-            <span id="postShownCount" class="pb-2 text-sm text-gray-400"></span>
+          <div class="dt post-table">
+            <div class="dt-cols" aria-hidden="true"><span>Post</span><span>Status</span><span>Publish date</span><span>Tags</span><span></span></div>
+            <div class="dt-body" id="postList"></div>
           </div>
-          <div class="split content-workbench grid grid-cols-1 gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
-            <div class="list workbench-list card p-2" id="postList"></div>
-            <form class="editor card space-y-5" id="postForm">
-              <h3 class="text-base font-semibold text-gray-800">Post editor</h3>
+          <div class="editor-host">
+            <form class="editor card editor-drawer space-y-5" id="postForm">
+              <div class="editor-title"><h3>Post editor</h3><button type="button" class="icon-btn editor-close" data-close-editor aria-label="Close editor">&times;</button></div>
               <h4 class="form-subhead">Content</h4>
               <label class="field-label">Title <input name="title" required class="field-input"></label>
               <label class="field-label">Excerpt <textarea name="excerpt" class="field-input"></textarea></label>
@@ -357,14 +358,17 @@
               <button id="newPositionBtn" class="primary btn-primary" type="button">New position</button>
             </div>
           </div>
-          <div class="workspace-toolbar card mb-4 flex flex-wrap items-end gap-3 p-4">
-            <label class="field-label">Search roles <input id="positionSearch" type="search" class="field-input mt-1.5" placeholder="Title, department or location"></label>
-            <span id="positionShownCount" class="pb-2 text-sm text-gray-400"></span>
+          <div class="list-bar">
+            <label class="search-pill"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4-4"/></svg><input id="positionSearch" type="search" placeholder="Search title, department or location"></label>
+            <span id="positionShownCount" class="list-count"></span>
           </div>
-          <div class="split content-workbench grid grid-cols-1 gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
-            <div class="list workbench-list card p-2" id="positionList"></div>
-            <form class="editor card space-y-5" id="positionForm">
-              <h3 class="text-base font-semibold text-gray-800">Role editor</h3>
+          <div class="dt position-table">
+            <div class="dt-cols" aria-hidden="true"><span>Role</span><span>Type</span><span>Location</span><span>Status</span><span></span></div>
+            <div class="dt-body" id="positionList"></div>
+          </div>
+          <div class="editor-host">
+            <form class="editor card editor-drawer space-y-5" id="positionForm">
+              <div class="editor-title"><h3>Role editor</h3><button type="button" class="icon-btn editor-close" data-close-editor aria-label="Close editor">&times;</button></div>
               <h4 class="form-subhead">Basic</h4>
               <label class="field-label">Title <input name="title" required class="field-input"></label>
               <div class="two-col">

@@ -26,6 +26,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
     selectedPartner: null,
     postFilter: 'all',
     postSearch: '',
+    postLimit: 10,
     positionSearch: '',
     enquiryFilters: { status: 'all', from: '', to: '', search: '' },
     applicationFilters: { status: 'all', positionId: '', from: '', to: '', search: '' },
@@ -312,9 +313,10 @@ import acsDefaults from '../../lib/acs-defaults.js';
   // Optimistic mutation: applies the change to `state` and re-renders instantly, then fires the
   // request in the background. No setBusy() here on purpose — that's the blocking full-screen
   // overlay, and optimistic actions should feel instant with no spinner. On failure, reverts.
-  async function mutate({ apply, rerender, request, successMessage, revert }) {
+  async function mutate({ apply, rerender, request, successMessage, revert, onApplied }) {
     apply();
     rerender();
+    if (onApplied) onApplied();
     setStatus('Saving changes…', 'loading');
     try {
       const data = await request();
@@ -338,10 +340,10 @@ import acsDefaults from '../../lib/acs-defaults.js';
     user: '<path fill-rule="evenodd" clip-rule="evenodd" d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm-7.25 8a7.25 7.25 0 0 1 14.5 0 .75.75 0 0 1-.75.75H5.5a.75.75 0 0 1-.75-.75Z"/>',
   };
 
-  function metric(label, value, icon, tone, hint) {
+  function metric(label, value, icon, tone, hint, tab) {
     const path = METRIC_ICONS[icon] || METRIC_ICONS.grid;
     const toneClass = 'metric-icon-' + (tone || 'brand');
-    return `<article class="metric"><div class="metric-icon ${toneClass}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${path}</svg></div><div class="metric-body"><div><span>${label}</span><strong>${value}</strong>${hint ? `<small>${hint}</small>` : ''}</div></div></article>`;
+    return `<article class="metric"><div class="metric-icon ${toneClass}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${path}</svg></div><div class="metric-body"><div><span>${label}</span><strong>${value}</strong>${hint ? `<small>${hint}</small>` : ''}</div></div>${tab ? `<button type="button" class="metric-go" data-goto-tab="${tab}" aria-label="Open ${label}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></button>` : ''}</article>`;
   }
 
   function shortDate(value) {
@@ -362,10 +364,10 @@ import acsDefaults from '../../lib/acs-defaults.js';
     const newApplications = state.applications.filter((app) => app.status === 'new').length;
     const newPartners = state.partners.filter((partner) => partner.status === 'new').length;
     $('#overviewMetrics').innerHTML = [
-      metric('New enquiries', newEnquiries, 'doc', 'brand', `of ${state.enquiries.length} total`),
-      metric('New applications', newApplications, 'user', 'brand', `of ${state.applications.length} total`),
-      metric('New partner registrations', newPartners, 'briefcase', 'brand', `of ${state.partners.length} total`),
-      metric('Scheduled blogs', scheduled, 'clock', 'brand', `${published} published`),
+      metric('New enquiries', newEnquiries, 'doc', 'brand', `of ${state.enquiries.length} total`, 'enquiries'),
+      metric('New applications', newApplications, 'user', 'brand', `of ${state.applications.length} total`, 'applications'),
+      metric('New partner registrations', newPartners, 'briefcase', 'brand', `of ${state.partners.length} total`, 'partners'),
+      metric('Scheduled blogs', scheduled, 'clock', 'brand', `${published} published`, 'blogs'),
     ].join('');
     const stat = (label, value) => `<div><strong>${value}</strong><span>${label}</span></div>`;
     $('#overviewStats').innerHTML = [
@@ -500,16 +502,39 @@ import acsDefaults from '../../lib/acs-defaults.js';
       && (!term || `${post.title} ${post.slug} ${(post.tags || []).join(' ')}`.toLowerCase().includes(term)));
   }
 
+  const PAGE_SIZE = 10;
+
+  // Post and role editors open as a slide-over so the list stays a clean table.
+  function openEditor(selector) {
+    $$('.editor-drawer').forEach((form) => form.classList.toggle('is-open', form.matches(selector)));
+    $('#editorScrim').classList.add('is-open');
+    document.body.classList.add('has-editor');
+    $(selector + ' [name="title"]')?.focus({ preventScroll: true });
+  }
+
+  function closeEditors() {
+    $$('.editor-drawer').forEach((form) => form.classList.remove('is-open'));
+    $('#editorScrim').classList.remove('is-open');
+    document.body.classList.remove('has-editor');
+  }
+
   function renderPostList() {
     const posts = filteredPosts();
-    $('#postList').innerHTML = posts.map((post) => `
-      <button class="row-card ${post.id === state.selectedPost ? 'active' : ''}" data-post="${post.id}" type="button">
-        <strong>${post.title} <span class="status-pill status-${post.status}">${post.status}</span></strong>
-        <span class="row-path">${new Date(post.publishedAt).toLocaleDateString()} - /blog/${post.slug}</span>
-        <span class="row-tags">${(post.tags || []).map((tag) => `<span class="tag-chip">${tag}</span>`).join('')}</span>
+    const visible = posts.slice(0, state.postLimit);
+    const when = (value) => new Date(value).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    $('#postList').innerHTML = visible.map((post) => `
+      <button type="button" class="dt-row dt-click post-row ${post.id === state.selectedPost ? 'is-active' : ''}" data-post="${post.id}">
+        <span class="dt-person"><strong>${escapeHtml(post.title)}</strong><span>/blog/${escapeHtml(post.slug)}</span></span>
+        <span><span class="status-pill status-${post.status}">${post.status}</span></span>
+        <span class="dt-date">${when(post.publishedAt)}<small>${post.readingMinutes || 1} min read</small></span>
+        <span class="row-tags">${(post.tags || []).slice(0, 3).map((tag) => `<span class="tag-chip">${escapeHtml(tag)}</span>`).join('')}</span>
+        <span class="dt-edit">Edit</span>
       </button>
     `).join('') || '<p class="empty-state">No posts in this view.</p>';
-    $('#postShownCount').textContent = `${posts.length} of ${state.posts.length} shown`;
+    if (posts.length > visible.length) {
+      $('#postList').insertAdjacentHTML('beforeend', `<div class="dt-more"><button type="button" class="btn-secondary" data-post-more>Show ${Math.min(PAGE_SIZE, posts.length - visible.length)} more <small>(${posts.length - visible.length} remaining)</small></button></div>`);
+    }
+    $('#postShownCount').textContent = `${visible.length} of ${posts.length}${posts.length === state.posts.length ? '' : ` filtered, ${state.posts.length} total`}`;
   }
 
   function renderPosts() {
@@ -528,7 +553,10 @@ import acsDefaults from '../../lib/acs-defaults.js';
       const hours = Math.round((new Date(date).getTime() - now) / 36e5);
       return hours < 24 ? `in ${Math.max(1, hours)} h` : `in ${Math.round(hours / 24)} days`;
     };
-    $('#scheduleList').innerHTML = upcoming.map((post) => `<li><button type="button" data-schedule-post="${escapeHtml(post.id)}">${escapeHtml(post.title)}</button><span class="schedule-when">${new Date(post.publishedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })} · ${relative(post.publishedAt)}</span></li>`).join('')
+    const whenText = (date) => new Date(date).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+    const shown = upcoming.slice(0, 4);
+    $('#scheduleList').innerHTML = shown.map((post) => `<li><button type="button" data-schedule-post="${escapeHtml(post.id)}">${escapeHtml(post.title)}</button><span class="schedule-when">${whenText(post.publishedAt)} / ${relative(post.publishedAt)}</span></li>`).join('')
+      + (upcoming.length > shown.length ? `<li class="schedule-more"><span>+${upcoming.length - shown.length} more scheduled</span></li>` : '')
       || '<li class="empty-state">Nothing scheduled. Set a future publish date on a post to schedule it.</li>';
   }
 
@@ -560,12 +588,15 @@ import acsDefaults from '../../lib/acs-defaults.js';
   function renderPositionList() {
     const positions = filteredPositions();
     $('#positionList').innerHTML = positions.map((position) => `
-      <button class="row-card ${position.id === state.selectedPosition ? 'active' : ''}" data-position="${position.id}" type="button">
-        <strong>${escapeHtml(position.title)} <span class="status-pill status-${position.status === 'closed' ? 'closed' : 'open'}">${position.status === 'closed' ? 'closed' : 'live'}</span></strong>
-        <span class="row-path">${escapeHtml(position.type || 'Full-time')} - ${escapeHtml(position.department || '')} - ${escapeHtml(position.location || '')}</span>
+      <button type="button" class="dt-row dt-click position-row ${position.id === state.selectedPosition ? 'is-active' : ''}" data-position="${position.id}">
+        <span class="dt-person"><strong>${escapeHtml(position.title)}</strong><span>${escapeHtml(position.department || '')}</span></span>
+        <span>${escapeHtml(position.type || 'Full-time')}</span>
+        <span>${escapeHtml(position.location || '')}</span>
+        <span><span class="status-pill status-${position.status === 'closed' ? 'closed' : 'open'}">${position.status === 'closed' ? 'closed' : 'live'}</span></span>
+        <span class="dt-edit">Edit</span>
       </button>
     `).join('') || '<p class="empty-state">No positions yet.</p>';
-    $('#positionShownCount').textContent = `${positions.length} of ${state.positions.length} shown`;
+    $('#positionShownCount').textContent = `${positions.length} of ${state.positions.length}`;
   }
 
   function renderPositions() {
@@ -1038,7 +1069,20 @@ import acsDefaults from '../../lib/acs-defaults.js';
       if (!button) return;
       state.selectedPost = button.dataset.post;
       renderPosts();
+      openEditor('#postForm');
     });
+
+    $('#postList').addEventListener('click', (event) => {
+      if (!event.target.closest('[data-post-more]')) return;
+      state.postLimit += PAGE_SIZE;
+      renderPostList();
+    });
+
+    document.addEventListener('click', (event) => {
+      if (event.target.closest('[data-close-editor]') || event.target.id === 'editorScrim') closeEditors();
+    });
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeEditors(); });
+    $$('.nav-btn[data-tab]').forEach((button) => button.addEventListener('click', closeEditors));
 
     $$('.filters button[data-post-filter]').forEach((button) => button.addEventListener('click', () => {
       state.postFilter = button.dataset.postFilter;
@@ -1055,6 +1099,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
       state.posts.unshift(post);
       state.selectedPost = post.id;
       renderPosts();
+      openEditor('#postForm');
     });
 
     $('#postForm').addEventListener('submit', async (event) => {
@@ -1085,6 +1130,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
         rerender: () => { renderPosts(); renderOverview(); },
         request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ posts: state.posts }) }),
         successMessage: 'Post saved.',
+        onApplied: closeEditors,
         revert: () => { state.posts = previousPosts; state.selectedPost = previousSelected; },
       });
     });
@@ -1101,6 +1147,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
         rerender: () => { renderPosts(); renderOverview(); },
         request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ posts: state.posts }) }),
         successMessage: 'Post deleted.',
+        onApplied: closeEditors,
         revert: () => { state.posts = previousPosts; state.selectedPost = previousSelected; },
       });
     });
@@ -1112,6 +1159,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
       if (!button) return;
       state.selectedPosition = button.dataset.position;
       renderPositions();
+      openEditor('#positionForm');
     });
 
     $('#positionSearch').addEventListener('input', (event) => {
@@ -1124,6 +1172,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
       state.positions.unshift(position);
       state.selectedPosition = position.id;
       renderPositions();
+      openEditor('#positionForm');
     });
 
     $('#positionForm').addEventListener('submit', async (event) => {
@@ -1158,6 +1207,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
         rerender: () => { renderPositions(); renderOverview(); },
         request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ positions: state.positions }) }),
         successMessage: 'Position saved.',
+        onApplied: closeEditors,
         revert: () => { state.positions = previousPositions; state.selectedPosition = previousSelected; },
       });
     });
@@ -1174,6 +1224,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
         rerender: () => { renderPositions(); renderOverview(); },
         request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ positions: state.positions }) }),
         successMessage: 'Position deleted.',
+        onApplied: closeEditors,
         revert: () => { state.positions = previousPositions; state.selectedPosition = previousSelected; },
       });
     });
@@ -1625,6 +1676,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
       const button = event.target.closest('[data-schedule-post]');
       if (!button) return;
       state.selectedPost = button.dataset.schedulePost;
+      openEditor('#postForm');
       renderPosts();
       $('#postForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
