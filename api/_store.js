@@ -186,19 +186,23 @@ function resolveKv(get) {
     positions,
     positionTypes: get('positionTypes', DEFAULT_POSITION_TYPES),
     partnerCategories: get('partnerCategories', DEFAULT_PARTNER_CATEGORIES),
-    team: normalizeTeam(get('team', [])),
+    team: normalizeTeam(get('team', TEAM_SEED)),
   };
 }
 
 // ---------- Team (About page) ----------
 // Members are one ordered list (the order shown on /about), stored as a key/value blob like positions.
+// The six team photos supplied in Nov 2026, used until the team is first saved in the admin. Names and
+// designations are left blank until ACS confirms them; the About page keeps the space for them.
+const TEAM_SEED = [1, 2, 3, 4, 5, 6].map((n) => ({ id: `seed-member-${n}`, name: '', role: '', photo: `/assets/team/member-${n}.webp`, status: 'live' }));
+
 const TEAM_FIELDS = ['name', 'role', 'department', 'bio', 'photo', 'linkedin', 'email'];
 const TEAM_PHOTO_TYPES = ['image/webp', 'image/jpeg', 'image/png'];
 const TEAM_PHOTO_MAX_BYTES = 1024 * 1024;
 
 function normalizeTeam(list) {
   return (Array.isArray(list) ? list : [])
-    .filter((member) => member && typeof member === 'object' && String(member.name || '').trim())
+    .filter((member) => member && typeof member === 'object' && (String(member.name || '').trim() || String(member.photo || '').trim()))
     .map((member) => {
       const clean = { id: String(member.id || require('node:crypto').randomUUID()), status: member.status === 'hidden' ? 'hidden' : 'live' };
       for (const field of TEAM_FIELDS) clean[field] = String(member[field] || '').trim().slice(0, field === 'bio' ? 1200 : 400);

@@ -1140,10 +1140,10 @@
       email ? `<a href="${escapeHtml(email)}">Email <i class="ri-arrow-right-up-line" aria-hidden="true"></i><span class="acs-sr"> ${escapeHtml(member.name)}</span></a>` : '',
     ].join('');
     return `<li class="co-team-card">
-      <div class="co-team-photo">${photo ? `<img src="${escapeHtml(photo)}" alt="${escapeHtml(member.name)}${member.role ? `, ${escapeHtml(member.role)}` : ''}" loading="lazy" decoding="async" width="480" height="600">` : `<span aria-hidden="true">${escapeHtml(teamInitials(member.name))}</span>`}</div>
+      <div class="co-team-photo">${photo ? `<img src="${escapeHtml(photo)}" alt="${member.name ? `${escapeHtml(member.name)}${member.role ? `, ${escapeHtml(member.role)}` : ''}` : 'ACS Engitech team member'}" loading="lazy" decoding="async" width="480" height="600">` : `<span aria-hidden="true">${escapeHtml(teamInitials(member.name))}</span>`}</div>
       ${member.department ? `<p class="co-team-dept">${escapeHtml(member.department)}</p>` : ''}
-      <h3 class="co-team-name">${escapeHtml(member.name)}</h3>
-      ${member.role ? `<p class="co-team-role">${escapeHtml(member.role)}</p>` : ''}
+      ${member.name ? `<h3 class="co-team-name">${escapeHtml(member.name)}</h3>` : '<p class="co-team-name" aria-hidden="true">&nbsp;</p>'}
+      <p class="co-team-role"${member.role ? '' : ' aria-hidden="true"'}>${member.role ? escapeHtml(member.role) : '&nbsp;'}</p>
       ${member.bio ? `<p class="co-team-bio">${escapeHtml(member.bio)}</p>` : ''}
       ${links ? `<div class="co-team-links">${links}</div>` : ''}
     </li>`;
@@ -1152,7 +1152,7 @@
   function renderTeam(team) {
     const root = document.getElementById('acs-team-board');
     if (!root) return;
-    const members = (team || []).filter((member) => member && member.name);
+    const members = (team || []).filter((member) => member && (member.name || member.photo));
     if (!members.length) {
       root.hidden = true;
       root.innerHTML = '';

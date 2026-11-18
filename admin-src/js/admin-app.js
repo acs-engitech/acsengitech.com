@@ -372,7 +372,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
       ...state.pages.map((p) => ({ group: 'Pages', label: p.label || p.path, hint: p.path, act: () => { go('seo'); state.selectedPage = p.path; renderSeoPageList(); renderSeo(); } })),
       ...state.posts.map((p) => ({ group: 'Posts', label: p.title, hint: `/blog/${p.slug}`, act: () => { go('blogs'); state.selectedPost = p.id; renderPosts(); openEditor('#postForm'); } })),
       ...state.positions.map((p) => ({ group: 'Positions', label: p.title, hint: p.department || '', act: () => { go('positions'); state.selectedPosition = p.id; renderPositions(); openEditor('#positionForm'); } })),
-      ...state.team.map((m) => ({ group: 'Team', label: m.name, hint: m.role || m.department || '', act: () => { go('team'); openTeamEditor(m.id); } })),
+      ...state.team.map((m) => ({ group: 'Team', label: teamLabel(m), hint: m.role || m.department || '', act: () => { go('team'); openTeamEditor(m.id); } })),
       ...state.enquiries.map((e) => ({ group: 'Enquiries', label: e.name, hint: e.subject || e.email, act: () => { go('enquiries'); openEnquiryDrawer(e.id); } })),
       ...state.applications.map((a) => ({ group: 'Applications', label: a.name, hint: a.positionTitle || a.email, act: () => { go('applications'); openApplicationDrawer(a.id); } })),
       ...state.partners.map((p) => ({ group: 'Partners', label: p.name, hint: p.category || p.email, act: () => { go('partners'); openPartnerDrawer(p.id); } })),
@@ -639,6 +639,11 @@ import acsDefaults from '../../lib/acs-defaults.js';
   // ---------- Team (About page) ----------
   // One ordered list; the order here is the order on /about. Edits go into a draft and are saved as the whole list.
 
+  // Members can be listed with a photo only while their name is being confirmed.
+  function teamLabel(member) {
+    return member.name || `Name to be confirmed (#${state.team.indexOf(member) + 1})`;
+  }
+
   function filteredTeam() {
     const term = state.teamSearch.trim().toLowerCase();
     return state.team.filter((member) => !term || `${member.name} ${member.role} ${member.department}`.toLowerCase().includes(term));
@@ -659,12 +664,12 @@ import acsDefaults from '../../lib/acs-defaults.js';
       return `
       <div class="dt-row team-row ${member.id === state.selectedTeamMember ? 'is-active' : ''}" data-team="${escapeHtml(member.id)}">
         ${teamAvatar(member, 44)}
-        <span class="dt-person"><strong>${escapeHtml(member.name)}</strong><span>${escapeHtml(member.role || 'No role set')}</span></span>
+        <span class="dt-person"><strong>${escapeHtml(teamLabel(member))}</strong><span>${escapeHtml(member.role || 'No role set')}</span></span>
         <span class="team-dept">${escapeHtml(member.department || '')}</span>
         <span><span class="status-pill status-${member.status === 'hidden' ? 'closed' : 'open'}">${member.status === 'hidden' ? 'hidden' : 'shown'}</span></span>
         <span class="team-order">
-          <button type="button" class="team-move" data-move="-1" ${index === 0 ? 'disabled' : ''} aria-label="Move ${escapeHtml(member.name)} up">&uarr;</button>
-          <button type="button" class="team-move" data-move="1" ${index === last ? 'disabled' : ''} aria-label="Move ${escapeHtml(member.name)} down">&darr;</button>
+          <button type="button" class="team-move" data-move="-1" ${index === 0 ? 'disabled' : ''} aria-label="Move ${escapeHtml(teamLabel(member))} up">&uarr;</button>
+          <button type="button" class="team-move" data-move="1" ${index === last ? 'disabled' : ''} aria-label="Move ${escapeHtml(teamLabel(member))} down">&darr;</button>
         </span>
         <button type="button" class="dt-edit team-edit">Edit</button>
       </div>`;
@@ -1367,7 +1372,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
         email: form.email.value.trim(),
         status: form.querySelector('input[name="status"]:checked')?.value === 'hidden' ? 'hidden' : 'live',
       };
-      if (!member.name) return;
+      if (!member.name && !member.photo) { setStatus('Add a name or a photo first.', 'error'); return; }
       const previous = state.team;
       const previousSelected = state.selectedTeamMember;
       const team = existing ? state.team.map((item) => (item.id === member.id ? member : item)) : [...state.team, member];
@@ -1378,7 +1383,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
 
     $('#deleteTeamMemberBtn').addEventListener('click', async () => {
       const member = state.team.find((item) => item.id === state.selectedTeamMember);
-      if (!member || !confirm(`Remove ${member.name} from the team?`)) return;
+      if (!member || !confirm(`Remove ${teamLabel(member)} from the team?`)) return;
       const previous = state.team;
       closeEditors();
       state.selectedTeamMember = null;
