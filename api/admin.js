@@ -11,7 +11,7 @@ const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
 // and Purchasing staff signing in with their own accounts see only their sections, and the server
 // filters data and rejects writes outside them.
 const SECTIONS = {
-  'admin.content': ['seo', 'blogs', 'analytics', 'settings', 'llms'],
+  'admin.content': ['seo', 'blogs', 'team', 'analytics', 'settings', 'llms'],
   'admin.hr': ['positions', 'enquiries', 'applications'],
   'admin.partners': ['partners'],
 };
@@ -63,14 +63,14 @@ function sectionsFor(user) {
 function scopeData(data, user) {
   if (user.role === 'director') return data;
   const scoped = { settings: data.settings };
-  if (can(user, 'admin.content')) Object.assign(scoped, { pages: data.pages, posts: data.posts });
+  if (can(user, 'admin.content')) Object.assign(scoped, { pages: data.pages, posts: data.posts, team: data.team });
   if (can(user, 'admin.hr')) Object.assign(scoped, { positions: data.positions, positionTypes: data.positionTypes, jobs: data.jobs, applications: data.applications, enquiries: data.enquiries });
   if (can(user, 'admin.partners')) Object.assign(scoped, { partners: data.partners, partnerCategories: data.partnerCategories });
   return scoped;
 }
 
-const SAVE_PERMISSION = { pageSeo: 'admin.content', posts: 'admin.content', settings: 'admin.content', jobs: 'admin.hr', positions: 'admin.hr', positionTypes: 'admin.hr', partnerCategories: 'admin.partners' };
-const ACTION_PERMISSION = { application: 'admin.hr', enquiry: 'admin.hr', partner: 'admin.partners' };
+const SAVE_PERMISSION = { pageSeo: 'admin.content', posts: 'admin.content', settings: 'admin.content', team: 'admin.content', jobs: 'admin.hr', positions: 'admin.hr', positionTypes: 'admin.hr', partnerCategories: 'admin.partners' };
+const ACTION_PERMISSION = { application: 'admin.hr', enquiry: 'admin.hr', partner: 'admin.partners', team: 'admin.content' };
 
 function forbidden(message) {
   return Object.assign(new Error(message), { status: 403 });
@@ -125,6 +125,12 @@ module.exports = async function handler(req, res) {
       const chunks = [];
       for await (const chunk of req) chunks.push(chunk);
       const payload = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
+
+      // A team photo upload answers with the photo's URL only; the member itself is saved separately.
+      if (payload.action === 'team.photo') {
+        if (!can(user, 'admin.content')) throw forbidden('Your role cannot change the team');
+        return send(res, 200, { url: await store.saveTeamPhoto(payload.dataUrl), ...sessionFields });
+      }
 
       if (payload.action) {
         await runAction(payload, user);

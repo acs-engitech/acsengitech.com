@@ -26,6 +26,7 @@ const apiRoutes = {
   '/sitemap.xml': './api/sitemap',
   '/api/markdown': './api/markdown',
   '/api/ops': './api/ops',
+  '/api/team-photo': './api/team-photo',
 };
 
 // Mirrors vercel.json redirects and middleware.js so local runs match production routing.

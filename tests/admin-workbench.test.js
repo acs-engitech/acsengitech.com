@@ -14,9 +14,9 @@ test('admin template uses shared workbench structure instead of repeated ungroup
   // Enquiries, applications and partners each render one table: toolbar, bulk bar, column header and rows.
   assert.equal((template.match(/class="dt-toolbar filter-row"/g) || []).length, 3);
   assert.equal((template.match(/class="dt-bulk bulk-row"/g) || []).length, 3);
-  // Plus the blog and position tables, whose editors open as slide-overs.
-  assert.equal((template.match(/class="dt-cols"/g) || []).length, 5);
-  assert.equal((template.match(/class="editor card editor-drawer/g) || []).length, 2);
+  // Plus the blog, team and position tables, whose editors open as slide-overs.
+  assert.equal((template.match(/class="dt-cols"/g) || []).length, 6);
+  assert.equal((template.match(/class="editor card editor-drawer/g) || []).length, 3);
 });
 
 test('long-form editors keep secondary fields out of the default reading path', () => {

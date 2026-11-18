@@ -388,3 +388,23 @@ select.field-input { appearance: none; padding-right: 38px; background-image: li
   #seo .seo-editor-canvas { min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--accent) transparent; align-content: start; }
 }
 textarea.code-field.tall { min-height: 340px; }
+
+/* ---------- Team manager (About page members) ---------- */
+.team-table .dt-cols, .team-row { grid-template-columns: 44px minmax(0, 1.6fr) minmax(0, 1fr) 96px 92px 70px; }
+.team-row { cursor: pointer; }
+.team-avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: var(--wash); display: inline-grid; place-items: center; font-size: 13px; font-weight: 700; color: var(--primary); flex: none; }
+.team-dept { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.team-order { display: inline-flex; gap: 6px; }
+.team-move { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--text); font-size: 15px; line-height: 1; display: inline-grid; place-items: center; }
+.team-move:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+.team-move:disabled { opacity: .35; cursor: default; }
+.team-edit { cursor: pointer; }
+.team-photo-field { display: flex; align-items: center; gap: 20px; }
+.team-photo-preview .team-avatar { width: 96px; height: 96px; font-size: 26px; }
+.team-photo-pick { cursor: pointer; display: inline-flex; }
+#teamPhotoRemove[hidden] { display: none; }
+@media (max-width: 1100px) {
+  .team-row { grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; }
+  .team-row > .team-dept, .team-row > :nth-child(4) { display: none; }
+  .team-row > .team-edit { display: none; }
+}

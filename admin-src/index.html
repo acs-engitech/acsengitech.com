@@ -118,6 +118,10 @@
           <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M6.5 3.25C5.257 3.25 4.25 4.257 4.25 5.5v13c0 1.243 1.007 2.25 2.25 2.25h11c1.243 0 2.25-1.007 2.25-2.25V9.31a2.25 2.25 0 0 0-.659-1.591l-3.81-3.81a2.25 2.25 0 0 0-1.591-.659H6.5Zm1.25 8.5a.75.75 0 0 1 .75-.75h7a.75.75 0 0 1 0 1.5h-7a.75.75 0 0 1-.75-.75Zm.75 3.25a.75.75 0 0 0 0 1.5h4.5a.75.75 0 0 0 0-1.5h-4.5Z"/></svg>
           <span class="flex flex-col"><span class="text-sm font-medium">Blogs</span><small class="text-xs font-normal text-gray-400">Drafts and publishing</small></span>
         </button>
+        <button class="nav-btn group" data-tab="team" type="button" :class="{ active: activeTab === 'team' }" @click="selectTab('team')">
+          <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M9 11.25a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Zm7.5 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM2.75 18.5A6.25 6.25 0 0 1 15.25 18.5a.75.75 0 0 1-.75.75h-11a.75.75 0 0 1-.75-.75Zm13.9.75h3.85a.75.75 0 0 0 .75-.75 5 5 0 0 0-6.86-4.64 7.7 7.7 0 0 1 2.26 5.39Z"/></svg>
+          <span class="flex flex-col"><span class="text-sm font-medium">Team</span><small class="text-xs font-normal text-gray-400">About page members</small></span>
+        </button>
         <button class="nav-btn group" data-tab="positions" type="button" :class="{ active: activeTab === 'positions' }" @click="selectTab('positions')">
           <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M9 3.75c-1.243 0-2.25 1.007-2.25 2.25v.75H5.5c-1.243 0-2.25 1.007-2.25 2.25v8.25c0 1.243 1.007 2.25 2.25 2.25h13c1.243 0 2.25-1.007 2.25-2.25V9c0-1.243-1.007-2.25-2.25-2.25h-1.25V6c0-1.243-1.007-2.25-2.25-2.25H9Zm6.25 3V6a.75.75 0 0 0-.75-.75H9a.75.75 0 0 0-.75.75v.75h6.5ZM4.75 12.5h14.5v4.5a.75.75 0 0 1-.75.75h-13a.75.75 0 0 1-.75-.75v-4.5Z"/></svg>
           <span class="flex flex-col"><span class="text-sm font-medium">Positions</span><small class="text-xs font-normal text-gray-400">Open roles & internships</small></span>
@@ -347,6 +351,61 @@
                 <button class="primary btn-primary" type="submit">Save post</button>
                 <button id="deletePostBtn" class="danger btn-danger" type="button">Delete</button>
                 <a id="previewPostLink" href="/blog.html" target="_blank" rel="noopener">Preview</a>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <section class="panel" id="team" :class="{ active: activeTab === 'team' }">
+          <div class="section-head">
+            <div class="page-titles">
+              <h2 class="page-title">Team manager</h2>
+              <p class="page-sub">Members shown on the About page, in this order</p>
+            </div>
+            <div class="section-actions flex flex-wrap items-center gap-2">
+              <a href="/about#team" target="_blank" rel="noopener" class="btn-secondary">View About page</a>
+              <button id="newTeamMemberBtn" class="primary btn-primary" type="button">New member</button>
+            </div>
+          </div>
+          <div class="list-bar">
+            <label class="search-pill"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4-4"/></svg><input id="teamSearch" type="search" placeholder="Search name, role or department"></label>
+            <span id="teamShownCount" class="list-count"></span>
+          </div>
+          <div class="dt team-table">
+            <div class="dt-cols" aria-hidden="true"><span></span><span>Member</span><span>Department</span><span>Status</span><span>Order</span><span></span></div>
+            <div class="dt-body" id="teamList"></div>
+          </div>
+          <div class="editor-host">
+            <form class="editor card editor-drawer space-y-5" id="teamForm">
+              <div class="editor-title"><h3>Team member</h3><button type="button" class="icon-btn editor-close" data-close-editor aria-label="Close editor">&times;</button></div>
+              <div class="team-photo-field">
+                <div class="team-photo-preview" id="teamPhotoPreview"></div>
+                <div class="space-y-2">
+                  <label class="btn-secondary team-photo-pick">Upload photo<input id="teamPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" hidden></label>
+                  <button type="button" id="teamPhotoRemove" class="btn-secondary">Remove photo</button>
+                  <p class="text-xs text-gray-500">JPG, PNG or WebP. Resized to 600 px automatically; a portrait (4:5) crop looks best.</p>
+                </div>
+              </div>
+              <input type="hidden" name="photo">
+              <label class="field-label">Name <input name="name" required maxlength="120" class="field-input"></label>
+              <div class="two-col">
+                <label class="field-label">Role / designation <input name="role" maxlength="120" placeholder="Director" class="field-input"></label>
+                <label class="field-label">Department <input name="department" maxlength="120" placeholder="Leadership" class="field-input"></label>
+              </div>
+              <label class="field-label">Short bio <textarea name="bio" maxlength="1200" rows="4" placeholder="Two or three lines about their experience" class="field-input"></textarea></label>
+              <div class="two-col">
+                <label class="field-label">LinkedIn URL <input name="linkedin" type="url" placeholder="https://www.linkedin.com/in/..." class="field-input"></label>
+                <label class="field-label">Public email <input name="email" type="email" placeholder="Optional" class="field-input"></label>
+              </div>
+              <fieldset class="field-label">Visibility
+                <div class="flex items-center gap-4 mt-1.5">
+                  <label class="flex items-center gap-1.5 text-sm font-normal text-gray-700"><input type="radio" name="status" value="live"> Shown on site</label>
+                  <label class="flex items-center gap-1.5 text-sm font-normal text-gray-700"><input type="radio" name="status" value="hidden"> Hidden</label>
+                </div>
+              </fieldset>
+              <div class="form-actions flex flex-wrap items-center gap-3">
+                <button class="primary btn-primary" type="submit">Save member</button>
+                <button id="deleteTeamMemberBtn" class="danger btn-danger" type="button">Delete</button>
               </div>
             </form>
           </div>

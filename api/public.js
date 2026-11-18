@@ -29,6 +29,11 @@ function blogPosts(posts, slug) {
     .map((post) => (post.slug === slug ? post : { ...post, content: undefined }));
 }
 
+// The About page's team section: members marked live, in the order set in the admin. Hidden members never leave the server.
+function publicTeam(team) {
+  return (team || []).filter((member) => member.status !== 'hidden').map(({ status, ...member }) => member);
+}
+
 module.exports = async function handler(req, res) {
   try {
     if (req.method === 'POST') {
@@ -57,6 +62,7 @@ module.exports = async function handler(req, res) {
       partnerCategories: data.partnerCategories || [],
       jobs: jobsFromPositions.length ? jobsFromPositions : data.jobs.filter((job) => job.status !== 'closed'),
       posts: currentPath === '/blog' ? blogPosts(data.posts, req.query?.post) : [],
+      team: currentPath === '/about' ? publicTeam(data.team) : [],
       pageSeo,
       currentPath,
     }, 'public, s-maxage=60, stale-while-revalidate=86400');

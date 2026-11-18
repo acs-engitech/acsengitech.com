@@ -14,12 +14,22 @@ function connectionString() {
 }
 
 function db() {
+  if (sql) return sql;
   const url = connectionString();
-  if (!url) {
-    throw new Error(`Database is not configured: set ${CONNECTION_ENV.join(' or ')}`);
-  }
-  sql ||= neon(url);
-  return sql;
+  if (url) return (sql = neon(url));
+  // Local runs without Neon (local-dev-server.js sets ACS_OPS_PGLITE_DIR) share the embedded Postgres the
+  // operations platform already uses, so the admin works offline too. Never on Vercel.
+  if (!process.env.VERCEL && process.env.ACS_OPS_PGLITE_DIR) return (sql = localSql());
+  throw new Error(`Database is not configured: set ${CONNECTION_ENV.join(' or ')}`);
+}
+
+// A tagged-template function with the Neon driver's calling convention, backed by the ops PGlite driver.
+function localSql() {
+  const driver = require('../lib/ops/db').getDb();
+  return async (parts, ...values) => {
+    const text = parts.reduce((out, part, index) => `${out}$${index}${part}`);
+    return (await driver).query(text, values);
+  };
 }
 
 function init() {
@@ -32,7 +42,7 @@ function init() {
 }
 
 async function createTables() {
-  // Independent statements, so they run together: one round trip of latency on a cold start instead of five.
+  // Independent statements, so they run together: one round trip of latency on a cold start instead of six.
   await Promise.all([
     db()`CREATE TABLE IF NOT EXISTS acs_admin_data (
       key text PRIMARY KEY,
@@ -96,6 +106,13 @@ async function createTables() {
       created_at timestamptz NOT NULL DEFAULT now(),
       updated_at timestamptz NOT NULL DEFAULT now()
     )`,
+    // Team photos live in the database (base64) so they work without any extra storage service.
+    db()`CREATE TABLE IF NOT EXISTS acs_team_photos (
+      id text PRIMARY KEY,
+      mime text NOT NULL,
+      data text NOT NULL,
+      created_at timestamptz NOT NULL DEFAULT now()
+    )`,
   ]);
 }
 
@@ -127,7 +144,7 @@ async function getPageSeo() {
 // admin and public payloads are each read in ONE round trip: every key/value blob in a single SELECT, plus the
 // record tables and analytics, sent together as one Neon HTTP transaction. Anything that must be written back
 // (first-time migrations) is returned as `writes` and done after the read.
-const KV_KEYS = ['settings', 'pageSeo', 'pageSeoVersion', 'posts', 'jobs', 'positions', 'positionTypes', 'partnerCategories', 'linkedinImportVersion'];
+const KV_KEYS = ['settings', 'pageSeo', 'pageSeoVersion', 'posts', 'jobs', 'positions', 'positionTypes', 'partnerCategories', 'linkedinImportVersion', 'team'];
 
 // One HTTP request when the driver supports transactions, parallel requests otherwise (tests, local fakes).
 async function batch(build) {
@@ -169,7 +186,53 @@ function resolveKv(get) {
     positions,
     positionTypes: get('positionTypes', DEFAULT_POSITION_TYPES),
     partnerCategories: get('partnerCategories', DEFAULT_PARTNER_CATEGORIES),
+    team: normalizeTeam(get('team', [])),
   };
+}
+
+// ---------- Team (About page) ----------
+// Members are one ordered list (the order shown on /about), stored as a key/value blob like positions.
+const TEAM_FIELDS = ['name', 'role', 'department', 'bio', 'photo', 'linkedin', 'email'];
+const TEAM_PHOTO_TYPES = ['image/webp', 'image/jpeg', 'image/png'];
+const TEAM_PHOTO_MAX_BYTES = 1024 * 1024;
+
+function normalizeTeam(list) {
+  return (Array.isArray(list) ? list : [])
+    .filter((member) => member && typeof member === 'object' && String(member.name || '').trim())
+    .map((member) => {
+      const clean = { id: String(member.id || require('node:crypto').randomUUID()), status: member.status === 'hidden' ? 'hidden' : 'live' };
+      for (const field of TEAM_FIELDS) clean[field] = String(member[field] || '').trim().slice(0, field === 'bio' ? 1200 : 400);
+      return clean;
+    });
+}
+
+const teamPhotoId = (url) => (/^\/api\/team-photo\?id=([\w-]+)$/.exec(url || '') || [])[1];
+
+function badRequest(message) {
+  return Object.assign(new Error(message), { status: 400 });
+}
+
+// Takes a data: URL from the admin (already resized in the browser) and returns the URL the photo is served at.
+async function saveTeamPhoto(dataUrl) {
+  const match = /^data:(image\/[a-z]+);base64,([A-Za-z0-9+/=]+)$/.exec(String(dataUrl || ''));
+  if (!match || !TEAM_PHOTO_TYPES.includes(match[1])) throw badRequest('Upload a JPG, PNG or WebP image');
+  if (Buffer.byteLength(match[2], 'base64') > TEAM_PHOTO_MAX_BYTES) throw badRequest('Image is too large (1 MB max)');
+  await init();
+  const id = require('node:crypto').randomUUID();
+  await db()`INSERT INTO acs_team_photos (id, mime, data) VALUES (${id}, ${match[1]}, ${match[2]})`;
+  return `/api/team-photo?id=${id}`;
+}
+
+async function getTeamPhoto(id) {
+  await init();
+  const rows = await db()`SELECT mime, data FROM acs_team_photos WHERE id = ${String(id || '')}`;
+  return rows[0] ? { mime: rows[0].mime, buffer: Buffer.from(rows[0].data, 'base64') } : null;
+}
+
+// Photos no member uses any more are removed once a day old (a fresh upload may not be saved yet).
+async function pruneTeamPhotos(team) {
+  const keep = team.map((member) => teamPhotoId(member.photo)).filter(Boolean);
+  await db()`DELETE FROM acs_team_photos WHERE created_at < now() - interval '1 day' AND NOT (id = ANY(${keep}))`;
 }
 
 async function applyWrites(writes) {
@@ -393,6 +456,7 @@ async function getAll() {
     partners: partners.map(rowToPartner),
     enquiries: enquiries.map(rowToEnquiry),
     partnerCategories: kv.partnerCategories,
+    team: kv.team,
     settings: { ...DEFAULT_SETTINGS, ...kv.settings },
   };
 }
@@ -415,6 +479,7 @@ async function getPublicData() {
     positions: kv.positions,
     positionTypes: kv.positionTypes,
     partnerCategories: kv.partnerCategories,
+    team: kv.team,
     settings: { ...DEFAULT_SETTINGS, ...kv.settings },
   };
 }
@@ -428,6 +493,10 @@ async function saveAll(payload) {
   if (payload.positionTypes) writes.push(setPositionTypes(payload.positionTypes));
   if (payload.partnerCategories) writes.push(setPartnerCategories(payload.partnerCategories));
   if (payload.settings) writes.push(setValue('settings', { ...DEFAULT_SETTINGS, ...payload.settings }));
+  if (Array.isArray(payload.team)) {
+    const team = normalizeTeam(payload.team);
+    writes.push(setValue('team', team).then(() => pruneTeamPhotos(team)));
+  }
   await Promise.all(writes);
   return getAll();
 }
@@ -482,4 +551,7 @@ module.exports = {
   listPartners,
   updatePartner,
   deletePartners,
+  normalizeTeam,
+  saveTeamPhoto,
+  getTeamPhoto,
 };

@@ -12,6 +12,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
     posts: [],
     positions: [],
     positionTypes: [],
+    team: [],
     enquiries: [],
     applications: [],
     partners: [],
@@ -21,6 +22,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
     selectedPage: '/',
     selectedPost: null,
     selectedPosition: null,
+    selectedTeamMember: null,
     selectedEnquiry: null,
     selectedApplication: null,
     selectedPartner: null,
@@ -28,6 +30,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
     postSearch: '',
     postLimit: 10,
     positionSearch: '',
+    teamSearch: '',
     enquiryFilters: { status: 'all', from: '', to: '', search: '' },
     applicationFilters: { status: 'all', positionId: '', from: '', to: '', search: '' },
     partnerFilters: { status: 'all', category: '', from: '', to: '', search: '' },
@@ -261,6 +264,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
     state.posts = (data.posts || state.posts).map((post) => (post.status === 'scheduled' && new Date(post.publishedAt) <= new Date() ? { ...post, status: 'published' } : post));
     state.positions = data.positions || state.positions;
     state.positionTypes = data.positionTypes || state.positionTypes;
+    state.team = data.team || state.team;
     state.enquiries = data.enquiries || state.enquiries;
     state.applications = data.applications || state.applications;
     state.partners = data.partners || state.partners;
@@ -368,6 +372,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
       ...state.pages.map((p) => ({ group: 'Pages', label: p.label || p.path, hint: p.path, act: () => { go('seo'); state.selectedPage = p.path; renderSeoPageList(); renderSeo(); } })),
       ...state.posts.map((p) => ({ group: 'Posts', label: p.title, hint: `/blog/${p.slug}`, act: () => { go('blogs'); state.selectedPost = p.id; renderPosts(); openEditor('#postForm'); } })),
       ...state.positions.map((p) => ({ group: 'Positions', label: p.title, hint: p.department || '', act: () => { go('positions'); state.selectedPosition = p.id; renderPositions(); openEditor('#positionForm'); } })),
+      ...state.team.map((m) => ({ group: 'Team', label: m.name, hint: m.role || m.department || '', act: () => { go('team'); openTeamEditor(m.id); } })),
       ...state.enquiries.map((e) => ({ group: 'Enquiries', label: e.name, hint: e.subject || e.email, act: () => { go('enquiries'); openEnquiryDrawer(e.id); } })),
       ...state.applications.map((a) => ({ group: 'Applications', label: a.name, hint: a.positionTitle || a.email, act: () => { go('applications'); openApplicationDrawer(a.id); } })),
       ...state.partners.map((p) => ({ group: 'Partners', label: p.name, hint: p.category || p.email, act: () => { go('partners'); openPartnerDrawer(p.id); } })),
@@ -629,6 +634,101 @@ import acsDefaults from '../../lib/acs-defaults.js';
     form.metaDescription.value = post.seo?.description || '';
     form.status.value = post.status || 'published';
     $('#previewPostLink').href = `/blog/${post.slug || ''}`;
+  }
+
+  // ---------- Team (About page) ----------
+  // One ordered list; the order here is the order on /about. Edits go into a draft and are saved as the whole list.
+
+  function filteredTeam() {
+    const term = state.teamSearch.trim().toLowerCase();
+    return state.team.filter((member) => !term || `${member.name} ${member.role} ${member.department}`.toLowerCase().includes(term));
+  }
+
+  function teamAvatar(member, size) {
+    const initials = String(member.name || '?').trim().split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase();
+    return member.photo
+      ? `<img class="team-avatar" src="${escapeHtml(member.photo)}" alt="" width="${size}" height="${size}" loading="lazy">`
+      : `<span class="team-avatar team-avatar-empty" aria-hidden="true">${escapeHtml(initials || '?')}</span>`;
+  }
+
+  function renderTeamList() {
+    const members = filteredTeam();
+    const last = state.team.length - 1;
+    $('#teamList').innerHTML = members.map((member) => {
+      const index = state.team.indexOf(member);
+      return `
+      <div class="dt-row team-row ${member.id === state.selectedTeamMember ? 'is-active' : ''}" data-team="${escapeHtml(member.id)}">
+        ${teamAvatar(member, 44)}
+        <span class="dt-person"><strong>${escapeHtml(member.name)}</strong><span>${escapeHtml(member.role || 'No role set')}</span></span>
+        <span class="team-dept">${escapeHtml(member.department || '')}</span>
+        <span><span class="status-pill status-${member.status === 'hidden' ? 'closed' : 'open'}">${member.status === 'hidden' ? 'hidden' : 'shown'}</span></span>
+        <span class="team-order">
+          <button type="button" class="team-move" data-move="-1" ${index === 0 ? 'disabled' : ''} aria-label="Move ${escapeHtml(member.name)} up">&uarr;</button>
+          <button type="button" class="team-move" data-move="1" ${index === last ? 'disabled' : ''} aria-label="Move ${escapeHtml(member.name)} down">&darr;</button>
+        </span>
+        <button type="button" class="dt-edit team-edit">Edit</button>
+      </div>`;
+    }).join('') || `<p class="empty-state">${state.team.length ? 'No members match this search.' : 'No team members yet. Add one and it appears on the About page.'}</p>`;
+    $('#teamShownCount').textContent = `${members.length} of ${state.team.length}`;
+  }
+
+  function setTeamPhoto(url) {
+    const form = $('#teamForm');
+    form.photo.value = url || '';
+    $('#teamPhotoPreview').innerHTML = teamAvatar({ name: form.name.value, photo: url }, 96);
+    $('#teamPhotoRemove').hidden = !url;
+  }
+
+  function fillTeamForm() {
+    const member = state.team.find((item) => item.id === state.selectedTeamMember) || { status: 'live' };
+    const form = $('#teamForm');
+    ['name', 'role', 'department', 'bio', 'linkedin', 'email'].forEach((name) => { form[name].value = member[name] || ''; });
+    $$('#teamForm input[name="status"]').forEach((radio) => { radio.checked = radio.value === (member.status === 'hidden' ? 'hidden' : 'live'); });
+    $('#deleteTeamMemberBtn').hidden = !state.team.some((item) => item.id === state.selectedTeamMember);
+    setTeamPhoto(member.photo);
+  }
+
+  function renderTeam() {
+    renderTeamList();
+  }
+
+  function openTeamEditor(id) {
+    state.selectedTeamMember = id;
+    fillTeamForm();
+    renderTeamList();
+    openEditor('#teamForm');
+    $('#teamForm [name="name"]').focus({ preventScroll: true });
+  }
+
+  // Photos are resized in the browser (max 600 px wide) so uploads stay small and the About page loads fast.
+  function resizePhoto(file) {
+    return new Promise((resolve, reject) => {
+      if (!/^image\/(jpeg|png|webp)$/.test(file.type)) return reject(new Error('Choose a JPG, PNG or WebP image.'));
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const scale = Math.min(1, 600 / img.naturalWidth, 900 / img.naturalHeight);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.naturalWidth * scale);
+        canvas.height = Math.round(img.naturalHeight * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        const webp = canvas.toDataURL('image/webp', 0.85);
+        resolve(webp.startsWith('data:image/webp') ? webp : canvas.toDataURL('image/jpeg', 0.86));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('That image could not be read.')); };
+      img.src = url;
+    });
+  }
+
+  function saveTeam(team, message, revert) {
+    return mutate({
+      apply: () => { state.team = team; },
+      rerender: () => { renderTeam(); renderOverview(); },
+      request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ team: state.team }) }),
+      successMessage: message,
+      revert,
+    });
   }
 
   // ---------- Positions ----------
@@ -1028,6 +1128,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
     renderOverview();
     renderSeo();
     renderPosts();
+    renderTeam();
     renderPositions();
     renderEnquiries();
     renderApplications();
@@ -1203,6 +1304,85 @@ import acsDefaults from '../../lib/acs-defaults.js';
         onApplied: closeEditors,
         revert: () => { state.posts = previousPosts; state.selectedPost = previousSelected; },
       });
+    });
+
+    // ---- Team ----
+
+    $('#newTeamMemberBtn').addEventListener('click', () => openTeamEditor(null));
+
+    $('#teamSearch').addEventListener('input', (event) => {
+      state.teamSearch = event.target.value;
+      renderTeamList();
+    });
+
+    $('#teamList').addEventListener('click', async (event) => {
+      const row = event.target.closest('[data-team]');
+      if (!row) return;
+      const move = event.target.closest('[data-move]');
+      if (!move) {
+        openTeamEditor(row.dataset.team);
+        return;
+      }
+      const from = state.team.findIndex((member) => member.id === row.dataset.team);
+      const to = from + Number(move.dataset.move);
+      if (from < 0 || to < 0 || to >= state.team.length) return;
+      const previous = state.team;
+      const team = [...state.team];
+      [team[from], team[to]] = [team[to], team[from]];
+      await saveTeam(team, 'Order saved.', () => { state.team = previous; });
+    });
+
+    $('#teamForm').name.addEventListener('input', () => { if (!$('#teamForm').photo.value) setTeamPhoto(''); });
+
+    $('#teamPhotoInput').addEventListener('change', async (event) => {
+      const file = event.target.files[0];
+      event.target.value = '';
+      if (!file) return;
+      setStatus('Uploading photo…', 'loading');
+      try {
+        const dataUrl = await resizePhoto(file);
+        const { url } = await api('/api/admin', { method: 'POST', body: JSON.stringify({ action: 'team.photo', dataUrl }) });
+        setTeamPhoto(url);
+        setStatus('Photo uploaded. Save the member to publish it.', 'ok');
+      } catch (error) {
+        if (error.code === 'AUTH_REQUIRED') showSignIn(error.message);
+        setStatus(error.message || 'Photo could not be uploaded.', 'error');
+      }
+    });
+
+    $('#teamPhotoRemove').addEventListener('click', () => setTeamPhoto(''));
+
+    $('#teamForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const existing = state.team.find((member) => member.id === state.selectedTeamMember);
+      const member = {
+        id: existing?.id || crypto.randomUUID(),
+        name: form.name.value.trim(),
+        role: form.role.value.trim(),
+        department: form.department.value.trim(),
+        bio: form.bio.value.trim(),
+        photo: form.photo.value,
+        linkedin: form.linkedin.value.trim(),
+        email: form.email.value.trim(),
+        status: form.querySelector('input[name="status"]:checked')?.value === 'hidden' ? 'hidden' : 'live',
+      };
+      if (!member.name) return;
+      const previous = state.team;
+      const previousSelected = state.selectedTeamMember;
+      const team = existing ? state.team.map((item) => (item.id === member.id ? member : item)) : [...state.team, member];
+      state.selectedTeamMember = member.id;
+      closeEditors();
+      await saveTeam(team, existing ? 'Team member saved.' : 'Team member added.', () => { state.team = previous; state.selectedTeamMember = previousSelected; });
+    });
+
+    $('#deleteTeamMemberBtn').addEventListener('click', async () => {
+      const member = state.team.find((item) => item.id === state.selectedTeamMember);
+      if (!member || !confirm(`Remove ${member.name} from the team?`)) return;
+      const previous = state.team;
+      closeEditors();
+      state.selectedTeamMember = null;
+      await saveTeam(state.team.filter((item) => item.id !== member.id), 'Team member removed.', () => { state.team = previous; });
     });
 
     // ---- Positions ----

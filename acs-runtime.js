@@ -1116,6 +1116,54 @@
     root.innerHTML = `<div class="acs-dynamic-inner">${careerDetailsHtml(visibleJobs)}</div>`;
   }
 
+  // About page team grid: members come from /admin (Team) through /api/public?path=/about, in the admin's order.
+  function safeHref(value, kind) {
+    const url = String(value || '').trim();
+    if (!url) return '';
+    if (kind === 'mail') return /^[^\s@<>"']+@[^\s@<>"']+\.[^\s@<>"']+$/.test(url) ? `mailto:${url}` : '';
+    if (/^\/api\/team-photo\?id=[\w-]+$/.test(url)) return url;
+    if (/^\/?assets\/[\w./-]+$/.test(url)) return url.startsWith('/') ? url : `/${url}`;
+    const full = /^https?:\/\//i.test(url) ? url : (kind === 'link' ? `https://${url}` : url);
+    return /^https?:\/\/[^\s"'<>]+$/i.test(full) ? full : '';
+  }
+
+  function teamInitials(name) {
+    return String(name || '').trim().split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase();
+  }
+
+  function teamCard(member) {
+    const photo = safeHref(member.photo, 'photo');
+    const linkedin = safeHref(member.linkedin, 'link');
+    const email = safeHref(member.email, 'mail');
+    const links = [
+      linkedin ? `<a href="${escapeHtml(linkedin)}" target="_blank" rel="noopener">LinkedIn <i class="ri-arrow-right-up-line" aria-hidden="true"></i><span class="acs-sr"> profile of ${escapeHtml(member.name)}</span></a>` : '',
+      email ? `<a href="${escapeHtml(email)}">Email <i class="ri-arrow-right-up-line" aria-hidden="true"></i><span class="acs-sr"> ${escapeHtml(member.name)}</span></a>` : '',
+    ].join('');
+    return `<li class="co-team-card">
+      <div class="co-team-photo">${photo ? `<img src="${escapeHtml(photo)}" alt="${escapeHtml(member.name)}${member.role ? `, ${escapeHtml(member.role)}` : ''}" loading="lazy" decoding="async" width="480" height="600">` : `<span aria-hidden="true">${escapeHtml(teamInitials(member.name))}</span>`}</div>
+      ${member.department ? `<p class="co-team-dept">${escapeHtml(member.department)}</p>` : ''}
+      <h3 class="co-team-name">${escapeHtml(member.name)}</h3>
+      ${member.role ? `<p class="co-team-role">${escapeHtml(member.role)}</p>` : ''}
+      ${member.bio ? `<p class="co-team-bio">${escapeHtml(member.bio)}</p>` : ''}
+      ${links ? `<div class="co-team-links">${links}</div>` : ''}
+    </li>`;
+  }
+
+  function renderTeam(team) {
+    const root = document.getElementById('acs-team-board');
+    if (!root) return;
+    const members = (team || []).filter((member) => member && member.name);
+    if (!members.length) {
+      root.hidden = true;
+      root.innerHTML = '';
+      return;
+    }
+    root.innerHTML = `<p class="co-label">The people behind ACS</p>
+      <ul class="co-team" aria-label="ACS Engitech team">${members.map(teamCard).join('')}</ul>`;
+    root.hidden = false;
+    if (window.acsRevealAll) window.acsRevealAll(root);
+  }
+
   function blogDate(value) {
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -1240,6 +1288,7 @@
       injectAnalytics(data.settings || {});
       renderCareers(data.jobs || []);
       renderBlog(data.posts || []);
+      renderTeam(data.team || []);
       track();
     } catch (error) {
       if (document.getElementById('acs-blog-board')) {
