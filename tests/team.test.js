@@ -57,11 +57,15 @@ test('team members are cleaned up: nameless rows dropped, unknown fields strippe
   assert.equal(team[0].bio.length, 1200);
 });
 
-test('until the team is first saved, /about shows the six supplied photos with names left blank', async () => {
+test('until the team is first saved, /about shows the four directors then six members, names left blank', async () => {
   const about = await call(publicApi, { query: { path: '/about' } });
-  assert.equal(about.body.team.length, 6);
-  assert.deepEqual(about.body.team.map((m) => m.photo), [1, 2, 3, 4, 5, 6].map((n) => `/assets/team/member-${n}.webp`));
-  assert.ok(about.body.team.every((m) => m.name === '' && m.role === ''));
+  assert.equal(about.body.team.length, 10);
+  assert.deepEqual(about.body.team.map((m) => m.photo), [
+    ...[1, 2, 3, 4].map((n) => `/assets/team/director-${n}.webp`),
+    ...[1, 2, 3, 4, 5, 6].map((n) => `/assets/team/member-${n}.webp`),
+  ]);
+  assert.deepEqual(about.body.team.map((m) => m.role), [...Array(4).fill('Director'), ...Array(6).fill('')]);
+  assert.ok(about.body.team.every((m) => m.name === ''));
   const fs = require('node:fs');
   for (const m of about.body.team) assert.ok(fs.existsSync(require('node:path').join(__dirname, '..', m.photo)), m.photo);
   assert.deepEqual(store.normalizeTeam([{ id: 'x', photo: '/assets/team/member-1.webp' }]).map((m) => m.id), ['x'], 'a photo-only member is kept');

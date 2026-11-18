@@ -192,9 +192,13 @@ function resolveKv(get) {
 
 // ---------- Team (About page) ----------
 // Members are one ordered list (the order shown on /about), stored as a key/value blob like positions.
-// The six team photos supplied in Nov 2026, used until the team is first saved in the admin. Names and
-// designations are left blank until ACS confirms them; the About page keeps the space for them.
-const TEAM_SEED = [1, 2, 3, 4, 5, 6].map((n) => ({ id: `seed-member-${n}`, name: '', role: '', photo: `/assets/team/member-${n}.webp`, status: 'live' }));
+// The team photos supplied in Nov 2026 (four directors first, then six team members), used until the team is
+// first saved in the admin. Names (and the members' designations) are left blank until ACS confirms them; the
+// About page keeps the space for them.
+const TEAM_SEED = [
+  ...[1, 2, 3, 4].map((n) => ({ id: `seed-director-${n}`, name: '', role: 'Director', photo: `/assets/team/director-${n}.webp`, status: 'live' })),
+  ...[1, 2, 3, 4, 5, 6].map((n) => ({ id: `seed-member-${n}`, name: '', role: '', photo: `/assets/team/member-${n}.webp`, status: 'live' })),
+];
 
 const TEAM_FIELDS = ['name', 'role', 'department', 'bio', 'photo', 'linkedin', 'email'];
 const TEAM_PHOTO_TYPES = ['image/webp', 'image/jpeg', 'image/png'];
