@@ -600,6 +600,7 @@ module.exports = {
   deletePartners,
   normalizeTeam,
   normalizeTeamLayout,
+  init,
   saveTeamPhoto,
   getTeamPhoto,
 };

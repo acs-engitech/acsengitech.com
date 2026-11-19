@@ -10,6 +10,8 @@
     "visual:test": "playwright test",
     "build": "node scripts/seo-head.js && webpack --config admin-src/webpack.config.js && webpack --config ops-src/webpack.config.js",
     "seo:head": "node scripts/seo-head.js",
+    "migrate:db": "node scripts/migrate-db.js",
+    "migrate:blobs": "node scripts/migrate-blobs.js",
     "ops:seed-demo": "node scripts/ops-seed-demo.js"
   },
   "dependencies": {
