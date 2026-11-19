@@ -63,13 +63,13 @@ function sectionsFor(user) {
 function scopeData(data, user) {
   if (user.role === 'director') return data;
   const scoped = { settings: data.settings };
-  if (can(user, 'admin.content')) Object.assign(scoped, { pages: data.pages, posts: data.posts, team: data.team });
+  if (can(user, 'admin.content')) Object.assign(scoped, { pages: data.pages, posts: data.posts, team: data.team, teamLayout: data.teamLayout });
   if (can(user, 'admin.hr')) Object.assign(scoped, { positions: data.positions, positionTypes: data.positionTypes, jobs: data.jobs, applications: data.applications, enquiries: data.enquiries });
   if (can(user, 'admin.partners')) Object.assign(scoped, { partners: data.partners, partnerCategories: data.partnerCategories });
   return scoped;
 }
 
-const SAVE_PERMISSION = { pageSeo: 'admin.content', posts: 'admin.content', settings: 'admin.content', team: 'admin.content', jobs: 'admin.hr', positions: 'admin.hr', positionTypes: 'admin.hr', partnerCategories: 'admin.partners' };
+const SAVE_PERMISSION = { pageSeo: 'admin.content', posts: 'admin.content', settings: 'admin.content', team: 'admin.content', teamLayout: 'admin.content', jobs: 'admin.hr', positions: 'admin.hr', positionTypes: 'admin.hr', partnerCategories: 'admin.partners' };
 const ACTION_PERMISSION = { application: 'admin.hr', enquiry: 'admin.hr', partner: 'admin.partners', team: 'admin.content' };
 
 function forbidden(message) {

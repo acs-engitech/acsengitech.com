@@ -367,12 +367,21 @@
               <button id="newTeamMemberBtn" class="primary btn-primary" type="button">New member</button>
             </div>
           </div>
+          <section class="card team-layout" aria-labelledby="teamLayoutTitle">
+            <div class="team-layout-side">
+              <h3 id="teamLayoutTitle">Grid layout</h3>
+              <p>How the team is laid out on the About page. Each choice saves straight away.</p>
+              <div id="teamLayoutControls" class="team-layout-controls"></div>
+            </div>
+            <div class="team-layout-preview" id="teamLayoutPreview" aria-hidden="true"></div>
+          </section>
           <div class="list-bar">
             <label class="search-pill"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4-4"/></svg><input id="teamSearch" type="search" placeholder="Search name, role or department"></label>
+            <span class="team-drag-hint">Drag <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg> to reorder</span>
             <span id="teamShownCount" class="list-count"></span>
           </div>
           <div class="dt team-table">
-            <div class="dt-cols" aria-hidden="true"><span></span><span>Member</span><span>Department</span><span>Status</span><span>Order</span><span></span></div>
+            <div class="dt-cols" aria-hidden="true"><span></span><span></span><span>Member</span><span>Department</span><span>Status</span><span></span></div>
             <div class="dt-body" id="teamList"></div>
           </div>
           <div class="editor-host">

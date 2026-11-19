@@ -13,6 +13,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
     positions: [],
     positionTypes: [],
     team: [],
+    teamLayout: null,
     enquiries: [],
     applications: [],
     partners: [],
@@ -265,6 +266,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
     state.positions = data.positions || state.positions;
     state.positionTypes = data.positionTypes || state.positionTypes;
     state.team = data.team || state.team;
+    state.teamLayout = data.teamLayout || state.teamLayout;
     state.enquiries = data.enquiries || state.enquiries;
     state.applications = data.applications || state.applications;
     state.partners = data.partners || state.partners;
@@ -656,25 +658,162 @@ import acsDefaults from '../../lib/acs-defaults.js';
       : `<span class="team-avatar team-avatar-empty" aria-hidden="true">${escapeHtml(initials || '?')}</span>`;
   }
 
+  const GRIP_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>';
+
   function renderTeamList() {
     const members = filteredTeam();
-    const last = state.team.length - 1;
-    $('#teamList').innerHTML = members.map((member) => {
-      const index = state.team.indexOf(member);
-      return `
+    const sorting = !state.teamSearch.trim();
+    $('#teamList').innerHTML = members.map((member) => `
       <div class="dt-row team-row ${member.id === state.selectedTeamMember ? 'is-active' : ''}" data-team="${escapeHtml(member.id)}">
+        <button type="button" class="team-grip" data-drag ${sorting ? '' : 'disabled'} aria-label="Reorder ${escapeHtml(teamLabel(member))}: drag, or use the arrow keys" title="${sorting ? 'Drag to reorder' : 'Clear the search to reorder'}">${GRIP_ICON}</button>
         ${teamAvatar(member, 44)}
         <span class="dt-person"><strong>${escapeHtml(teamLabel(member))}</strong><span>${escapeHtml(member.role || 'No role set')}</span></span>
         <span class="team-dept">${escapeHtml(member.department || '')}</span>
         <span><span class="status-pill status-${member.status === 'hidden' ? 'closed' : 'open'}">${member.status === 'hidden' ? 'hidden' : 'shown'}</span></span>
-        <span class="team-order">
-          <button type="button" class="team-move" data-move="-1" ${index === 0 ? 'disabled' : ''} aria-label="Move ${escapeHtml(teamLabel(member))} up">&uarr;</button>
-          <button type="button" class="team-move" data-move="1" ${index === last ? 'disabled' : ''} aria-label="Move ${escapeHtml(teamLabel(member))} down">&darr;</button>
-        </span>
         <button type="button" class="dt-edit team-edit">Edit</button>
-      </div>`;
-    }).join('') || `<p class="empty-state">${state.team.length ? 'No members match this search.' : 'No team members yet. Add one and it appears on the About page.'}</p>`;
+      </div>`).join('') || `<p class="empty-state">${state.team.length ? 'No members match this search.' : 'No team members yet. Add one and it appears on the About page.'}</p>`;
     $('#teamShownCount').textContent = `${members.length} of ${state.team.length}`;
+  }
+
+  // ---- Grid layout (columns per screen size, rows shown, photo shape) ----
+  const TEAM_LAYOUT_DEFAULTS = { columns: 4, tabletColumns: 3, mobileColumns: 2, rows: 0, photo: 'portrait' };
+  const TEAM_LAYOUT_CONTROLS = [
+    ['columns', 'Columns on desktop', [2, 3, 4, 5, 6]],
+    ['tabletColumns', 'Columns on tablet', [1, 2, 3, 4]],
+    ['mobileColumns', 'Columns on phone', [1, 2, 3]],
+    ['rows', 'Rows shown first', [0, 1, 2, 3, 4, 5]],
+    ['photo', 'Photo shape', ['portrait', 'square', 'tall']],
+  ];
+  const TEAM_LAYOUT_LABELS = { 0: 'All', portrait: 'Portrait', square: 'Square', tall: 'Tall' };
+  const TEAM_PHOTO_RATIO = { portrait: '4 / 5', square: '1 / 1', tall: '3 / 4' };
+
+  function teamLayout() {
+    return { ...TEAM_LAYOUT_DEFAULTS, ...(state.teamLayout || {}) };
+  }
+
+  function renderTeamLayout() {
+    const layout = teamLayout();
+    $('#teamLayoutControls').innerHTML = TEAM_LAYOUT_CONTROLS.map(([key, label, values]) => `
+      <fieldset class="team-seg">
+        <legend>${label}</legend>
+        <div class="team-seg-track">${values.map((value) => `<button type="button" data-layout-key="${key}" data-layout-value="${value}" aria-pressed="${layout[key] === value}">${TEAM_LAYOUT_LABELS[value] ?? value}</button>`).join('')}</div>
+      </fieldset>`).join('');
+    const live = state.team.filter((member) => member.status !== 'hidden');
+    const limit = layout.rows ? layout.rows * layout.columns : live.length;
+    const preview = $('#teamLayoutPreview');
+    preview.style.setProperty('--cols', layout.columns);
+    preview.style.setProperty('--ratio', TEAM_PHOTO_RATIO[layout.photo]);
+    preview.innerHTML = `<div class="team-preview-grid">${live.map((member, index) => `<span class="team-preview-tile ${index >= limit ? 'is-folded' : ''}">${member.photo ? `<img src="${escapeHtml(member.photo)}" alt="" loading="lazy">` : ''}<i></i></span>`).join('')}</div>
+      <p class="team-preview-note">Desktop preview: ${Math.min(limit, live.length)} of ${live.length} shown${live.length > limit ? `, the other ${live.length - limit} behind a “View the full team” button` : ''}.</p>`;
+  }
+
+  function saveTeamLayout(patch) {
+    const previous = state.teamLayout;
+    return mutate({
+      apply: () => { state.teamLayout = { ...teamLayout(), ...patch }; },
+      rerender: renderTeamLayout,
+      request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ teamLayout: state.teamLayout }) }),
+      successMessage: 'Layout saved.',
+      revert: () => { state.teamLayout = previous; },
+    });
+  }
+
+  // ---- Drag to reorder: pointer based, so it works with mouse, pen and touch ----
+  function commitTeamOrder(ids, message) {
+    const order = ids.join('|');
+    if (order === state.team.map((member) => member.id).join('|')) return Promise.resolve();
+    const previous = state.team;
+    const byId = new Map(state.team.map((member) => [member.id, member]));
+    return saveTeam(ids.map((id) => byId.get(id)).filter(Boolean), message || 'Order saved.', () => { state.team = previous; });
+  }
+
+  // Moves `row` before `before` (or to the end) and animates the rows that shift (FLIP).
+  function moveRowAnimated(list, row, before) {
+    if (row.nextElementSibling === before || (before === null && row === list.lastElementChild)) return;
+    const others = Array.from(list.querySelectorAll('[data-team]')).filter((el) => el !== row);
+    const first = new Map(others.map((el) => [el, el.getBoundingClientRect().top]));
+    list.insertBefore(row, before);
+    others.forEach((el) => {
+      const delta = first.get(el) - el.getBoundingClientRect().top;
+      if (delta) el.animate([{ transform: `translateY(${delta}px)` }, { transform: 'none' }], { duration: 200, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    });
+  }
+
+  function initTeamDrag() {
+    const list = $('#teamList');
+    list.addEventListener('pointerdown', (event) => {
+      const handle = event.target.closest('[data-drag]');
+      if (!handle || handle.disabled || event.button > 0) return;
+      event.preventDefault();
+      const row = handle.closest('[data-team]');
+      const rect = row.getBoundingClientRect();
+      const ghost = row.cloneNode(true);
+      ghost.classList.add('team-ghost');
+      ghost.classList.remove('is-active');
+      Object.assign(ghost.style, { width: `${rect.width}px`, left: `${rect.left}px`, top: `${rect.top}px` });
+      document.body.appendChild(ghost);
+      row.classList.add('is-placeholder');
+      list.classList.add('is-sorting');
+      const offsetX = event.clientX - rect.left;
+      const offsetY = event.clientY - rect.top;
+      const scroller = list.closest('.admin-content') || document.scrollingElement;
+      let lastY = event.clientY;
+      let scrollTimer = null;
+      const place = () => {
+        const rows = Array.from(list.querySelectorAll('[data-team]:not(.is-placeholder)'));
+        const before = rows.find((el) => { const r = el.getBoundingClientRect(); return lastY < r.top + r.height / 2; }) || null;
+        moveRowAnimated(list, row, before);
+      };
+      const autoScroll = () => {
+        const edge = 70;
+        const box = scroller === document.scrollingElement ? { top: 0, bottom: innerHeight } : scroller.getBoundingClientRect();
+        const step = lastY < box.top + edge ? -14 : lastY > box.bottom - edge ? 14 : 0;
+        if (step) { scroller.scrollBy(0, step); place(); }
+        scrollTimer = requestAnimationFrame(autoScroll);
+      };
+      scrollTimer = requestAnimationFrame(autoScroll);
+      const move = (ev) => {
+        lastY = ev.clientY;
+        ghost.style.left = `${ev.clientX - offsetX}px`;
+        ghost.style.top = `${ev.clientY - offsetY}px`;
+        place();
+      };
+      const end = () => {
+        cancelAnimationFrame(scrollTimer);
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', end);
+        window.removeEventListener('pointercancel', end);
+        const target = row.getBoundingClientRect();
+        const settle = ghost.animate([{ transform: 'none' }, { transform: `translate(${target.left - ghost.getBoundingClientRect().left}px, ${target.top - ghost.getBoundingClientRect().top}px)` }], { duration: 140, easing: 'ease-out' }).finished;
+        // The save must not wait on the animation (animations pause in background tabs).
+        Promise.race([settle, new Promise((resolve) => setTimeout(resolve, 200))])
+          .catch(() => {}).then(() => {
+            if (!ghost.isConnected) return;
+            ghost.remove();
+            row.classList.remove('is-placeholder');
+            list.classList.remove('is-sorting');
+            commitTeamOrder(Array.from(list.querySelectorAll('[data-team]')).map((el) => el.dataset.team));
+          });
+      };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', end);
+      window.addEventListener('pointercancel', end);
+    });
+
+    // Keyboard: focus a handle and use the up/down arrow keys.
+    list.addEventListener('keydown', async (event) => {
+      const handle = event.target.closest('[data-drag]');
+      if (!handle || handle.disabled || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
+      event.preventDefault();
+      const id = handle.closest('[data-team]').dataset.team;
+      const ids = state.team.map((member) => member.id);
+      const from = ids.indexOf(id);
+      const to = from + (event.key === 'ArrowUp' ? -1 : 1);
+      if (to < 0 || to >= ids.length) return;
+      [ids[from], ids[to]] = [ids[to], ids[from]];
+      await commitTeamOrder(ids);
+      $(`#teamList [data-team="${CSS.escape(id)}"] [data-drag]`)?.focus();
+    });
   }
 
   function setTeamPhoto(url) {
@@ -695,6 +834,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
 
   function renderTeam() {
     renderTeamList();
+    renderTeamLayout();
   }
 
   function openTeamEditor(id) {
@@ -1320,21 +1460,19 @@ import acsDefaults from '../../lib/acs-defaults.js';
       renderTeamList();
     });
 
-    $('#teamList').addEventListener('click', async (event) => {
+    $('#teamList').addEventListener('click', (event) => {
       const row = event.target.closest('[data-team]');
-      if (!row) return;
-      const move = event.target.closest('[data-move]');
-      if (!move) {
-        openTeamEditor(row.dataset.team);
-        return;
-      }
-      const from = state.team.findIndex((member) => member.id === row.dataset.team);
-      const to = from + Number(move.dataset.move);
-      if (from < 0 || to < 0 || to >= state.team.length) return;
-      const previous = state.team;
-      const team = [...state.team];
-      [team[from], team[to]] = [team[to], team[from]];
-      await saveTeam(team, 'Order saved.', () => { state.team = previous; });
+      if (!row || event.target.closest('[data-drag]')) return;
+      openTeamEditor(row.dataset.team);
+    });
+
+    initTeamDrag();
+
+    $('#teamLayoutControls').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-layout-key]');
+      if (!button || button.getAttribute('aria-pressed') === 'true') return;
+      const { layoutKey, layoutValue } = button.dataset;
+      saveTeamLayout({ [layoutKey]: layoutKey === 'photo' ? layoutValue : Number(layoutValue) });
     });
 
     $('#teamForm').name.addEventListener('input', () => { if (!$('#teamForm').photo.value) setTeamPhoto(''); });

@@ -63,6 +63,7 @@ module.exports = async function handler(req, res) {
       jobs: jobsFromPositions.length ? jobsFromPositions : data.jobs.filter((job) => job.status !== 'closed'),
       posts: currentPath === '/blog' ? blogPosts(data.posts, req.query?.post) : [],
       team: currentPath === '/about' ? publicTeam(data.team) : [],
+      teamLayout: currentPath === '/about' ? data.teamLayout : undefined,
       pageSeo,
       currentPath,
     }, 'public, s-maxage=60, stale-while-revalidate=86400');

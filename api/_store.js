@@ -144,7 +144,7 @@ async function getPageSeo() {
 // admin and public payloads are each read in ONE round trip: every key/value blob in a single SELECT, plus the
 // record tables and analytics, sent together as one Neon HTTP transaction. Anything that must be written back
 // (first-time migrations) is returned as `writes` and done after the read.
-const KV_KEYS = ['settings', 'pageSeo', 'pageSeoVersion', 'posts', 'jobs', 'positions', 'positionTypes', 'partnerCategories', 'linkedinImportVersion', 'team'];
+const KV_KEYS = ['settings', 'pageSeo', 'pageSeoVersion', 'posts', 'jobs', 'positions', 'positionTypes', 'partnerCategories', 'linkedinImportVersion', 'team', 'teamLayout'];
 
 // One HTTP request when the driver supports transactions, parallel requests otherwise (tests, local fakes).
 async function batch(build) {
@@ -187,6 +187,7 @@ function resolveKv(get) {
     positionTypes: get('positionTypes', DEFAULT_POSITION_TYPES),
     partnerCategories: get('partnerCategories', DEFAULT_PARTNER_CATEGORIES),
     team: normalizeTeam(get('team', TEAM_SEED)),
+    teamLayout: normalizeTeamLayout(get('teamLayout', {})),
   };
 }
 
@@ -203,6 +204,23 @@ const TEAM_SEED = [
 const TEAM_FIELDS = ['name', 'role', 'department', 'bio', 'photo', 'linkedin', 'email'];
 const TEAM_PHOTO_TYPES = ['image/webp', 'image/jpeg', 'image/png'];
 const TEAM_PHOTO_MAX_BYTES = 1024 * 1024;
+
+// How the About page lays the team out: columns per screen size, how many rows show before "View the full team"
+// (0 = everyone), and the photo shape. Anything out of range falls back to the default.
+const TEAM_LAYOUT_DEFAULTS = { columns: 4, tabletColumns: 3, mobileColumns: 2, rows: 0, photo: 'portrait' };
+const TEAM_LAYOUT_LIMITS = { columns: [2, 6], tabletColumns: [1, 4], mobileColumns: [1, 3], rows: [0, 10] };
+const TEAM_PHOTO_SHAPES = ['portrait', 'square', 'tall'];
+
+function normalizeTeamLayout(layout) {
+  const input = layout && typeof layout === 'object' ? layout : {};
+  const clean = { ...TEAM_LAYOUT_DEFAULTS };
+  for (const [key, [min, max]] of Object.entries(TEAM_LAYOUT_LIMITS)) {
+    const value = Number(input[key]);
+    if (Number.isInteger(value) && value >= min && value <= max) clean[key] = value;
+  }
+  if (TEAM_PHOTO_SHAPES.includes(input.photo)) clean.photo = input.photo;
+  return clean;
+}
 
 function normalizeTeam(list) {
   return (Array.isArray(list) ? list : [])
@@ -465,6 +483,7 @@ async function getAll() {
     enquiries: enquiries.map(rowToEnquiry),
     partnerCategories: kv.partnerCategories,
     team: kv.team,
+    teamLayout: kv.teamLayout,
     settings: { ...DEFAULT_SETTINGS, ...kv.settings },
   };
 }
@@ -488,6 +507,7 @@ async function getPublicData() {
     positionTypes: kv.positionTypes,
     partnerCategories: kv.partnerCategories,
     team: kv.team,
+    teamLayout: kv.teamLayout,
     settings: { ...DEFAULT_SETTINGS, ...kv.settings },
   };
 }
@@ -501,6 +521,7 @@ async function saveAll(payload) {
   if (payload.positionTypes) writes.push(setPositionTypes(payload.positionTypes));
   if (payload.partnerCategories) writes.push(setPartnerCategories(payload.partnerCategories));
   if (payload.settings) writes.push(setValue('settings', { ...DEFAULT_SETTINGS, ...payload.settings }));
+  if (payload.teamLayout) writes.push(setValue('teamLayout', normalizeTeamLayout(payload.teamLayout)));
   if (Array.isArray(payload.team)) {
     const team = normalizeTeam(payload.team);
     writes.push(setValue('team', team).then(() => pruneTeamPhotos(team)));
@@ -560,6 +581,7 @@ module.exports = {
   updatePartner,
   deletePartners,
   normalizeTeam,
+  normalizeTeamLayout,
   saveTeamPhoto,
   getTeamPhoto,
 };

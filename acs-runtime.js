@@ -1131,7 +1131,7 @@
     return String(name || '').trim().split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase();
   }
 
-  function teamCard(member) {
+  function teamCard(member, index) {
     const photo = safeHref(member.photo, 'photo');
     const linkedin = safeHref(member.linkedin, 'link');
     const email = safeHref(member.email, 'mail');
@@ -1139,17 +1139,39 @@
       linkedin ? `<a href="${escapeHtml(linkedin)}" target="_blank" rel="noopener">LinkedIn <i class="ri-arrow-right-up-line" aria-hidden="true"></i><span class="acs-sr"> profile of ${escapeHtml(member.name)}</span></a>` : '',
       email ? `<a href="${escapeHtml(email)}">Email <i class="ri-arrow-right-up-line" aria-hidden="true"></i><span class="acs-sr"> ${escapeHtml(member.name)}</span></a>` : '',
     ].join('');
-    return `<li class="co-team-card">
+    return `<li class="co-team-card" style="--i:${index}">
       <div class="co-team-photo">${photo ? `<img src="${escapeHtml(photo)}" alt="${member.name ? `${escapeHtml(member.name)}${member.role ? `, ${escapeHtml(member.role)}` : ''}` : 'ACS Engitech team member'}" loading="lazy" decoding="async" width="480" height="600">` : `<span aria-hidden="true">${escapeHtml(teamInitials(member.name))}</span>`}</div>
-      ${member.department ? `<p class="co-team-dept">${escapeHtml(member.department)}</p>` : ''}
-      ${member.name ? `<h3 class="co-team-name">${escapeHtml(member.name)}</h3>` : '<p class="co-team-name" aria-hidden="true">&nbsp;</p>'}
-      <p class="co-team-role"${member.role ? '' : ' aria-hidden="true"'}>${member.role ? escapeHtml(member.role) : '&nbsp;'}</p>
-      ${member.bio ? `<p class="co-team-bio">${escapeHtml(member.bio)}</p>` : ''}
-      ${links ? `<div class="co-team-links">${links}</div>` : ''}
+      <div class="co-team-info">
+        ${member.department ? `<p class="co-team-dept">${escapeHtml(member.department)}</p>` : ''}
+        ${member.name ? `<h3 class="co-team-name">${escapeHtml(member.name)}</h3>` : '<p class="co-team-name" aria-hidden="true">&nbsp;</p>'}
+        <p class="co-team-role"${member.role ? '' : ' aria-hidden="true"'}>${member.role ? escapeHtml(member.role) : '&nbsp;'}</p>
+        ${member.bio ? `<p class="co-team-bio">${escapeHtml(member.bio)}</p>` : ''}
+        ${links ? `<div class="co-team-links">${links}</div>` : ''}
+      </div>
     </li>`;
   }
 
-  function renderTeam(team) {
+  // Layout comes from /admin (Team > Grid layout): columns per screen size, rows shown first, photo shape.
+  const TEAM_LAYOUT = { columns: 4, tabletColumns: 3, mobileColumns: 2, rows: 0, photo: 'portrait' };
+  const TEAM_RATIO = { portrait: '4 / 5', square: '1 / 1', tall: '3 / 4' };
+  let teamResizeBound = false;
+
+  // With a row limit, only the first rows show (counted at the current column count) until "View the full team".
+  function foldTeam(root) {
+    const list = root.querySelector('.co-team');
+    const button = root.querySelector('.co-team-more');
+    if (!list || !button) return;
+    const rows = Number(list.dataset.rows) || 0;
+    const columns = getComputedStyle(list).gridTemplateColumns.split(' ').filter(Boolean).length || 1;
+    const cards = Array.from(list.children);
+    const limit = rows && !list.classList.contains('is-expanded') ? rows * columns : cards.length;
+    cards.forEach((card, index) => { card.hidden = index >= limit; });
+    const rest = cards.length - limit;
+    button.hidden = rest <= 0;
+    button.querySelector('span').textContent = `View the full team (${rest} more)`;
+  }
+
+  function renderTeam(team, layoutInput) {
     const root = document.getElementById('acs-team-board');
     if (!root) return;
     const members = (team || []).filter((member) => member && (member.name || member.photo));
@@ -1158,9 +1180,22 @@
       root.innerHTML = '';
       return;
     }
-    root.innerHTML = `<p class="co-label">The people behind ACS</p>
-      <ul class="co-team" aria-label="ACS Engitech team">${members.map(teamCard).join('')}</ul>`;
+    const layout = { ...TEAM_LAYOUT, ...(layoutInput || {}) };
+    const style = `--team-cols:${Number(layout.columns) || 4};--team-cols-md:${Number(layout.tabletColumns) || 3};--team-cols-sm:${Number(layout.mobileColumns) || 2};--team-ratio:${TEAM_RATIO[layout.photo] || TEAM_RATIO.portrait}`;
+    root.innerHTML = `<div class="co-team-head"><p class="co-label">The people behind ACS</p><p class="co-team-count">${members.length} people</p></div>
+      <ul class="co-team" style="${style}" data-rows="${Number(layout.rows) || 0}" aria-label="ACS Engitech team">${members.map(teamCard).join('')}</ul>
+      <div class="co-team-actions"><button type="button" class="co-btn co-team-more" hidden><span></span> <i class="ri-arrow-down-line" aria-hidden="true"></i></button></div>`;
     root.hidden = false;
+    root.querySelector('.co-team-more').addEventListener('click', () => {
+      root.querySelector('.co-team').classList.add('is-expanded');
+      foldTeam(root);
+    });
+    foldTeam(root);
+    if (!teamResizeBound) {
+      teamResizeBound = true;
+      let timer;
+      window.addEventListener('resize', () => { clearTimeout(timer); timer = setTimeout(() => foldTeam(root), 120); });
+    }
     if (window.acsRevealAll) window.acsRevealAll(root);
   }
 
@@ -1288,7 +1323,7 @@
       injectAnalytics(data.settings || {});
       renderCareers(data.jobs || []);
       renderBlog(data.posts || []);
-      renderTeam(data.team || []);
+      renderTeam(data.team || [], data.teamLayout);
       track();
     } catch (error) {
       if (document.getElementById('acs-blog-board')) {

@@ -117,3 +117,15 @@ test('photo uploads reject non-images and oversized files', async () => {
   const huge = `data:image/png;base64,${Buffer.alloc(1024 * 1024 + 10).toString('base64')}`;
   assert.equal((await call(admin, { method: 'POST', headers: login('seo@acs.test'), body: { action: 'team.photo', dataUrl: huge } })).statusCode, 400);
 });
+
+test('grid layout: out-of-range values fall back to defaults; content staff save it and /about receives it', async () => {
+  assert.deepEqual(store.normalizeTeamLayout({ columns: 9, tabletColumns: 2, mobileColumns: '1', rows: -1, photo: 'circle' }),
+    { columns: 4, tabletColumns: 2, mobileColumns: 1, rows: 0, photo: 'portrait' });
+  const layout = { columns: 5, tabletColumns: 3, mobileColumns: 1, rows: 2, photo: 'square' };
+  const saved = await call(admin, { method: 'POST', headers: login('seo@acs.test'), body: { teamLayout: layout } });
+  assert.equal(saved.statusCode, 200);
+  assert.deepEqual(saved.body.teamLayout, layout);
+  assert.deepEqual((await call(publicApi, { query: { path: '/about' } })).body.teamLayout, layout);
+  assert.equal((await call(publicApi, { query: { path: '/' } })).body.teamLayout, undefined);
+  assert.equal((await call(admin, { method: 'POST', headers: login('hr@acs.test'), body: { teamLayout: layout } })).statusCode, 403);
+});
