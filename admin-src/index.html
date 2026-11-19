@@ -399,8 +399,16 @@
               <label class="field-label">Name <input name="name" maxlength="120" placeholder="Leave blank until confirmed" class="field-input"></label>
               <div class="two-col">
                 <label class="field-label">Role / designation <input name="role" maxlength="120" placeholder="Director" class="field-input"></label>
-                <label class="field-label">Department <input name="department" maxlength="120" placeholder="Leadership" class="field-input"></label>
+                <label class="field-label">Department <input name="department" maxlength="120" placeholder="Sales, Service, Accounts…" class="field-input"></label>
               </div>
+              <label class="field-label">Group on the About page
+                <select name="group" class="field-input">
+                  <option value="leadership">Directors (top row, larger cards)</option>
+                  <option value="management">Management (heads and managers)</option>
+                  <option value="team">Team (staff)</option>
+                </select>
+                <small class="text-xs font-normal text-gray-500">Each group has its own rows; members only reorder within their group.</small>
+              </label>
               <label class="field-label">Short bio <textarea name="bio" maxlength="1200" rows="4" placeholder="Two or three lines about their experience" class="field-input"></textarea></label>
               <div class="two-col">
                 <label class="field-label">LinkedIn URL <input name="linkedin" type="url" placeholder="https://www.linkedin.com/in/..." class="field-input"></label>

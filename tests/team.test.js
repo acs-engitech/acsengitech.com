@@ -12,6 +12,7 @@ const { createPgliteDriver, useDriver } = require('../lib/ops/db');
 const { execute } = require('../lib/ops/service');
 const { superadminUser } = require('../lib/ops/auth');
 
+const DEFAULT_TITLES = { leadership: 'Directors', management: 'Management', team: 'Our team' };
 const PASSWORD = 'staff-password-123';
 // 1x1 PNG.
 const PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
@@ -83,7 +84,8 @@ test('content staff manage the team end to end; it shows on /about only, in orde
   ];
   const saved = await call(admin, { method: 'POST', headers: login('seo@acs.test'), body: { team } });
   assert.equal(saved.statusCode, 200);
-  assert.deepEqual(saved.body.team.map((m) => m.id), ['m1', 'm2', 'm3']);
+  // Grouped on save: director, then head (management), then engineer (team).
+  assert.deepEqual(saved.body.team.map((m) => m.id), ['m1', 'm3', 'm2']);
   assert.ok(saved.body.access.sections.includes('team'));
 
   const about = await call(publicApi, { query: { path: '/about' } });
@@ -120,12 +122,26 @@ test('photo uploads reject non-images and oversized files', async () => {
 
 test('grid layout: out-of-range values fall back to defaults; content staff save it and /about receives it', async () => {
   assert.deepEqual(store.normalizeTeamLayout({ columns: 9, tabletColumns: 2, mobileColumns: '1', rows: -1, photo: 'circle' }),
-    { columns: 4, tabletColumns: 2, mobileColumns: 1, rows: 0, photo: 'portrait' });
+    { columns: 4, tabletColumns: 2, mobileColumns: 1, rows: 0, photo: 'portrait', groupTitles: DEFAULT_TITLES });
   const layout = { columns: 5, tabletColumns: 3, mobileColumns: 1, rows: 2, photo: 'square' };
   const saved = await call(admin, { method: 'POST', headers: login('seo@acs.test'), body: { teamLayout: layout } });
   assert.equal(saved.statusCode, 200);
-  assert.deepEqual(saved.body.teamLayout, layout);
-  assert.deepEqual((await call(publicApi, { query: { path: '/about' } })).body.teamLayout, layout);
+  assert.deepEqual(saved.body.teamLayout, { ...layout, groupTitles: DEFAULT_TITLES });
+  assert.deepEqual((await call(publicApi, { query: { path: '/about' } })).body.teamLayout, { ...layout, groupTitles: DEFAULT_TITLES });
   assert.equal((await call(publicApi, { query: { path: '/' } })).body.teamLayout, undefined);
   assert.equal((await call(admin, { method: 'POST', headers: login('hr@acs.test'), body: { teamLayout: layout } })).statusCode, 403);
+});
+
+test('groups: directors, management and team stay apart; explicit groups win over the role; titles are editable', () => {
+  const team = store.normalizeTeam([
+    { id: 'staff', name: 'S', role: 'Sr. Accountant' },
+    { id: 'head', name: 'H', role: 'Head Of Service' },
+    { id: 'dir1', name: 'D1', role: 'Director' },
+    { id: 'sales', name: 'M', role: 'Sales Head', group: 'leadership' },
+    { id: 'dir2', name: 'D2', role: 'Managing Director' },
+    { id: 'bogus', name: 'B', role: 'Director', group: 'board' },
+  ]);
+  assert.deepEqual(team.map((m) => `${m.id}:${m.group}`), ['dir1:leadership', 'sales:leadership', 'dir2:leadership', 'bogus:leadership', 'head:management', 'staff:team']);
+  assert.deepEqual(store.normalizeTeamLayout({ groupTitles: { leadership: ' Board of Directors ', team: '' } }).groupTitles,
+    { leadership: 'Board of Directors', management: 'Management', team: 'Our team' });
 });

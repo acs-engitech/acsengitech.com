@@ -219,7 +219,20 @@ function normalizeTeamLayout(layout) {
     if (Number.isInteger(value) && value >= min && value <= max) clean[key] = value;
   }
   if (TEAM_PHOTO_SHAPES.includes(input.photo)) clean.photo = input.photo;
+  const titles = input.groupTitles && typeof input.groupTitles === 'object' ? input.groupTitles : {};
+  clean.groupTitles = Object.fromEntries(TEAM_GROUPS.map((group) => [group, String(titles[group] || '').trim().slice(0, 60) || TEAM_GROUP_TITLES[group]]));
   return clean;
+}
+
+// Members sit in one of three groups, shown in this order, each starting its own rows on the About page, so
+// directors are never mixed in with managers or staff. Members saved before groups existed are placed by role.
+const TEAM_GROUPS = ['leadership', 'management', 'team'];
+const TEAM_GROUP_TITLES = { leadership: 'Directors', management: 'Management', team: 'Our team' };
+
+function inferTeamGroup(role) {
+  if (/\bdirector\b|\bfounder\b|\bchairman\b|\bceo\b/i.test(role || '')) return 'leadership';
+  if (/\bhead\b|\bmanager\b|\blead\b|\bgm\b/i.test(role || '')) return 'management';
+  return 'team';
 }
 
 function normalizeTeam(list) {
@@ -228,8 +241,13 @@ function normalizeTeam(list) {
     .map((member) => {
       const clean = { id: String(member.id || require('node:crypto').randomUUID()), status: member.status === 'hidden' ? 'hidden' : 'live' };
       for (const field of TEAM_FIELDS) clean[field] = String(member[field] || '').trim().slice(0, field === 'bio' ? 1200 : 400);
+      clean.group = TEAM_GROUPS.includes(member.group) ? member.group : inferTeamGroup(clean.role);
       return clean;
-    });
+    })
+    // Grouped (directors, then management, then team); the order inside each group is kept as saved.
+    .map((member, index) => ({ member, index }))
+    .sort((a, b) => TEAM_GROUPS.indexOf(a.member.group) - TEAM_GROUPS.indexOf(b.member.group) || a.index - b.index)
+    .map(({ member }) => member);
 }
 
 const teamPhotoId = (url) => (/^\/api\/team-photo\?id=([\w-]+)$/.exec(url || '') || [])[1];

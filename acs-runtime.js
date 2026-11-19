@@ -1156,9 +1156,14 @@
   const TEAM_RATIO = { portrait: '4 / 5', square: '1 / 1', tall: '3 / 4' };
   let teamResizeBound = false;
 
-  // With a row limit, only the first rows show (counted at the current column count) until "View the full team".
+  // Directors, management and the wider team each get their own heading and rows, in that order.
+  const TEAM_GROUPS = ['leadership', 'management', 'team'];
+  const TEAM_GROUP_TITLES = { leadership: 'Directors', management: 'Management', team: 'Our team' };
+
+  // The row limit applies to the wider team only (directors and management always show). Until "View the full
+  // team", only the first rows show, counted at the current column count.
   function foldTeam(root) {
-    const list = root.querySelector('.co-team');
+    const list = root.querySelector('.co-team[data-rows]');
     const button = root.querySelector('.co-team-more');
     if (!list || !button) return;
     const rows = Number(list.dataset.rows) || 0;
@@ -1181,13 +1186,29 @@
       return;
     }
     const layout = { ...TEAM_LAYOUT, ...(layoutInput || {}) };
-    const style = `--team-cols:${Number(layout.columns) || 4};--team-cols-md:${Number(layout.tabletColumns) || 3};--team-cols-sm:${Number(layout.mobileColumns) || 2};--team-ratio:${TEAM_RATIO[layout.photo] || TEAM_RATIO.portrait}`;
-    root.innerHTML = `<div class="co-team-head"><p class="co-label">The people behind ACS</p><p class="co-team-count">${members.length} people</p></div>
-      <ul class="co-team" style="${style}" data-rows="${Number(layout.rows) || 0}" aria-label="ACS Engitech team">${members.map(teamCard).join('')}</ul>
-      <div class="co-team-actions"><button type="button" class="co-btn co-team-more" hidden><span></span> <i class="ri-arrow-down-line" aria-hidden="true"></i></button></div>`;
+    const titles = { ...TEAM_GROUP_TITLES, ...(layout.groupTitles || {}) };
+    const cols = { lg: Number(layout.columns) || 4, md: Number(layout.tabletColumns) || 3, sm: Number(layout.mobileColumns) || 2 };
+    const ratio = TEAM_RATIO[layout.photo] || TEAM_RATIO.portrait;
+    let index = 0;
+    const groups = TEAM_GROUPS.map((group) => {
+      const people = members.filter((member) => (TEAM_GROUPS.includes(member.group) ? member.group : 'team') === group);
+      if (!people.length) return '';
+      // Directors get larger cards: never more columns than there are directors, so a short row fills out.
+      const lead = group === 'leadership';
+      const style = lead
+        ? `--team-cols:${Math.min(people.length, Math.max(2, cols.lg - 1))};--team-cols-md:${Math.min(people.length, Math.max(2, cols.md))};--team-cols-sm:${Math.min(people.length, cols.sm)};--team-ratio:${ratio}`
+        : `--team-cols:${cols.lg};--team-cols-md:${cols.md};--team-cols-sm:${cols.sm};--team-ratio:${ratio}`;
+      const cards = people.map((member) => teamCard(member, index++)).join('');
+      return `<section class="co-team-group co-team-group--${group}" aria-label="${escapeHtml(titles[group])}">
+        <div class="co-team-head"><p class="co-label">${escapeHtml(titles[group])}</p><p class="co-team-count">${people.length}</p></div>
+        <ul class="co-team" style="${style}"${group === 'team' ? ` data-rows="${Number(layout.rows) || 0}"` : ''}>${cards}</ul>
+        ${group === 'team' ? '<div class="co-team-actions"><button type="button" class="co-btn co-team-more" hidden><span></span> <i class="ri-arrow-down-line" aria-hidden="true"></i></button></div>' : ''}
+      </section>`;
+    }).join('');
+    root.innerHTML = groups;
     root.hidden = false;
-    root.querySelector('.co-team-more').addEventListener('click', () => {
-      root.querySelector('.co-team').classList.add('is-expanded');
+    root.querySelector('.co-team-more')?.addEventListener('click', () => {
+      root.querySelector('.co-team[data-rows]').classList.add('is-expanded');
       foldTeam(root);
     });
     foldTeam(root);

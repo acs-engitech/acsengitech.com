@@ -660,28 +660,54 @@ import acsDefaults from '../../lib/acs-defaults.js';
 
   const GRIP_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>';
 
+  // Directors, management and the wider team: each is its own block on /about, and members only reorder within
+  // their own group. Members saved before groups existed are placed by role (the server does the same).
+  const TEAM_GROUPS = ['leadership', 'management', 'team'];
+  const TEAM_GROUP_TITLES = { leadership: 'Directors', management: 'Management', team: 'Our team' };
+
+  function teamGroupOf(member) {
+    if (TEAM_GROUPS.includes(member.group)) return member.group;
+    if (/\bdirector\b|\bfounder\b|\bchairman\b|\bceo\b/i.test(member.role || '')) return 'leadership';
+    if (/\bhead\b|\bmanager\b|\blead\b|\bgm\b/i.test(member.role || '')) return 'management';
+    return 'team';
+  }
+
+  function teamGroupTitle(group) {
+    return teamLayout().groupTitles?.[group] || TEAM_GROUP_TITLES[group];
+  }
+
+  // The whole list in display order: grouped, keeping the saved order inside each group.
+  function groupedTeam(list = state.team) {
+    return TEAM_GROUPS.flatMap((group) => list.filter((member) => teamGroupOf(member) === group));
+  }
+
   function renderTeamList() {
     const members = filteredTeam();
     const sorting = !state.teamSearch.trim();
-    $('#teamList').innerHTML = members.map((member) => `
-      <div class="dt-row team-row ${member.id === state.selectedTeamMember ? 'is-active' : ''}" data-team="${escapeHtml(member.id)}">
-        <button type="button" class="team-grip" data-drag ${sorting ? '' : 'disabled'} aria-label="Reorder ${escapeHtml(teamLabel(member))}: drag, or use the arrow keys" title="${sorting ? 'Drag to reorder' : 'Clear the search to reorder'}">${GRIP_ICON}</button>
+    const row = (member) => `
+      <div class="dt-row team-row ${member.id === state.selectedTeamMember ? 'is-active' : ''}" data-team="${escapeHtml(member.id)}" data-group="${teamGroupOf(member)}">
+        <button type="button" class="team-grip" data-drag ${sorting ? '' : 'disabled'} aria-label="Reorder ${escapeHtml(teamLabel(member))} within ${escapeHtml(teamGroupTitle(teamGroupOf(member)))}: drag, or use the arrow keys" title="${sorting ? 'Drag to reorder within this group' : 'Clear the search to reorder'}">${GRIP_ICON}</button>
         ${teamAvatar(member, 44)}
         <span class="dt-person"><strong>${escapeHtml(teamLabel(member))}</strong><span>${escapeHtml(member.role || 'No role set')}</span></span>
         <span class="team-dept">${escapeHtml(member.department || '')}</span>
         <span><span class="status-pill status-${member.status === 'hidden' ? 'closed' : 'open'}">${member.status === 'hidden' ? 'hidden' : 'shown'}</span></span>
         <button type="button" class="dt-edit team-edit">Edit</button>
-      </div>`).join('') || `<p class="empty-state">${state.team.length ? 'No members match this search.' : 'No team members yet. Add one and it appears on the About page.'}</p>`;
+      </div>`;
+    $('#teamList').innerHTML = TEAM_GROUPS.map((group) => {
+      const people = members.filter((member) => teamGroupOf(member) === group);
+      if (!people.length) return '';
+      return `<div class="team-group-head" data-group-head="${group}"><span>${escapeHtml(teamGroupTitle(group))}</span><small>${people.length}</small></div>${people.map(row).join('')}`;
+    }).join('') || `<p class="empty-state">${state.team.length ? 'No members match this search.' : 'No team members yet. Add one and it appears on the About page.'}</p>`;
     $('#teamShownCount').textContent = `${members.length} of ${state.team.length}`;
   }
 
   // ---- Grid layout (columns per screen size, rows shown, photo shape) ----
-  const TEAM_LAYOUT_DEFAULTS = { columns: 4, tabletColumns: 3, mobileColumns: 2, rows: 0, photo: 'portrait' };
+  const TEAM_LAYOUT_DEFAULTS = { columns: 4, tabletColumns: 3, mobileColumns: 2, rows: 0, photo: 'portrait', groupTitles: {} };
   const TEAM_LAYOUT_CONTROLS = [
     ['columns', 'Columns on desktop', [2, 3, 4, 5, 6]],
     ['tabletColumns', 'Columns on tablet', [1, 2, 3, 4]],
     ['mobileColumns', 'Columns on phone', [1, 2, 3]],
-    ['rows', 'Rows shown first', [0, 1, 2, 3, 4, 5]],
+    ['rows', 'Team rows shown first', [0, 1, 2, 3, 4, 5]],
     ['photo', 'Photo shape', ['portrait', 'square', 'tall']],
   ];
   const TEAM_LAYOUT_LABELS = { 0: 'All', portrait: 'Portrait', square: 'Square', tall: 'Tall' };
@@ -698,20 +724,31 @@ import acsDefaults from '../../lib/acs-defaults.js';
         <legend>${label}</legend>
         <div class="team-seg-track">${values.map((value) => `<button type="button" data-layout-key="${key}" data-layout-value="${value}" aria-pressed="${layout[key] === value}">${TEAM_LAYOUT_LABELS[value] ?? value}</button>`).join('')}</div>
       </fieldset>`).join('');
-    const live = state.team.filter((member) => member.status !== 'hidden');
-    const limit = layout.rows ? layout.rows * layout.columns : live.length;
+    $('#teamLayoutControls').insertAdjacentHTML('beforeend', `
+      <fieldset class="team-seg team-titles">
+        <legend>Group headings</legend>
+        ${TEAM_GROUPS.map((group) => `<label><span>${{ leadership: 'Directors', management: 'Managers', team: 'Staff' }[group]}</span><input type="text" maxlength="60" data-group-title="${group}" value="${escapeHtml(teamGroupTitle(group))}"></label>`).join('')}
+      </fieldset>`);
+    const live = groupedTeam().filter((member) => member.status !== 'hidden');
     const preview = $('#teamLayoutPreview');
-    preview.style.setProperty('--cols', layout.columns);
     preview.style.setProperty('--ratio', TEAM_PHOTO_RATIO[layout.photo]);
-    preview.innerHTML = `<div class="team-preview-grid">${live.map((member, index) => `<span class="team-preview-tile ${index >= limit ? 'is-folded' : ''}">${member.photo ? `<img src="${escapeHtml(member.photo)}" alt="" loading="lazy">` : ''}<i></i></span>`).join('')}</div>
-      <p class="team-preview-note">Desktop preview: ${Math.min(limit, live.length)} of ${live.length} shown${live.length > limit ? `, the other ${live.length - limit} behind a “View the full team” button` : ''}.</p>`;
+    let folded = 0;
+    preview.innerHTML = TEAM_GROUPS.map((group) => {
+      const people = live.filter((member) => teamGroupOf(member) === group);
+      if (!people.length) return '';
+      // Mirrors the site: directors get at most columns - 1 (larger cards); the row limit applies to the team only.
+      const cols = group === 'leadership' ? Math.min(people.length, Math.max(2, layout.columns - 1)) : layout.columns;
+      const limit = group === 'team' && layout.rows ? layout.rows * cols : people.length;
+      folded += Math.max(0, people.length - limit);
+      return `<div class="team-preview-group team-preview-group--${group}"><p>${escapeHtml(teamGroupTitle(group))}</p><div class="team-preview-grid" style="--cols:${cols}">${people.map((member, index) => `<span class="team-preview-tile ${index >= limit ? 'is-folded' : ''}">${member.photo ? `<img src="${escapeHtml(member.photo)}" alt="" loading="lazy">` : ''}<i></i></span>`).join('')}</div></div>`;
+    }).join('') + `<p class="team-preview-note">Desktop preview: ${live.length - folded} of ${live.length} shown${folded ? `, the other ${folded} behind a “View the full team” button` : ''}.</p>`;
   }
 
   function saveTeamLayout(patch) {
     const previous = state.teamLayout;
     return mutate({
       apply: () => { state.teamLayout = { ...teamLayout(), ...patch }; },
-      rerender: renderTeamLayout,
+      rerender: () => { renderTeamLayout(); renderTeamList(); },
       request: () => api('/api/admin', { method: 'POST', body: JSON.stringify({ teamLayout: state.teamLayout }) }),
       successMessage: 'Layout saved.',
       revert: () => { state.teamLayout = previous; },
@@ -721,7 +758,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
   // ---- Drag to reorder: pointer based, so it works with mouse, pen and touch ----
   function commitTeamOrder(ids, message) {
     const order = ids.join('|');
-    if (order === state.team.map((member) => member.id).join('|')) return Promise.resolve();
+    if (order === groupedTeam().map((member) => member.id).join('|')) return Promise.resolve();
     const previous = state.team;
     const byId = new Map(state.team.map((member) => [member.id, member]));
     return saveTeam(ids.map((id) => byId.get(id)).filter(Boolean), message || 'Order saved.', () => { state.team = previous; });
@@ -760,8 +797,10 @@ import acsDefaults from '../../lib/acs-defaults.js';
       let lastY = event.clientY;
       let scrollTimer = null;
       const place = () => {
-        const rows = Array.from(list.querySelectorAll('[data-team]:not(.is-placeholder)'));
-        const before = rows.find((el) => { const r = el.getBoundingClientRect(); return lastY < r.top + r.height / 2; }) || null;
+        const rows = Array.from(list.querySelectorAll(`[data-group="${row.dataset.group}"]:not(.is-placeholder)`));
+        if (!rows.length) return;
+        // Past the group's last row, stay right after it; the next group's heading is never crossed.
+        const before = rows.find((el) => { const r = el.getBoundingClientRect(); return lastY < r.top + r.height / 2; }) || rows[rows.length - 1].nextElementSibling;
         moveRowAnimated(list, row, before);
       };
       const autoScroll = () => {
@@ -805,11 +844,13 @@ import acsDefaults from '../../lib/acs-defaults.js';
       const handle = event.target.closest('[data-drag]');
       if (!handle || handle.disabled || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
       event.preventDefault();
-      const id = handle.closest('[data-team]').dataset.team;
-      const ids = state.team.map((member) => member.id);
+      const current = handle.closest('[data-team]');
+      const id = current.dataset.team;
+      const ids = groupedTeam().map((member) => member.id);
       const from = ids.indexOf(id);
       const to = from + (event.key === 'ArrowUp' ? -1 : 1);
-      if (to < 0 || to >= ids.length) return;
+      const neighbour = state.team.find((member) => member.id === ids[to]);
+      if (to < 0 || to >= ids.length || !neighbour || teamGroupOf(neighbour) !== current.dataset.group) return;
       [ids[from], ids[to]] = [ids[to], ids[from]];
       await commitTeamOrder(ids);
       $(`#teamList [data-team="${CSS.escape(id)}"] [data-drag]`)?.focus();
@@ -827,6 +868,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
     const member = state.team.find((item) => item.id === state.selectedTeamMember) || { status: 'live' };
     const form = $('#teamForm');
     ['name', 'role', 'department', 'bio', 'linkedin', 'email'].forEach((name) => { form[name].value = member[name] || ''; });
+    form.group.value = member.id ? teamGroupOf(member) : 'team';
     $$('#teamForm input[name="status"]').forEach((radio) => { radio.checked = radio.value === (member.status === 'hidden' ? 'hidden' : 'live'); });
     $('#deleteTeamMemberBtn').hidden = !state.team.some((item) => item.id === state.selectedTeamMember);
     setTeamPhoto(member.photo);
@@ -1468,6 +1510,19 @@ import acsDefaults from '../../lib/acs-defaults.js';
 
     initTeamDrag();
 
+    // Group headings save when the field is left (or Enter is pressed); an empty heading goes back to the default.
+    $('#teamLayoutControls').addEventListener('change', (event) => {
+      const input = event.target.closest('[data-group-title]');
+      if (!input) return;
+      const group = input.dataset.groupTitle;
+      const value = input.value.trim() || TEAM_GROUP_TITLES[group];
+      if (value === teamGroupTitle(group)) { input.value = value; return; }
+      saveTeamLayout({ groupTitles: { ...(teamLayout().groupTitles || {}), [group]: value } });
+    });
+    $('#teamLayoutControls').addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && event.target.matches('[data-group-title]')) { event.preventDefault(); event.target.blur(); }
+    });
+
     $('#teamLayoutControls').addEventListener('click', (event) => {
       const button = event.target.closest('[data-layout-key]');
       if (!button || button.getAttribute('aria-pressed') === 'true') return;
@@ -1508,6 +1563,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
         photo: form.photo.value,
         linkedin: form.linkedin.value.trim(),
         email: form.email.value.trim(),
+        group: TEAM_GROUPS.includes(form.group.value) ? form.group.value : 'team',
         status: form.querySelector('input[name="status"]:checked')?.value === 'hidden' ? 'hidden' : 'live',
       };
       if (!member.name && !member.photo) { setStatus('Add a name or a photo first.', 'error'); return; }

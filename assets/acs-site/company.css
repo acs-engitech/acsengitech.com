@@ -377,3 +377,12 @@ body.co-page{margin:0;background:var(--paper);color:var(--ink);font:400 17px/1.7
 }
 @media (max-width:1100px){.co-team{grid-template-columns:repeat(var(--team-cols-md,3),minmax(0,1fr))}}
 @media (max-width:700px){.co-team{grid-template-columns:repeat(var(--team-cols-sm,2),minmax(0,1fr));gap:36px 16px}.co-team-name{font-size:17px}.co-team-role,.co-team-bio{font-size:14px}.co-team-info{padding-top:14px}.co-team-links{gap:6px 14px}.co-team-actions .co-btn{width:100%;justify-content:center}}
+/* Groups: directors, management and the wider team each start their own rows under their own heading. */
+.co-team-group + .co-team-group{margin-top:var(--s-6)}
+.co-team-group--leadership .co-team{max-width:calc(var(--team-cols) * 380px + (var(--team-cols) - 1) * 24px)}
+.co-team-group--leadership .co-team-photo::after{transform:scaleX(1);background:var(--navy)}
+.co-team-group--leadership .co-team-card:hover .co-team-photo::after{background:var(--blue)}
+.co-team-group--leadership .co-team-name{font-size:23px}
+.co-team-group--leadership .co-team-role{margin-top:6px;font:600 12px/1.5 Manrope,Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--blue)}
+@media (max-width:1100px){.co-team-group--leadership .co-team{grid-template-columns:repeat(var(--team-cols-md),minmax(0,1fr))}}
+@media (max-width:700px){.co-team-group + .co-team-group{margin-top:64px}.co-team-group--leadership .co-team{grid-template-columns:repeat(var(--team-cols-sm),minmax(0,1fr))}.co-team-group--leadership .co-team-name{font-size:18px}.co-team-group--leadership .co-team-role{font-size:11px}}
