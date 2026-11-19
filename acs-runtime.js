@@ -1143,7 +1143,7 @@
       <div class="co-team-photo">${photo ? `<img src="${escapeHtml(photo)}" alt="${member.name ? `${escapeHtml(member.name)}${member.role ? `, ${escapeHtml(member.role)}` : ''}` : 'ACS Engitech team member'}" loading="lazy" decoding="async" width="480" height="600">` : `<span aria-hidden="true">${escapeHtml(teamInitials(member.name))}</span>`}</div>
       <div class="co-team-info">
         ${member.department ? `<p class="co-team-dept">${escapeHtml(member.department)}</p>` : ''}
-        ${member.name ? `<h3 class="co-team-name">${escapeHtml(member.name)}</h3>` : '<p class="co-team-name" aria-hidden="true">&nbsp;</p>'}
+        ${member.name ? `<h4 class="co-team-name">${escapeHtml(member.name)}</h4>` : '<p class="co-team-name" aria-hidden="true">&nbsp;</p>'}
         <p class="co-team-role"${member.role ? '' : ' aria-hidden="true"'}>${member.role ? escapeHtml(member.role) : '&nbsp;'}</p>
         ${member.bio ? `<p class="co-team-bio">${escapeHtml(member.bio)}</p>` : ''}
         ${links ? `<div class="co-team-links">${links}</div>` : ''}
@@ -1160,20 +1160,31 @@
   const TEAM_GROUPS = ['leadership', 'management', 'team'];
   const TEAM_GROUP_TITLES = { leadership: 'Directors', management: 'Management', team: 'Our team' };
 
-  // The row limit applies to the wider team only (directors and management always show). Until "View the full
-  // team", only the first rows show, counted at the current column count.
+  // The row limit applies to the wider team only (directors and management always show). Folded cards are hidden
+  // with inline styles, and the button is only ever shown while some are, so a stale stylesheet cannot leave a
+  // "View the full team" button that has nothing to reveal.
   function foldTeam(root) {
     const list = root.querySelector('.co-team[data-rows]');
-    const button = root.querySelector('.co-team-more');
-    if (!list || !button) return;
+    const actions = root.querySelector('.co-team-actions');
+    if (!list || !actions) return;
     const rows = Number(list.dataset.rows) || 0;
-    const columns = getComputedStyle(list).gridTemplateColumns.split(' ').filter(Boolean).length || 1;
+    const columns = parseInt(getComputedStyle(list).getPropertyValue('--n'), 10) || 1;
     const cards = Array.from(list.children);
     const limit = rows && !list.classList.contains('is-expanded') ? rows * columns : cards.length;
-    cards.forEach((card, index) => { card.hidden = index >= limit; });
-    const rest = cards.length - limit;
-    button.hidden = rest <= 0;
-    button.querySelector('span').textContent = `View the full team (${rest} more)`;
+    cards.forEach((card, index) => {
+      const folded = index >= limit;
+      card.hidden = folded;
+      card.style.display = folded ? 'none' : '';
+    });
+    const rest = Math.max(0, cards.length - limit);
+    actions.style.display = rest > 0 ? '' : 'none';
+    actions.querySelector('span').textContent = `Show all ${cards.length} team members`;
+  }
+
+  // Splits n cards over rows of at most `max`, as evenly as possible (4 over max 3 -> 2 + 2, not 3 + 1).
+  function balancedColumns(n, max) {
+    const rows = Math.ceil(n / Math.max(1, max));
+    return Math.ceil(n / rows);
   }
 
   function renderTeam(team, layoutInput) {
@@ -1189,23 +1200,26 @@
     const titles = { ...TEAM_GROUP_TITLES, ...(layout.groupTitles || {}) };
     const cols = { lg: Number(layout.columns) || 4, md: Number(layout.tabletColumns) || 3, sm: Number(layout.mobileColumns) || 2 };
     const ratio = TEAM_RATIO[layout.photo] || TEAM_RATIO.portrait;
+    const limitRows = Number(layout.rows) || 0;
     let index = 0;
     const groups = TEAM_GROUPS.map((group) => {
       const people = members.filter((member) => (TEAM_GROUPS.includes(member.group) ? member.group : 'team') === group);
       if (!people.length) return '';
-      // Directors get larger cards: never more columns than there are directors, so a short row fills out.
+      // Directors get larger cards (a short row spreads to fill it); the other groups keep the chosen columns.
       const lead = group === 'leadership';
-      const style = lead
-        ? `--team-cols:${Math.min(people.length, Math.max(2, cols.lg - 1))};--team-cols-md:${Math.min(people.length, Math.max(2, cols.md))};--team-cols-sm:${Math.min(people.length, cols.sm)};--team-ratio:${ratio}`
-        : `--team-cols:${cols.lg};--team-cols-md:${cols.md};--team-cols-sm:${cols.sm};--team-ratio:${ratio}`;
+      const lg = lead ? balancedColumns(people.length, cols.lg) : cols.lg;
+      const md = lead ? balancedColumns(people.length, cols.md) : cols.md;
+      const sm = lead ? balancedColumns(people.length, cols.sm) : cols.sm;
+      const style = `--team-cols:${lg};--team-cols-md:${md};--team-cols-sm:${sm};--team-ratio:${ratio}`;
       const cards = people.map((member) => teamCard(member, index++)).join('');
-      return `<section class="co-team-group co-team-group--${group}" aria-label="${escapeHtml(titles[group])}">
-        <div class="co-team-head"><p class="co-label">${escapeHtml(titles[group])}</p><p class="co-team-count">${people.length}</p></div>
-        <ul class="co-team" style="${style}"${group === 'team' ? ` data-rows="${Number(layout.rows) || 0}"` : ''}>${cards}</ul>
-        ${group === 'team' ? '<div class="co-team-actions"><button type="button" class="co-btn co-team-more" hidden><span></span> <i class="ri-arrow-down-line" aria-hidden="true"></i></button></div>' : ''}
+      const folds = group === 'team' && limitRows > 0;
+      return `<section class="co-team-group co-team-group--${group}" aria-labelledby="co-team-${group}">
+        <div class="co-team-head"><h3 class="co-team-group-title" id="co-team-${group}">${escapeHtml(titles[group])}</h3><span class="co-team-count" aria-label="${people.length} people">${String(people.length).padStart(2, '0')}</span></div>
+        <ul class="co-team" style="${style}"${folds ? ` data-rows="${limitRows}"` : ''}>${cards}</ul>
+        ${folds ? '<div class="co-team-actions" style="display:none"><button type="button" class="co-btn co-team-more"><span></span> <i class="ri-arrow-down-line" aria-hidden="true"></i></button></div>' : ''}
       </section>`;
     }).join('');
-    root.innerHTML = groups;
+    root.innerHTML = `<p class="co-label">The people behind ACS</p>${groups}`;
     root.hidden = false;
     root.querySelector('.co-team-more')?.addEventListener('click', () => {
       root.querySelector('.co-team[data-rows]').classList.add('is-expanded');

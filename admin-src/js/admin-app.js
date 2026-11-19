@@ -707,7 +707,7 @@ import acsDefaults from '../../lib/acs-defaults.js';
     ['columns', 'Columns on desktop', [2, 3, 4, 5, 6]],
     ['tabletColumns', 'Columns on tablet', [1, 2, 3, 4]],
     ['mobileColumns', 'Columns on phone', [1, 2, 3]],
-    ['rows', 'Team rows shown first', [0, 1, 2, 3, 4, 5]],
+    ['rows', 'Limit team rows (a button shows the rest)', [0, 1, 2, 3, 4, 5]],
     ['photo', 'Photo shape', ['portrait', 'square', 'tall']],
   ];
   const TEAM_LAYOUT_LABELS = { 0: 'All', portrait: 'Portrait', square: 'Square', tall: 'Tall' };
@@ -736,8 +736,8 @@ import acsDefaults from '../../lib/acs-defaults.js';
     preview.innerHTML = TEAM_GROUPS.map((group) => {
       const people = live.filter((member) => teamGroupOf(member) === group);
       if (!people.length) return '';
-      // Mirrors the site: directors get at most columns - 1 (larger cards); the row limit applies to the team only.
-      const cols = group === 'leadership' ? Math.min(people.length, Math.max(2, layout.columns - 1)) : layout.columns;
+      // Mirrors the site: directors are spread evenly over their rows (larger cards); the row limit applies to the team only.
+      const cols = group === 'leadership' ? Math.ceil(people.length / Math.ceil(people.length / layout.columns)) : layout.columns;
       const limit = group === 'team' && layout.rows ? layout.rows * cols : people.length;
       folded += Math.max(0, people.length - limit);
       return `<div class="team-preview-group team-preview-group--${group}"><p>${escapeHtml(teamGroupTitle(group))}</p><div class="team-preview-grid" style="--cols:${cols}">${people.map((member, index) => `<span class="team-preview-tile ${index >= limit ? 'is-folded' : ''}">${member.photo ? `<img src="${escapeHtml(member.photo)}" alt="" loading="lazy">` : ''}<i></i></span>`).join('')}</div></div>`;

@@ -342,47 +342,73 @@ body.co-page{margin:0;background:var(--paper);color:var(--ink);font:400 17px/1.7
 .co-contact .co-channels{margin-top:var(--s-4)}
 .co-blog-grid--more{margin-top:32px}
 
-/* About: team grid (members and layout managed in /admin > Team, rendered by acs-runtime.js).
-   Columns per screen size and the photo shape arrive as --team-cols / --team-cols-md / --team-cols-sm / --team-ratio. */
+/* About: team (members, groups and layout managed in /admin > Team, rendered by acs-runtime.js).
+   Cards sit in flex rows so an incomplete last row is centred instead of leaving a hole; the column count per
+   screen size arrives as --team-cols / --team-cols-md / --team-cols-sm and the photo shape as --team-ratio. */
 .co-team-board[hidden]{display:none}
-.co-team-head{display:flex;align-items:center;justify-content:space-between;gap:var(--s-2);padding-bottom:var(--s-2);border-bottom:1px solid var(--rule)}
-.co-team-count{font:600 12px/1.5 Manrope,Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.co-team{list-style:none;padding:0;margin:var(--s-4) 0 0;display:grid;grid-template-columns:repeat(var(--team-cols,4),minmax(0,1fr));gap:48px 24px}
-.co-team-card{display:flex;flex-direction:column;min-width:0}
-.co-team-card[hidden]{display:none}
-.co-team-photo{position:relative;aspect-ratio:var(--team-ratio,4 / 5);overflow:hidden;background:linear-gradient(180deg,#edf2f3 0%,#dfe7ea 100%);display:grid;place-items:center;isolation:isolate}
-/* Multiply folds white studio backgrounds into the frame tone, so studio and office portraits sit together. */
-.co-team-photo img{width:100%;height:100%;object-fit:cover;object-position:center 12%;mix-blend-mode:multiply;transition:transform 1.1s var(--ease)}
+.co-team-board .co-label{margin-bottom:var(--s-4)}
+.co-team-group + .co-team-group{margin-top:var(--s-6)}
+.co-team-head{display:flex;align-items:baseline;justify-content:space-between;gap:var(--s-2);padding-bottom:18px;border-bottom:1px solid var(--rule)}
+.co-team-group-title{font-size:clamp(24px,2.4vw,32px);line-height:1.15;font-weight:600;letter-spacing:-.015em}
+.co-team-count{font:600 13px/1 Manrope,Arial,sans-serif;letter-spacing:.06em;color:var(--muted);font-variant-numeric:tabular-nums}
+.co-team{--n:var(--team-cols,4);--gap:28px;list-style:none;padding:0;margin:var(--s-4) 0 0;display:flex;flex-wrap:wrap;justify-content:center;gap:56px var(--gap)}
+.co-team-card{flex:0 0 calc((100% - (var(--n) - 1) * var(--gap)) / var(--n));min-width:0;display:flex;flex-direction:column}
+.co-team-card[hidden]{display:none!important}
+
+/* Photo frame: a faint blueprint grid on a cool tint. White studio backgrounds multiply into it, so the studio
+   portraits and the office portraits sit on one consistent surface. */
+.co-team-photo{position:relative;aspect-ratio:var(--team-ratio,4 / 5);overflow:hidden;isolation:isolate;display:grid;place-items:center;
+  background:
+    linear-gradient(rgba(54,89,105,.09) 1px,transparent 1px) 0 0/26px 26px,
+    linear-gradient(90deg,rgba(54,89,105,.09) 1px,transparent 1px) 0 0/26px 26px,
+    linear-gradient(180deg,#f1f5f6 0%,#dce6ea 100%)}
+.co-team-photo img{width:100%;height:100%;object-fit:cover;object-position:center 10%;mix-blend-mode:multiply;transition:transform 1.1s var(--ease)}
 .co-team-photo::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--blue);transform:scaleX(0);transform-origin:left;transition:transform .6s var(--ease)}
-.co-team-card:hover .co-team-photo img{transform:scale(1.045)}
+.co-team-card:hover .co-team-photo img{transform:scale(1.04)}
 .co-team-card:hover .co-team-photo::after{transform:scaleX(1)}
 .co-team-photo span{font:600 clamp(32px,4vw,52px)/1 Manrope,Arial,sans-serif;color:var(--navy);letter-spacing:.02em;opacity:.55}
-.co-team-info{padding-top:18px;display:flex;flex-direction:column}
+
+.co-team-info{padding-top:18px;display:flex;flex-direction:column;align-items:flex-start}
 .co-team-dept{font:600 11px/1.5 Manrope,Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#365969;margin-bottom:6px}
 .co-team-name{font-size:19px;line-height:1.3;font-weight:600;letter-spacing:-.01em;transition:color .3s var(--ease)}
 .co-team-card:hover .co-team-name{color:var(--blue)}
-.co-team-role{color:var(--muted);font-size:14px;line-height:1.5;margin-top:4px}
+.co-team-role{color:var(--muted);font-size:14px;line-height:1.5;margin-top:3px}
 .co-team-bio{font-size:15px;line-height:1.65;margin-top:var(--s-2);padding-top:var(--s-2);border-top:1px solid var(--rule)}
 .co-team-links{display:flex;flex-wrap:wrap;gap:6px 20px;margin-top:var(--s-2)}
 .co-team-links a{font-size:14px;font-weight:600;text-decoration:none;color:var(--navy);display:inline-flex;align-items:center;gap:4px;border-bottom:1px solid transparent}
 .co-team-links a:hover{border-bottom-color:currentColor}
+
+/* Directors lead: larger cards (capped so a short row stays elegant), real photography kept as shot, a navy
+   base line, and the designation in the accent colour. */
+.co-team-group--leadership .co-team-card{max-width:400px}
+.co-team-group--leadership .co-team-photo img{mix-blend-mode:normal}
+.co-team-group--leadership .co-team-photo::after{transform:scaleX(1);background:var(--navy)}
+.co-team-group--leadership .co-team-card:hover .co-team-photo::after{background:var(--blue)}
+.co-team-group--leadership .co-team-info{padding-top:22px}
+.co-team-group--leadership .co-team-name{font-size:24px}
+.co-team-group--leadership .co-team-role{margin-top:8px;font:600 12px/1.5 Manrope,Arial,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--blue)}
+
+/* Management and team: compact cards, name and designation below. */
+.co-team-group--management .co-team-name,.co-team-group--team .co-team-name{font-size:18px}
+
+/* "View the full team" exists only when the admin limits the team rows AND some cards are folded away. */
 .co-team-actions{display:flex;justify-content:center;margin-top:var(--s-5)}
-.co-team-actions:has(.co-team-more[hidden]){display:none}
-.co-team-more[hidden]{display:none}
 .acs-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
 /* Cards rise in one after another when the section first appears. */
 @media (prefers-reduced-motion:no-preference){
   .co-js .co-team-card{animation:co-team-in .8s var(--ease) both;animation-delay:calc(min(var(--i,0),12) * 60ms)}
   @keyframes co-team-in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 }
-@media (max-width:1100px){.co-team{grid-template-columns:repeat(var(--team-cols-md,3),minmax(0,1fr))}}
-@media (max-width:700px){.co-team{grid-template-columns:repeat(var(--team-cols-sm,2),minmax(0,1fr));gap:36px 16px}.co-team-name{font-size:17px}.co-team-role,.co-team-bio{font-size:14px}.co-team-info{padding-top:14px}.co-team-links{gap:6px 14px}.co-team-actions .co-btn{width:100%;justify-content:center}}
-/* Groups: directors, management and the wider team each start their own rows under their own heading. */
-.co-team-group + .co-team-group{margin-top:var(--s-6)}
-.co-team-group--leadership .co-team{max-width:calc(var(--team-cols) * 380px + (var(--team-cols) - 1) * 24px)}
-.co-team-group--leadership .co-team-photo::after{transform:scaleX(1);background:var(--navy)}
-.co-team-group--leadership .co-team-card:hover .co-team-photo::after{background:var(--blue)}
-.co-team-group--leadership .co-team-name{font-size:23px}
-.co-team-group--leadership .co-team-role{margin-top:6px;font:600 12px/1.5 Manrope,Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--blue)}
-@media (max-width:1100px){.co-team-group--leadership .co-team{grid-template-columns:repeat(var(--team-cols-md),minmax(0,1fr))}}
-@media (max-width:700px){.co-team-group + .co-team-group{margin-top:64px}.co-team-group--leadership .co-team{grid-template-columns:repeat(var(--team-cols-sm),minmax(0,1fr))}.co-team-group--leadership .co-team-name{font-size:18px}.co-team-group--leadership .co-team-role{font-size:11px}}
+@media (max-width:1100px){.co-team{--n:var(--team-cols-md,3)}}
+@media (max-width:700px){
+  .co-team{--n:var(--team-cols-sm,2);--gap:16px;gap:40px var(--gap)}
+  .co-team-group + .co-team-group{margin-top:64px}
+  .co-team-info{padding-top:14px}
+  .co-team-name,.co-team-group--management .co-team-name,.co-team-group--team .co-team-name{font-size:16px}
+  .co-team-group--leadership .co-team-name{font-size:19px}
+  .co-team-role,.co-team-bio{font-size:13px}
+  .co-team-group--leadership .co-team-role{font-size:11px}
+  .co-team-links{gap:6px 14px}
+  .co-team-actions .co-btn{width:100%;justify-content:center}
+}
