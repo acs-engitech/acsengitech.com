@@ -355,14 +355,10 @@ body.co-page{margin:0;background:var(--paper);color:var(--ink);font:400 17px/1.7
 .co-team-card{flex:0 0 calc((100% - (var(--n) - 1) * var(--gap)) / var(--n));min-width:0;display:flex;flex-direction:column}
 .co-team-card[hidden]{display:none!important}
 
-/* Photo frame: a faint blueprint grid on a cool tint. White studio backgrounds multiply into it, so the studio
-   portraits and the office portraits sit on one consistent surface. */
-.co-team-photo{position:relative;aspect-ratio:var(--team-ratio,4 / 5);overflow:hidden;isolation:isolate;display:grid;place-items:center;
-  background:
-    linear-gradient(rgba(54,89,105,.09) 1px,transparent 1px) 0 0/26px 26px,
-    linear-gradient(90deg,rgba(54,89,105,.09) 1px,transparent 1px) 0 0/26px 26px,
-    linear-gradient(180deg,#f1f5f6 0%,#dce6ea 100%)}
-.co-team-photo img{width:100%;height:100%;object-fit:cover;object-position:center 10%;mix-blend-mode:multiply;transition:transform 1.1s var(--ease)}
+/* Photo frame: the studio portraits have a uniform #fdfdfd background, so the frame is the same colour and the photo
+   fills it seamlessly. Nothing is drawn behind or blended into the photos. */
+.co-team-photo{position:relative;aspect-ratio:var(--team-ratio,4 / 5);overflow:hidden;isolation:isolate;display:grid;place-items:center;background:#fdfdfd;box-shadow:0 0 0 1px var(--rule-soft)}
+.co-team-photo img{width:100%;height:100%;object-fit:cover;object-position:center 10%;transition:transform 1.1s var(--ease)}
 .co-team-photo::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--blue);transform:scaleX(0);transform-origin:left;transition:transform .6s var(--ease)}
 .co-team-card:hover .co-team-photo img{transform:scale(1.04)}
 .co-team-card:hover .co-team-photo::after{transform:scaleX(1)}
@@ -381,7 +377,6 @@ body.co-page{margin:0;background:var(--paper);color:var(--ink);font:400 17px/1.7
 /* Directors lead: larger cards (capped so a short row stays elegant), real photography kept as shot, a navy
    base line, and the designation in the accent colour. */
 .co-team-group--leadership .co-team-card{max-width:400px}
-.co-team-group--leadership .co-team-photo img{mix-blend-mode:normal}
 .co-team-group--leadership .co-team-photo::after{transform:scaleX(1);background:var(--navy)}
 .co-team-group--leadership .co-team-card:hover .co-team-photo::after{background:var(--blue)}
 .co-team-group--leadership .co-team-info{padding-top:22px}
