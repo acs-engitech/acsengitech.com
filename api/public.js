@@ -66,7 +66,7 @@ module.exports = async function handler(req, res) {
       teamLayout: currentPath === '/about' ? data.teamLayout : undefined,
       pageSeo,
       currentPath,
-    }, 'public, max-age=60, s-maxage=300, stale-while-revalidate=86400');
+    }, 'public, s-maxage=60, stale-while-revalidate=86400');
   } catch (error) {
     const pageSeo = pageSeoFor(normalizePagePath(req.query?.path || '/'), PAGE_DEFAULTS.map((page) => [page.path, mergeSeo(page.defaults, {})]));
     return send(res, 200, {

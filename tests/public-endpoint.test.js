@@ -45,7 +45,7 @@ test('public endpoint uses the public store path without loading admin-only data
     assert.equal(res.statusCode, 200);
     assert.equal(res.body.fallback, undefined);
     assert.equal(res.body.positions.length, 1);
-    assert.match(res.headers['Cache-Control'], /s-maxage=300/);
+    assert.match(res.headers['Cache-Control'], /s-maxage=60/);
   } finally {
     store.getAll = originalGetAll;
     if (originalGetPublicData) store.getPublicData = originalGetPublicData;
