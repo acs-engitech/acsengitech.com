@@ -322,12 +322,30 @@
     return window.matchMedia('(max-width: 767px)').matches ? 'mobile' : window.matchMedia('(max-width: 1100px)').matches ? 'tablet' : 'desktop';
   }
 
+  // One page view per visitor per page every 12 hours is enough for the admin's traffic figures. Repeat visits
+  // inside that window are not sent, which keeps the database from being woken for every click.
+  const TRACK_WINDOW_MS = 12 * 60 * 60 * 1000;
+
+  function alreadyTracked(path) {
+    try {
+      const key = `acsTracked:${path}`;
+      const last = Number(localStorage.getItem(key) || 0);
+      if (Date.now() - last < TRACK_WINDOW_MS) return true;
+      localStorage.setItem(key, String(Date.now()));
+      return false;
+    } catch (error) {
+      return false;
+    }
+  }
+
   function track() {
+    const path = normalizePath(location.pathname);
+    if (alreadyTracked(path)) return;
     fetch(resolveApiUrl('/api/public'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        path: normalizePath(location.pathname),
+        path,
         visitorId: visitorId(),
         referrer: document.referrer,
         device: deviceType(),
