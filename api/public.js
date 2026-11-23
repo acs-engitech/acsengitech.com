@@ -1,4 +1,4 @@
-const store = require('./_store');
+const store = require('../lib/store');
 const { isPostVisible, mergeSeo, normalizePagePath } = require('../lib/admin-core');
 const { PAGE_DEFAULTS, DEFAULT_SETTINGS, DEFAULT_JOBS, DEFAULT_POSITION_TYPES, DEFAULT_PARTNER_CATEGORIES } = require('../lib/acs-defaults');
 

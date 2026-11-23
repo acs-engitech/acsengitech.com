@@ -1,4 +1,4 @@
-const { getPublicData } = require('./_store');
+const { getPublicData } = require('../lib/store');
 const { buildSitemap } = require('../lib/admin-core');
 const { PAGE_DEFAULTS } = require('../lib/acs-defaults');
 

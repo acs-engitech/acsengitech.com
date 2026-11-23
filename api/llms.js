@@ -1,4 +1,4 @@
-const { getPublicData } = require('./_store');
+const { getPublicData } = require('../lib/store');
 const { buildLlmsTxt } = require('../lib/admin-core');
 const { DEFAULT_SETTINGS, PAGE_DEFAULTS } = require('../lib/acs-defaults');
 

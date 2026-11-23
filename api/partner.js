@@ -1,4 +1,4 @@
-const store = require('./_store');
+const store = require('../lib/store');
 const { parseMultipart, storeFile } = require('../lib/uploads');
 const { checkRateLimit, clientIp } = require('../lib/rate-limit');
 const { isValidPhone } = require('../lib/phone');

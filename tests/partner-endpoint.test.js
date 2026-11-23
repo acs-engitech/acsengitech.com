@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
-const store = require('../api/_store');
+const store = require('../lib/store');
 const { buildMultipartRequest, fakeResponse } = require('./helpers/multipart');
 
 function mockStore() {

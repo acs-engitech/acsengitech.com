@@ -15,7 +15,7 @@ function send(req, res, status, body, extraHeaders = {}) {
 
 async function findPost(slug) {
   try {
-    const store = require('./_store');
+    const store = require('../lib/store');
     const data = await store.getPublicData();
     return (data.posts || []).find((post) => post.slug === slug && isPostVisible(post)) || null;
   } catch {

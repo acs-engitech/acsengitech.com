@@ -1,4 +1,4 @@
-const store = require('./_store');
+const store = require('../lib/store');
 const { summarizeAnalyticsGroups } = require('../lib/admin-core');
 const { hashPassword, safeEqual, configuredEmail, configuredHash, signSession, verifySession } = require('../lib/admin-credentials');
 const { can } = require('../lib/ops/rbac');

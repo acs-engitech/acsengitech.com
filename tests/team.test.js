@@ -7,7 +7,7 @@ const { Readable } = require('node:stream');
 for (const name of ['NEON_DATABASE_URL', 'DATABASE_URL', 'POSTGRES_URL', 'VERCEL']) delete process.env[name];
 process.env.ACS_OPS_PGLITE_DIR = 'memory';
 
-const store = require('../api/_store');
+const store = require('../lib/store');
 const { createPgliteDriver, useDriver } = require('../lib/ops/db');
 const { execute } = require('../lib/ops/service');
 const { superadminUser } = require('../lib/ops/auth');

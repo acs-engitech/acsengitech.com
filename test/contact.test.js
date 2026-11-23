@@ -4,7 +4,7 @@ const fs=require('node:fs');
 const vm=require('node:vm');
 const {Readable}=require('node:stream');
 const {submitContact}=require('../lib/contact');
-const store=require('../api/_store');
+const store=require('../lib/store');
 const handler=require('../api/contact');
 const fields={'mf-first-name':'Test','mf-last-name':'Visitor','mf-email':'test@example.test','mf-subject':'Test request','mf-comment':'Test message'};
 
@@ -32,7 +32,7 @@ function isolatedStore(query){
     module:{exports:{}},process:{env:{NEON_DATABASE_URL:'test'}},
     require:name=>name==='@neondatabase/serverless'?{neon:()=>query}:require('../lib/acs-defaults'),
   };
-  vm.runInNewContext(fs.readFileSync(require.resolve('../api/_store'),'utf8'),context);
+  vm.runInNewContext(fs.readFileSync(require.resolve('../lib/store'),'utf8'),context);
   return context.module.exports;
 }
 

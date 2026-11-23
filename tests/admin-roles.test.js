@@ -2,7 +2,7 @@
 const { test, before } = require('node:test');
 const assert = require('node:assert/strict');
 const { Readable } = require('node:stream');
-const store = require('../api/_store');
+const store = require('../lib/store');
 const { createPgliteDriver, useDriver } = require('../lib/ops/db');
 const { execute } = require('../lib/ops/service');
 const { superadminUser } = require('../lib/ops/auth');

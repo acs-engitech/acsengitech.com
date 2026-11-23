@@ -1,4 +1,4 @@
-const { getPublicData } = require('./_store');
+const { getPublicData } = require('../lib/store');
 const { DEFAULT_SETTINGS } = require('../lib/acs-defaults');
 
 module.exports = async function handler(req, res) {

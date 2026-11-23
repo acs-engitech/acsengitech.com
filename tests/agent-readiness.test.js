@@ -216,7 +216,7 @@ test('page SEO overrides saved before version 2 are not applied; new saves are',
     return [];
   };
   const context = { module: { exports: {} }, process: { env: { NEON_DATABASE_URL: 'test' } }, require: (name) => (name === '@neondatabase/serverless' ? { neon: () => query } : name.endsWith('linkedin-blog-import.json') ? require('../lib/linkedin-blog-import.json') : defaults) };
-  vm.runInNewContext(read('api/_store.js'), context);
+  vm.runInNewContext(read('lib/store.js'), context);
   const store = context.module.exports;
   // Objects built inside the vm context have their own prototypes, so compare through JSON.
   const about = (data) => JSON.parse(JSON.stringify(data.pages.find((page) => page.path === '/about').seo));

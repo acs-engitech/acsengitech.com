@@ -2,7 +2,7 @@ const { test } = require('node:test');
 const assert = require('node:assert');
 const { isValidPhone } = require('../lib/phone');
 const { buildMultipartRequest, fakeResponse } = require('./helpers/multipart');
-const store = require('../api/_store');
+const store = require('../lib/store');
 
 test('isValidPhone accepts empty string (phone stays optional)', () => {
   assert.equal(isValidPhone(''), true);

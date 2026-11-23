@@ -4,7 +4,7 @@
 // blog.html with its SEO block and board replaced; acs-runtime.js leaves server-rendered content in place.
 const fs = require('node:fs');
 const path = require('node:path');
-const store = require('./_store');
+const store = require('../lib/store');
 const { SITE_URL, isPostVisible, postUrl } = require('../lib/admin-core');
 
 const ROOT = path.join(__dirname, '..');

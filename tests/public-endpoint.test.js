@@ -1,7 +1,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { Readable } = require('node:stream');
-const store = require('../api/_store');
+const store = require('../lib/store');
 
 function fakeRequest(path = '/') {
   const req = Readable.from([Buffer.from('')]);

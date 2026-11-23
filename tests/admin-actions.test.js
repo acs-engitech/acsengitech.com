@@ -2,7 +2,7 @@ const { test } = require('node:test');
 const assert = require('node:assert');
 const { Readable } = require('node:stream');
 const crypto = require('node:crypto');
-const store = require('../api/_store');
+const store = require('../lib/store');
 
 const EMAIL = 'acs.mmo@gmail.com';
 const PASSWORD_HASH = crypto.createHash('sha256').update('test-password').digest('hex');

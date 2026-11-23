@@ -1,4 +1,4 @@
-const store = require('./_store');
+const store = require('../lib/store');
 
 // Serves team photos uploaded in the admin. Every upload gets a new id, so a response never changes and is cached hard.
 module.exports = async function handler(req, res) {

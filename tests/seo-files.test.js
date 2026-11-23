@@ -41,7 +41,7 @@ test('llms.txt uses the edited body and the chosen generated sections', () => {
 
 test('default admin login is acsengitech@gmail.com', async () => {
   for (const key of ['ACS_ADMIN_EMAIL', 'ACS_ADMIN_PASSWORD_HASH', 'ACS_ADMIN_PASSWORD', 'ACS_ADMIN_SESSION_SECRET']) delete process.env[key];
-  const store = require('../api/_store');
+  const store = require('../lib/store');
   store.getAll = async () => ({ pages: [], posts: [], positions: [], applications: [], partners: [], settings: {} });
   store.getAnalytics = async () => [];
   const handler = require('../api/admin');

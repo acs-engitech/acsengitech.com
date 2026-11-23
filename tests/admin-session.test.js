@@ -2,7 +2,7 @@ const { test } = require('node:test');
 const assert = require('node:assert');
 const { Readable } = require('node:stream');
 const crypto = require('node:crypto');
-const store = require('../api/_store');
+const store = require('../lib/store');
 
 const EMAIL = 'acs.mmo@gmail.com';
 const RAW_PASSWORD = 'session-test-password';

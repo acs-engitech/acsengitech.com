@@ -46,7 +46,7 @@ async function main() {
     delete process.env.DATABASE_URL;
     delete process.env.POSTGRES_URL;
     process.env.NEON_DATABASE_URL = newUrl;
-    await require('../api/_store').init();
+    await require('../lib/store').init();
     await require('../lib/ops/db').getDb();
     console.log('Prepared empty tables in the new database.\n');
   }

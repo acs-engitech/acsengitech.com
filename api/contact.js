@@ -1,4 +1,4 @@
-const store=require('./_store');
+const store=require('../lib/store');
 const {submitContact}=require('../lib/contact');
 const {parseMultipart}=require('../lib/uploads');
 const {checkRateLimit,clientIp}=require('../lib/rate-limit');

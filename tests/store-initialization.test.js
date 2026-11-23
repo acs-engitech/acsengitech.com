@@ -9,7 +9,7 @@ function isolatedStore(query) {
     module: { exports: {} }, process: { env: { DATABASE_URL: 'test' } },
     require: name => name === '@neondatabase/serverless' ? { neon: () => query } : name.endsWith('linkedin-blog-import.json') ? require('../lib/linkedin-blog-import.json') : defaults,
   };
-  vm.runInNewContext(fs.readFileSync(require.resolve('../api/_store'), 'utf8'), context);
+  vm.runInNewContext(fs.readFileSync(require.resolve('../lib/store'), 'utf8'), context);
   return context.module.exports;
 }
 
