@@ -18,15 +18,10 @@ const apiRoutes = {
   '/api/apply': './api/apply',
   '/api/partner': './api/partner',
   '/api/contact': './api/contact',
-  '/api/robots': './api/robots',
-  '/api/llms': './api/llms',
-  '/robots.txt': './api/robots',
-  '/llms.txt': './api/llms',
-  '/api/sitemap': './api/sitemap',
-  '/sitemap.xml': './api/sitemap',
   '/api/markdown': './api/markdown',
   '/api/ops': './api/ops',
   '/api/team-photo': './api/team-photo',
+  '/api/seo': './api/seo',
 };
 
 // Mirrors vercel.json redirects and middleware.js so local runs match production routing.
@@ -146,6 +141,13 @@ const server = http.createServer(async (req, res) => {
   if (postMatch) {
     parsedUrl.searchParams.set('slug', decodeURIComponent(postMatch[1]));
     handleApi('/api/blog-post', req, res, parsedUrl);
+    return;
+  }
+  // robots.txt, llms.txt and sitemap.xml go through one function, as vercel.json rewrites them.
+  const seoKinds = { '/robots.txt': 'robots', '/llms.txt': 'llms', '/sitemap.xml': 'sitemap' };
+  if (seoKinds[parsedUrl.pathname]) {
+    parsedUrl.searchParams.set('kind', seoKinds[parsedUrl.pathname]);
+    handleApi('/api/seo', req, res, parsedUrl);
     return;
   }
   const apiRoute = apiRoutes[parsedUrl.pathname] ? parsedUrl.pathname : null;
