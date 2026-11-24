@@ -65,10 +65,12 @@ dialog:modal{margin:auto;inset:0}
 @media(max-width:699px){:root{--header:68px;--gutter:24px}body .site-header{padding-inline:24px}.site-header .brand img{width:133px;height:48px}.site-header #main-navigation{padding-inline:24px}.site-header .nav-wide{grid-template-columns:1fr}.footer-signature{grid-template-columns:1fr;gap:28px;padding:38px 0}.site-footer .footer-signature h2{font-size:48px}.footer-signature p{grid-column:auto;font-size:16px}.footer-handover{grid-template-columns:1fr;gap:28px;padding-top:28px}.footer-connection>a{font-size:12px;gap:10px}.footer-connection .technical-label{font-size:10px}.site-footer .footer-bottom{padding-right:0;padding-bottom:60px;font-size:11px;display:block}.footer-bottom>a{display:block;margin-top:16px}.site-footer:before{height:50px}.footer-directory summary,.footer-directory .footer-contact{font-size:18px}}
 html:not(.has-js) .site-header{position:relative;height:auto;flex-wrap:wrap;padding-block:16px}html:not(.has-js) .site-header #main-navigation{position:static;display:flex}html:not(.has-js) .menu-toggle{display:none}
 
-/* Footer social links: plain clickable icons. Labels stay available to screen readers only. */
-.site-footer .footer-social{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:40px 0 0}
-.site-footer .footer-social a{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;color:var(--ink);transition:color .25s var(--ease),background-color .25s var(--ease)}
-.site-footer .footer-social a:hover{color:#fff;background:var(--blue)}
+/* Footer social links: four icons in hairline circles, tightly spaced above the copyright line.
+   Labels stay available to screen readers only. */
+.site-footer .footer-social{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:6px 0 0}
+.site-footer .footer-social + .footer-bottom{margin-top:34px}
+.site-footer .footer-social a{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;border:1px solid #c9d5d8;background:#fff;color:var(--navy,#1c3a62);transition:color .25s var(--ease),background-color .25s var(--ease),border-color .25s var(--ease),transform .25s var(--ease)}
+.site-footer .footer-social a:hover{color:#fff;background:var(--navy,#1c3a62);border-color:var(--navy,#1c3a62);transform:translateY(-2px)}
 .site-footer .footer-social a:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
-.site-footer .footer-social svg{width:20px;height:20px;flex:none;fill:currentColor}
+.site-footer .footer-social svg{width:18px;height:18px;flex:none;fill:currentColor}
 .site-footer .footer-social span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
