@@ -67,8 +67,8 @@ html:not(.has-js) .site-header{position:relative;height:auto;flex-wrap:wrap;padd
 
 /* Footer social links: four icons in hairline circles, tightly spaced above the copyright line.
    Labels stay available to screen readers only. */
-.site-footer .footer-social{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:6px 0 0}
-.site-footer .footer-social + .footer-bottom{margin-top:34px}
+.site-footer .footer-social{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:20px 0 0}
+.site-footer .footer-social + .footer-bottom{margin-top:26px}
 .site-footer .footer-social a{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;border:1px solid #c9d5d8;background:#fff;color:var(--navy,#1c3a62);transition:color .25s var(--ease),background-color .25s var(--ease),border-color .25s var(--ease),transform .25s var(--ease)}
 .site-footer .footer-social a:hover{color:#fff;background:var(--navy,#1c3a62);border-color:var(--navy,#1c3a62);transform:translateY(-2px)}
 .site-footer .footer-social a:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
